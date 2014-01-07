@@ -1,0 +1,1 @@
+require 'presto/client'
