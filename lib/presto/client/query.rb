@@ -74,6 +74,11 @@ module Presto::Client
       @client.cancel_leaf_stage
     end
 
+    def close
+      @client.cancel_leaf_stage
+      nil
+    end
+
     def raise_error
       if @client.closed?
         raise PrestoClientError, "Query aborted by user"

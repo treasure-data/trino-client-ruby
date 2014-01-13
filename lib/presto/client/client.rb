@@ -23,8 +23,17 @@ module Presto::Client
       @session = ClientSession.new(options)
     end
 
-    def query(query)
-      Query.start(@session, query)
+    def query(query, &block)
+      if block
+        q = Query.start(@session, query)
+        begin
+          yield q
+        ensure
+          q.close
+        end
+      else
+        return Query.start(@session, query)
+      end
     end
   end
 

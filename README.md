@@ -19,16 +19,16 @@ client = Presto::Client.new(
 )
 
 # start running a query on presto
-q = client.query("select * from sys.node")
+client.query("select * from sys.node") do |q|
+  # wait for completion and get columns
+  q.columns.each {|column|
+    puts "column: #{column.name}.#{column.type}"
+  }
 
-# wait for completion and get columns
-q.columns.each {|column|
-  puts "column: #{column.name}.#{column.type}"
-}
-
-# get query results
-q.each_row {|row|
-  p row
-}
+  # get query results
+  q.each_row {|row|
+    p row
+  }
+end
 ```
 
