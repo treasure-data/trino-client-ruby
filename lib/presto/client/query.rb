@@ -70,6 +70,10 @@ module Presto::Client
       end while @client.has_next?
     end
 
+    def cancel
+      @client.cancel_leaf_stage
+    end
+
     def raise_error
       if @client.closed?
         raise PrestoClientError, "Query aborted by user"

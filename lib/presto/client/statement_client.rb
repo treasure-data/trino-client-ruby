@@ -69,7 +69,7 @@ module Presto::Client
 
       # TODO error handling
       if response.status != 200
-        raise PrestoHttpError.new(response.status, "Failed to start query: #{response.body}")  # TODO error class
+        raise PrestoHttpError.new(response.status, "Failed to start query: #{response.body}")
       end
 
       body = response.body
@@ -137,7 +137,7 @@ module Presto::Client
 
         if response.status != 503  # retry on 503 Service Unavailable
           # deterministic error
-          @exception = PrestoHttpError.new(response.status, "Error fetching next at #{uri} returned #{response.status}: #{response.body}")  # TODO error class
+          @exception = PrestoHttpError.new(response.status, "Error fetching next at #{uri} returned #{response.status}: #{response.body}")
           raise @exception
         end
 
@@ -149,17 +149,22 @@ module Presto::Client
       raise @exception
     end
 
+    def cancel_leaf_stage
+      if uri = @results.next_uri
+        response = @faraday.delete do |req|
+          req.url uri
+        end
+        return response.status / 100 == 2
+      end
+      return false
+    end
+
     def close
       return if @closed
 
       # cancel running statement
-      if uri = @results.next_uri
-        # TODO error handling
-        # TODO make async reqeust and ignore response
-        @faraday.delete do |req|
-          req.url uri
-        end
-      end
+      # TODO make async reqeust and ignore response?
+      cancel_leaf_stage
 
       @closed = true
       nil
