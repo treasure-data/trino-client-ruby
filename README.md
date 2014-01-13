@@ -11,7 +11,7 @@ This is a client library for Ruby to run queries on Presto.
 require 'presto-client'
 
 # create a client object
-client = PrestoClient::Client.new(
+client = Presto::Client.new(
   server: "localhost:8880",
   user: "frsyuki",
   catalog: "native",
@@ -19,7 +19,7 @@ client = PrestoClient::Client.new(
 )
 
 # start running a query on presto
-q = client.query("select * from sys.query")
+q = client.query("select * from sys.node")
 
 # wait for completion and get columns
 q.columns.each {|column|
