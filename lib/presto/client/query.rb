@@ -17,6 +17,7 @@ module Presto::Client
 
   require 'faraday'
   require 'presto/client/models'
+  require 'presto/client/errors'
   require 'presto/client/statement_client'
 
   class Query
@@ -33,6 +34,8 @@ module Presto::Client
     def initialize(client)
       @client = client
     end
+
+    attr_reader :client
 
     def wait_for_data
       while @client.has_next? && @client.current_results.data == nil
@@ -56,7 +59,7 @@ module Presto::Client
       raise_error unless @client.query_succeeded?
 
       if self.columns == nil
-        raise "Query #{@client.current_results.id} has no columns"
+        raise PrestoError, "Query #{@client.current_results.id} has no columns"
       end
 
       begin
@@ -69,13 +72,17 @@ module Presto::Client
 
     def raise_error
       if @client.closed?
-        raise "Query aborted by user"
+        raise PrestoClientError, "Query aborted by user"
       elsif @client.exception?
-        raise "Query is gone: #{@client.exception}"
+        # query is gone
+        raise @client.exception
       elsif @client.query_failed?
         results = @client.current_results
-        # TODO error location
-        raise "Query #{results.id} failed: #{results.error}"
+        error = results.error
+        unless error
+          raise PrestoQueryError.new("Query #{results.id} failed: (unknown reason)", results.id, nil, nil)
+        end
+        raise PrestoQueryError.new("Query #{results.id} failed: #{error.message}", results.id, error.error_code, error.failure_info)
       end
     end
 

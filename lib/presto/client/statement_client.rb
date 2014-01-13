@@ -17,6 +17,7 @@ module Presto::Client
 
   require 'multi_json'
   require 'presto/client/models'
+  require 'presto/client/errors'
 
   module PrestoHeaders
     PRESTO_USER = "X-Presto-User"
@@ -68,7 +69,7 @@ module Presto::Client
 
       # TODO error handling
       if response.status != 200
-        raise "Failed to start query: #{response.body}"  # TODO error class
+        raise PrestoHttpError.new(response.status, "Failed to start query: #{response.body}")  # TODO error class
       end
 
       body = response.body
@@ -136,7 +137,7 @@ module Presto::Client
 
         if response.status != 503  # retry on 503 Service Unavailable
           # deterministic error
-          @exception = StandardError.new("Error fetching next at #{uri} returned #{response.status}: #{response.body}")  # TODO error class
+          @exception = PrestoHttpError.new(response.status, "Error fetching next at #{uri} returned #{response.status}: #{response.body}")  # TODO error class
           raise @exception
         end
 
@@ -144,7 +145,7 @@ module Presto::Client
         sleep attempts * 0.1
       end while (Time.now - start) < 2*60*60 && !@closed
 
-      @exception = StandardError.new("Error fetching next")  # TODO error class
+      @exception = PrestoHttpError.new(408, "Error fetching next due to timeout")
       raise @exception
     end
 
