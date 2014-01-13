@@ -35,6 +35,19 @@ module Presto::Client
         return Query.start(@session, query)
       end
     end
+
+    def run(query)
+      q = Query.start(@session, query)
+      begin
+        columns = q.columns
+        if columns.empty?
+          return [], []
+        end
+        return columns, q.rows
+      ensure
+        q.close
+      end
+    end
   end
 
   def self.new(*args)

@@ -53,7 +53,21 @@ module Presto::Client
       return @client.current_results.columns
     end
 
+    def rows
+      rows = []
+      each_row_chunk {|chunk|
+        rows.concat(chunk)
+      }
+      return rows
+    end
+
     def each_row(&block)
+      each_row_chunk {|chunk|
+        chunk.each(&block)
+      }
+    end
+
+    def each_row_chunk(&block)
       wait_for_data
 
       raise_error unless @client.query_succeeded?
@@ -64,7 +78,7 @@ module Presto::Client
 
       begin
         if data = @client.current_results.data
-          data.each(&block)
+          block.call(data)
         end
         @client.advance
       end while @client.has_next?
