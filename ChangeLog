@@ -1,4 +1,10 @@
 
+2014-01-22 version 0.3.0:
+
+* Added http_timeout option
+* Added http_open_timeout option
+* Changed Query.start API to start(query, options) to http options
+
 2014-01-22 version 0.2.0:
 
 * Added Query#cancel
