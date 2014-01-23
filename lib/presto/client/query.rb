@@ -21,14 +21,19 @@ module Presto::Client
   require 'presto/client/statement_client'
 
   class Query
-    def self.start(session, query)
-      faraday = Faraday.new(url: "http://#{session.server}") do |faraday|
+    def self.start(query, options)
+      server = options[:server]
+      unless server
+        raise ArgumentError, ":server option is required"
+      end
+
+      faraday = Faraday.new(url: "http://#{server}") do |faraday|
         #faraday.request :url_encoded
         faraday.response :logger
         faraday.adapter Faraday.default_adapter
       end
 
-      new StatementClient.new(faraday, session, query)
+      new StatementClient.new(faraday, query, options)
     end
 
     def initialize(client)

@@ -20,24 +20,24 @@ module Presto::Client
 
   class Client
     def initialize(options)
-      @session = ClientSession.new(options)
+      @options = options
     end
 
     def query(query, &block)
+      q = Query.start(query, @options)
       if block
-        q = Query.start(@session, query)
         begin
           yield q
         ensure
           q.close
         end
       else
-        return Query.start(@session, query)
+        return q
       end
     end
 
     def run(query)
-      q = Query.start(@session, query)
+      q = Query.start(query, @options)
       begin
         columns = q.columns
         if columns.empty?

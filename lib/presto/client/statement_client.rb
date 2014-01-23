@@ -36,31 +36,38 @@ module Presto::Client
       "User-Agent" => "presto-ruby/#{VERSION}"
     }
 
-    def initialize(faraday, session, query)
+    def initialize(faraday, query, options)
       @faraday = faraday
       @faraday.headers.merge!(HEADERS)
 
-      @session = session
+      @options = options
       @query = query
       @closed = false
       @exception = nil
       post_query_request!
     end
 
+    def init_request(req)
+      req.options.timeout = @options[:http_timeout] || 300
+      req.options.open_timeout = @options[:http_open_timeout] || 60
+    end
+
+    private :init_request
+
     def post_query_request!
       response = @faraday.post do |req|
         req.url "/v1/statement"
 
-        if v = @session.user
+        if v = @options[:user]
           req.headers[PrestoHeaders::PRESTO_USER] = v
         end
-        if v = @session.source
+        if v = @options[:source]
           req.headers[PrestoHeaders::PRESTO_SOURCE] = v
         end
-        if v = @session.catalog
+        if v = @options[:catalog]
           req.headers[PrestoHeaders::PRESTO_CATALOG] = v
         end
-        if v = @session.schema
+        if v = @options[:schema]
           req.headers[PrestoHeaders::PRESTO_SCHEMA] = v
         end
 
@@ -82,7 +89,7 @@ module Presto::Client
     attr_reader :query
 
     def debug?
-      @session.debug?
+      !!@options[:debug]
     end
 
     def closed?

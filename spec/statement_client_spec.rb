@@ -1,14 +1,14 @@
 require 'spec_helper'
 
 describe Presto::Client::StatementClient do
-  let :session do
-    session = ClientSession.new(
+  let :options do
+    {
       server: "localhost",
       user: "frsyuki",
       catalog: "native",
       schema: "default",
       debug: true,
-    )
+    }
   end
 
   let :query do
@@ -27,13 +27,13 @@ describe Presto::Client::StatementClient do
       with(body: query,
            headers: {
               "User-Agent" => "presto-ruby/#{VERSION}",
-              "X-Presto-Catalog" => session.catalog,
-              "X-Presto-Schema" => session.schema,
-              "X-Presto-User" => session.user,
+              "X-Presto-Catalog" => options[:catalog],
+              "X-Presto-Schema" => options[:schema],
+              "X-Presto-User" => options[:user],
     }).to_return(body: response_json.to_json)
 
     faraday = Faraday.new(url: "http://localhost")
-    StatementClient.new(faraday, session, query)
+    StatementClient.new(faraday, query, options)
   end
 end
 

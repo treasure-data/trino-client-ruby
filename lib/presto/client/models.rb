@@ -32,27 +32,6 @@ module Presto::Client
     end
   end
 
-  class ClientSession
-    def initialize(options)
-      @server = options[:server]
-      @user = options[:user]
-      @source = options[:source]
-      @catalog = options[:catalog]
-      @schema = options[:schema]
-      @debug = !!options[:debug]
-    end
-
-    attr_reader :server
-    attr_reader :user
-    attr_reader :source
-    attr_reader :catalog
-    attr_reader :schema
-
-    def debug?
-      @debug
-    end
-  end
-
   class StageStats
     attr_reader :stage_id
     attr_reader :state
