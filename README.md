@@ -13,9 +13,10 @@ require 'presto-client'
 # create a client object:
 client = Presto::Client.new(
   server: "localhost:8880",
-  user: "frsyuki",
   catalog: "native",
   schema: "default",
+  user: "frsyuki",
+  http_debug: true,
 )
 
 # run a query and get results:
@@ -38,4 +39,15 @@ client.query("select * from sys.node") do |q|
   }
 end
 ```
+
+## Options
+
+* **server** sets address[:port] to a Presto coordinator
+* **catalog** sets catalog (connector) name of Presto such as `hive-cdh4`, `hive-hadoop1`, etc.
+* **schema** sets default schema name of Presto. You can read other schemas by qualified name like `FROM myschema.table1`
+* **source** sets source name to connect to a Presto. This name is shown on Presto web interface.
+* **user** sets user name to connect to a Presto.
+* **http_debug** enables debug message to STDOUT for each HTTP requests
+* **http_open_timeout** sets timeout in seconds to open new HTTP connection
+* **http_timeout** sets timeout in seconds to read data from a server
 
