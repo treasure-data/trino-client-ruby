@@ -29,7 +29,7 @@ module Presto::Client
 
       faraday = Faraday.new(url: "http://#{server}") do |faraday|
         #faraday.request :url_encoded
-        faraday.response :logger
+        faraday.response :logger if options[:http_debug]
         faraday.adapter Faraday.default_adapter
       end
 
