@@ -1,4 +1,9 @@
 
+2014-04-01 version 0.3.2:
+
+* Fixed a problem that client skips the last chunk if result is large
+
+
 2014-01-30 version 0.3.1:
 
 * Added http_debug option
