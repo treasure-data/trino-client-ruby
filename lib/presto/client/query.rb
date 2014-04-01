@@ -43,8 +43,7 @@ module Presto::Client
     attr_reader :client
 
     def wait_for_data
-      while @client.has_next? && @client.current_results.data == nil
-        @client.advance
+      while @client.current_results.data == nil && @client.advance
       end
     end
 
@@ -85,8 +84,7 @@ module Presto::Client
         if data = @client.current_results.data
           block.call(data)
         end
-        @client.advance
-      end while @client.has_next?
+      end while @client.advance
     end
 
     def cancel
