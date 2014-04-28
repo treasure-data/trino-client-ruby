@@ -24,6 +24,7 @@ module Presto::Client
     PRESTO_SOURCE = "X-Presto-Source"
     PRESTO_CATALOG = "X-Presto-Catalog"
     PRESTO_SCHEMA = "X-Presto-Schema"
+    PRESTO_TIME_ZONE = "X-Presto-Time-Zone"
 
     PRESTO_CURRENT_STATE = "X-Presto-Current-State"
     PRESTO_MAX_WAIT = "X-Presto-Max-Wait"
@@ -33,7 +34,8 @@ module Presto::Client
 
   class StatementClient
     HEADERS = {
-      "User-Agent" => "presto-ruby/#{VERSION}"
+      "User-Agent" => "presto-ruby/#{VERSION}",
+      "Accept-Language" => "en",
     }
 
     def initialize(faraday, query, options)
@@ -69,6 +71,12 @@ module Presto::Client
         end
         if v = @options[:schema]
           req.headers[PrestoHeaders::PRESTO_SCHEMA] = v
+        end
+        if v = @options[:time_zone]
+          req.headers[PrestoHeaders::PRESTO_TIME_ZONE] = v
+        end
+        if v = @options[:locale]
+          req.headers["Accept-Language"] = v
         end
 
         req.body = @query

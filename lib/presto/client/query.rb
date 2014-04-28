@@ -105,9 +105,6 @@ module Presto::Client
       elsif @client.query_failed?
         results = @client.current_results
         error = results.error
-        unless error
-          raise PrestoQueryError.new("Query #{results.id} failed: (unknown reason)", results.id, nil, nil)
-        end
         raise PrestoQueryError.new("Query #{results.id} failed: #{error.message}", results.id, error.error_code, error.failure_info)
       end
     end
