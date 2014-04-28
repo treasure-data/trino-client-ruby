@@ -35,7 +35,6 @@ module Presto::Client
   class StatementClient
     HEADERS = {
       "User-Agent" => "presto-ruby/#{VERSION}",
-      "Accept-Language" => "en",
     }
 
     def initialize(faraday, query, options)
