@@ -25,6 +25,7 @@ module Presto::Client
     PRESTO_CATALOG = "X-Presto-Catalog"
     PRESTO_SCHEMA = "X-Presto-Schema"
     PRESTO_TIME_ZONE = "X-Presto-Time-Zone"
+    PRESTO_LANGUAGE = "X-Presto-Language"
 
     PRESTO_CURRENT_STATE = "X-Presto-Current-State"
     PRESTO_MAX_WAIT = "X-Presto-Max-Wait"
@@ -74,8 +75,8 @@ module Presto::Client
         if v = @options[:time_zone]
           req.headers[PrestoHeaders::PRESTO_TIME_ZONE] = v
         end
-        if v = @options[:locale]
-          req.headers["Accept-Language"] = v
+        if v = @options[:language]
+          req.headers[PrestoHeaders::PRESTO_LANGUAGE] = v
         end
 
         req.body = @query
