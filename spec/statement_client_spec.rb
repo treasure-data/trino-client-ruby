@@ -7,6 +7,8 @@ describe Presto::Client::StatementClient do
       user: "frsyuki",
       catalog: "native",
       schema: "default",
+      time_zone: "US/Pacific",
+      language: "ja_JP",
       debug: true,
     }
   end
@@ -22,7 +24,7 @@ describe Presto::Client::StatementClient do
     }
   end
 
-  it do
+  it "sets headers" do
     stub_request(:post, "localhost/v1/statement").
       with(body: query,
            headers: {
@@ -30,6 +32,8 @@ describe Presto::Client::StatementClient do
               "X-Presto-Catalog" => options[:catalog],
               "X-Presto-Schema" => options[:schema],
               "X-Presto-User" => options[:user],
+              "X-Presto-Language" => options[:language],
+              "X-Presto-Time-Zone" => options[:time_zone],
     }).to_return(body: response_json.to_json)
 
     faraday = Faraday.new(url: "http://localhost")
