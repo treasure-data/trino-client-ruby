@@ -1,4 +1,9 @@
 
+2014-05-06 version 0.3.3:
+
+* Added :time_zone and :language options added by Presto 0.66
+
+
 2014-04-01 version 0.3.2:
 
 * Fixed a problem that client skips the last chunk if result is large
