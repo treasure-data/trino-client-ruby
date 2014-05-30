@@ -18,7 +18,7 @@ module Presto::Client
   ####
   ## lib/presto/client/models.rb is automatically generated using "rake modelgen" command.
   ## You should not edit this file directly. To modify the class definitions, edit
-  ## modelgen/models.rb file instead.
+  ## modelgen/models.rb file and run "rake modelgen".
   ##
 
   class QueryId < String
@@ -160,8 +160,9 @@ module Presto::Client
         id: hash["id"] && PlanNodeId.new(hash["id"]),
         source: hash["source"] && PlanNode.decode_hash(hash["source"]),
         group_by: hash["groupBy"],
+        aggregations: hash["aggregations"],
         functions: hash["functions"] && Hash[hash["functions"].to_a.map! {|k,v| [k, Signature.decode_hash(v)] }],
-        masks: hash["masks"] && Hash[hash["masks"].to_a.map! {|k,v| [k, v] }],
+        masks: hash["masks"],
         step: hash["step"] && hash["step"].downcase.to_sym,
         sample_weight: hash["sampleWeight"],
         confidence: hash["confidence"],
@@ -429,6 +430,7 @@ module Presto::Client
   class FilterNode
     attr_reader :id
     attr_reader :source
+    attr_reader :predicate
 
     def initialize(options={})
       @id = options[:id]
@@ -440,6 +442,7 @@ module Presto::Client
       new(
         id: hash["id"] && PlanNodeId.new(hash["id"]),
         source: hash["source"] && PlanNode.decode_hash(hash["source"]),
+        predicate: hash["predicate"],
       )
     end
   end
@@ -842,7 +845,7 @@ module Presto::Client
       new(
         id: hash["id"] && PlanFragmentId.new(hash["id"]),
         root: hash["root"] && PlanNode.decode_hash(hash["root"]),
-        symbols: hash["symbols"] && Hash[hash["symbols"].to_a.map! {|k,v| [k, v] }],
+        symbols: hash["symbols"],
         distribution: hash["distribution"] && hash["distribution"].downcase.to_sym,
         partitioned_source: hash["partitionedSource"] && PlanNodeId.new(hash["partitionedSource"]),
         output_partitioning: hash["outputPartitioning"] && hash["outputPartitioning"].downcase.to_sym,
@@ -866,6 +869,7 @@ module Presto::Client
       new(
         id: hash["id"] && PlanNodeId.new(hash["id"]),
         source: hash["source"] && PlanNode.decode_hash(hash["source"]),
+        assignments: hash["assignments"],
       )
     end
   end
@@ -1209,6 +1213,7 @@ module Presto::Client
         id: hash["id"] && PlanNodeId.new(hash["id"]),
         source: hash["source"] && PlanNode.decode_hash(hash["source"]),
         order_by: hash["orderBy"],
+        orderings: hash["orderings"] && Hash[hash["orderings"].to_a.map! {|k,v| [k, v.downcase.to_sym] }],
       )
     end
   end
@@ -1399,6 +1404,7 @@ module Presto::Client
     attr_reader :table
     attr_reader :output_symbols
     attr_reader :assignments
+    attr_reader :original_constraint
 
     def initialize(options={})
       @id = options[:id]
@@ -1414,6 +1420,7 @@ module Presto::Client
         table: hash["table"] && TableHandle.decode_hash(hash["table"]),
         output_symbols: hash["outputSymbols"],
         assignments: hash["assignments"] && Hash[hash["assignments"].to_a.map! {|k,v| [k, ColumnHandle.decode_hash(v)] }],
+        original_constraint: hash["originalConstraint"],
       )
     end
   end
@@ -1590,6 +1597,7 @@ module Presto::Client
         source: hash["source"] && PlanNode.decode_hash(hash["source"]),
         count: hash["count"],
         order_by: hash["orderBy"],
+        orderings: hash["orderings"] && Hash[hash["orderings"].to_a.map! {|k,v| [k, v.downcase.to_sym] }],
         partial: hash["partial"],
         sample_weight: hash["sampleWeight"],
       )
@@ -1599,6 +1607,7 @@ module Presto::Client
   class ValuesNode
     attr_reader :id
     attr_reader :output_symbols
+    attr_reader :rows
 
     def initialize(options={})
       @id = options[:id]
@@ -1610,6 +1619,7 @@ module Presto::Client
       new(
         id: hash["id"] && PlanNodeId.new(hash["id"]),
         output_symbols: hash["outputSymbols"],
+        rows: hash["rows"],
       )
     end
   end
@@ -1639,6 +1649,8 @@ module Presto::Client
         source: hash["source"] && PlanNode.decode_hash(hash["source"]),
         partition_by: hash["partitionBy"],
         order_by: hash["orderBy"],
+        orderings: hash["orderings"] && Hash[hash["orderings"].to_a.map! {|k,v| [k, v.downcase.to_sym] }],
+        window_functions: hash["windowFunctions"],
         signatures: hash["signatures"] && Hash[hash["signatures"].to_a.map! {|k,v| [k, Signature.decode_hash(v)] }],
       )
     end

@@ -147,7 +147,7 @@ module PrestoModels
 
     def format_attr_readers
       @model.fields.each do |field|
-        next if @skip_types.include?(field.base_type)
+        next if @skip_types.include?(field.base_type) || @skip_types.include?(field.map_value_base_type)
         puts_with_indent 1, "attr_reader :#{field.name}"
       end
     end
@@ -175,7 +175,11 @@ module PrestoModels
           if field.map?
             key_expr = convert_expression(field.base_type, field.base_type, "k")
             value_expr = convert_expression(field.map_value_base_type, field.map_value_base_type, "v")
-            expr << "Hash[hash[\"#{field.key}\"].to_a.map! {|k,v| [#{key_expr}, #{value_expr}] }]"
+            if key_expr == 'k' && value_expr == 'v'
+              expr = "hash[\"#{field.key}\"]"
+            else
+              expr << "Hash[hash[\"#{field.key}\"].to_a.map! {|k,v| [#{key_expr}, #{value_expr}] }]"
+            end
           elsif field.array?
             elem_expr = convert_expression(field.base_type, field.base_type, "h")
             expr << "hash[\"#{field.key}\"].map {|h| #{elem_expr} }"

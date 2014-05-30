@@ -15,8 +15,8 @@ source_path = "/Users/frsyuki/project/presto-client-ruby/presto"
 predefined_simple_classes = %w[QueryId StageId TaskId PlanNodeId PlanFragmentId ConnectorSession]
 predefined_models = %w[DistributionSnapshot PlanNode]
 
-assume_primitive = %w[Object Type Symbol URI Duration DataSize DateTime ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle]
-enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step]
+assume_primitive = %w[Object Type Symbol URI Duration DataSize DateTime ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle Expression FunctionCall]
+enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder]
 
 root_models = %w[QueryResults QueryInfo] + %w[
 OutputNode
