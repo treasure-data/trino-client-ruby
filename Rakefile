@@ -11,3 +11,16 @@ RSpec::Core::RakeTask.new(:spec) do |t|
 end
 
 task :default => [:spec, :build]
+
+GEN_MODELS_VERSION = "0.69"
+
+task :modelgen do
+  unless Dir.exists?("presto-#{GEN_MODELS_VERSION}")
+    sh "curl -L -o presto-#{GEN_MODELS_VERSION}.tar.gz https://github.com/facebook/presto/archive/#{GEN_MODELS_VERSION}.tar.gz"
+    sh "tar zxvf presto-#{GEN_MODELS_VERSION}.tar.gz"
+  end
+
+  sh "#{RbConfig.ruby} modelgen/modelgen.rb presto-#{GEN_MODELS_VERSION} modelgen/models.rb lib/presto/client/models.rb"
+  puts "Generated lib/presto/client/models.rb."
+end
+
