@@ -15,6 +15,12 @@
 #
 module Presto::Client
 
+  ####
+  ## lib/presto/client/models.rb is automatically generated using "rake modelgen" command.
+  ## You should not edit this file directly. To modify the class definitions, edit
+  ## modelgen/models.rb file and run "rake modelgen".
+  ##
+
   class QueryId < String
   end
 

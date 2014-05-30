@@ -15,6 +15,12 @@
 #
 module Presto::Client
 
+  ####
+  ## lib/presto/client/models.rb is automatically generated using "rake modelgen" command.
+  ## You should not edit this file directly. To modify the class definitions, edit
+  ## modelgen/models.rb file instead.
+  ##
+
   class QueryId < String
   end
 
@@ -205,6 +211,7 @@ module Presto::Client
 
   class ColumnHandle
     attr_reader :connector_id
+    attr_reader :connector_handle
 
     def initialize(options={})
       @connector_id = options[:connector_id]
@@ -214,6 +221,7 @@ module Presto::Client
     def self.decode_hash(hash)
       new(
         connector_id: hash["connectorId"],
+        connector_handle: hash["connectorHandle"],
       )
     end
   end
