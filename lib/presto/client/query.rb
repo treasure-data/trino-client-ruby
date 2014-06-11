@@ -36,14 +36,20 @@ module Presto::Client
       new StatementClient.new(faraday, query, options)
     end
 
-    def initialize(client)
-      @client = client
+    def initialize(api)
+      @api = api
     end
 
-    attr_reader :client
+    def current_results
+      @api.current_results
+    end
+
+    def advance
+      @api.advance
+    end
 
     def wait_for_data
-      while @client.current_results.data == nil && @client.advance
+      while @api.current_results.data == nil && @api.advance
       end
     end
 
@@ -52,9 +58,9 @@ module Presto::Client
     def columns
       wait_for_data
 
-      raise_error unless @client.query_succeeded?
+      raise_error unless @api.query_succeeded?
 
-      return @client.current_results.columns
+      return @api.current_results.columns
     end
 
     def rows
@@ -74,36 +80,40 @@ module Presto::Client
     def each_row_chunk(&block)
       wait_for_data
 
-      raise_error unless @client.query_succeeded?
+      raise_error unless @api.query_succeeded?
 
       if self.columns == nil
-        raise PrestoError, "Query #{@client.current_results.id} has no columns"
+        raise PrestoError, "Query #{@api.current_results.id} has no columns"
       end
 
       begin
-        if data = @client.current_results.data
+        if data = @api.current_results.data
           block.call(data)
         end
-      end while @client.advance
+      end while @api.advance
+    end
+
+    def query_info
+      @api.query_info
     end
 
     def cancel
-      @client.cancel_leaf_stage
+      @api.cancel_leaf_stage
     end
 
     def close
-      @client.cancel_leaf_stage
+      @api.cancel_leaf_stage
       nil
     end
 
     def raise_error
-      if @client.closed?
+      if @api.closed?
         raise PrestoClientError, "Query aborted by user"
-      elsif @client.exception?
+      elsif @api.exception?
         # query is gone
-        raise @client.exception
-      elsif @client.query_failed?
-        results = @client.current_results
+        raise @api.exception
+      elsif @api.query_failed?
+        results = @api.current_results
         error = results.error
         raise PrestoQueryError.new("Query #{results.id} failed: #{error.message}", results.id, error.error_code, error.failure_info)
       end

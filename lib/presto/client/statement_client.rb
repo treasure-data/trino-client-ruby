@@ -89,7 +89,7 @@ module Presto::Client
 
       body = response.body
       hash = MultiJson.load(body)
-      @results = QueryResults.decode_hash(hash)
+      @results = Models::QueryResults.decode(hash)
     end
 
     private :post_query_request!
@@ -132,27 +132,36 @@ module Presto::Client
       end
       uri = @results.next_uri
 
+      body = faraday_get_with_retry(uri)
+      @results = Models::QueryResults.decode(MultiJson.load(body))
+
+      return true
+    end
+
+    def query_info
+      body = faraday_get_with_retry("/v1/query/#{@results.id}")
+      Models::QueryInfo.decode(MultiJson.load(body))
+    end
+
+    def faraday_get_with_retry(uri, &block)
       start = Time.now
       attempts = 0
 
       begin
         begin
-          response = @faraday.get do |req|
-            req.url uri
-          end
+          response = @faraday.get(uri)
         rescue => e
           @exception = e
           raise @exception
         end
 
         if response.status == 200 && !response.body.to_s.empty?
-          @results = QueryResults.decode_hash(MultiJson.load(response.body))
-          return true
+          return response.body
         end
 
-        if response.status != 503  # retry on 503 Service Unavailable
+        if response.status != 503  # retry only if 503 Service Unavailable
           # deterministic error
-          @exception = PrestoHttpError.new(response.status, "Error fetching next at #{uri} returned #{response.status}: #{response.body}")
+          @exception = PrestoHttpError.new(response.status, "Presto API error at #{uri} returned #{response.status}: #{response.body}")
           raise @exception
         end
 
@@ -160,7 +169,7 @@ module Presto::Client
         sleep attempts * 0.1
       end while (Time.now - start) < 2*60*60 && !@closed
 
-      @exception = PrestoHttpError.new(408, "Error fetching next due to timeout")
+      @exception = PrestoHttpError.new(408, "Presto API error due to timeout")
       raise @exception
     end
 
