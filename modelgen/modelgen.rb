@@ -52,7 +52,9 @@ models = analyzer.models
 skipped_models = analyzer.skipped_models
 
 formatter = PrestoModels::ModelFormatter.new(
-  base_indent_count: 1,
+  base_indent_count: 2,
+  struct_class: "Base",
+  special_struct_initialize_method: "initialize_struct",
   primitive_types: assume_primitive,
   skip_types: skipped_models,
   simple_classes: predefined_simple_classes,

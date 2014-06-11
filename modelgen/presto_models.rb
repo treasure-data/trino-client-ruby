@@ -107,6 +107,8 @@ module PrestoModels
     def initialize(options={})
       @indent = options[:indent] || '  '
       @base_indent_count = options[:base_indent_count] || 0
+      @struct_class = options[:struct_class] || 'Struct'
+      @special_struct_initialize_method = options[:special_struct_initialize_method]
       @primitive_types = PRIMITIVE_TYPES + (options[:primitive_types] || [])
       @skip_types = options[:skip_types] || []
       @simple_classes = options[:simple_classes]
@@ -124,12 +126,9 @@ module PrestoModels
       models.each do |model|
         @model = model
 
-        puts_with_indent 0, "class #{model.name}"
-        format_attr_readers
-        line
-        format_initialize
-        line
-        format_decode_hash
+        puts_with_indent 0, "class << #{model.name} ="
+        puts_with_indent 2, "#{@struct_class}.new(#{model.fields.map {|f| ":#{f.name}" }.join(', ')})"
+        format_decode
         puts_with_indent 0, "end"
         line
       end
@@ -145,24 +144,15 @@ module PrestoModels
       @data.puts "#{@indent * (@base_indent_count + n)}#{str}"
     end
 
-    def format_attr_readers
-      @model.fields.each do |field|
-        next if @skip_types.include?(field.base_type) || @skip_types.include?(field.map_value_base_type)
-        puts_with_indent 1, "attr_reader :#{field.name}"
+    def format_decode
+      puts_with_indent 1, "def decode(hash)"
+      if @special_struct_initialize_method
+        puts_with_indent 2, "obj = allocate"
+        puts_with_indent 2, "obj.send(:#{@special_struct_initialize_method},"
+      else
+        puts_with_indent 2, "new("
       end
-    end
 
-    def format_initialize
-      puts_with_indent 1, "def initialize(options={})"
-      @model.fields.each do |field|
-        puts_with_indent 2, "@#{field.name} = options[:#{field.name}]"
-      end
-      puts_with_indent 1, "end"
-    end
-
-    def format_decode_hash
-      puts_with_indent 1, "def self.decode_hash(hash)"
-      puts_with_indent 2, "new("
       @model.fields.each do |field|
         next if @skip_types.include?(field.base_type) || @skip_types.include?(field.map_value_base_type)
 
@@ -189,10 +179,16 @@ module PrestoModels
         end
 
         #comment = "# #{field.base_type}#{field.array? ? '[]' : ''} #{field.key}"
-        #puts_with_indent 3, "#{field.name}: #{expr},  #{comment}"
-        puts_with_indent 3, "#{field.name}: #{expr},"
+        #puts_with_indent 3, "#{expr},  #{comment}"
+        puts_with_indent 3, "#{expr},"
       end
+
       puts_with_indent 2, ")"
+
+      if @special_struct_initialize_method
+        puts_with_indent 2, "obj"
+      end
+
       puts_with_indent 1, "end"
     end
 
@@ -206,7 +202,7 @@ module PrestoModels
       elsif @simple_classes.include?(base_type)
         "#{base_type}.new(#{key})"
       else  # model class
-        "#{base_type}.decode_hash(#{key})"
+        "#{base_type}.decode(#{key})"
       end
     end
   end
