@@ -1,4 +1,10 @@
 
+2014-06-10 version 0.4.0:
+
+* Added Query#current_results, #advance and #query_info for advanced users
+* Generate model classes from Presto source code to include complete classes
+
+
 2014-05-06 version 0.3.3:
 
 * Added :time_zone and :language options added by Presto 0.66
