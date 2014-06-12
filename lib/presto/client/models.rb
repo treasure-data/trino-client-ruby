@@ -96,7 +96,6 @@ module Presto::Client
           when "indexsource"        then IndexSourceNode
           when "tablewriter"        then TableWriterNode
           when "tablecommit"        then TableCommitNode
-          else
           end
         model_class.decode(hash) if model_class
       end
@@ -127,6 +126,17 @@ module Presto::Client
       end
     end
 
+    class << EquiJoinClause =
+        Base.new(:left, :right)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["left"],
+          hash["right"],
+        )
+        obj
+      end
+    end
 
     ##
     # Those model classes are automatically generated
@@ -334,6 +344,7 @@ module Presto::Client
           hash["type"],
           hash["probeSource"] && PlanNode.decode(hash["probeSource"]),
           hash["indexSource"] && PlanNode.decode(hash["indexSource"]),
+          hash["criteria"] && hash["criteria"].map {|h| EquiJoinClause.decode(h) },
         )
         obj
       end
@@ -378,6 +389,7 @@ module Presto::Client
           hash["type"],
           hash["left"] && PlanNode.decode(hash["left"]),
           hash["right"] && PlanNode.decode(hash["right"]),
+          hash["criteria"] && hash["criteria"].map {|h| EquiJoinClause.decode(h) },
         )
         obj
       end

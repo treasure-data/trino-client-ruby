@@ -87,6 +87,10 @@ module Presto::Client
           when "exchange"           then ExchangeNode
           when "sink"               then SinkNode
           when "join"               then JoinNode
+          when "INNER"              then JoinNode
+          when "LEFT"               then JoinNode
+          when "RIGHT"              then JoinNode
+          when "CROSS"              then JoinNode
           when "semijoin"           then SemiJoinNode
           when "indexjoin"          then IndexJoinNode
           when "indexsource"        then IndexSourceNode
@@ -122,6 +126,17 @@ module Presto::Client
       end
     end
 
+    class << EquiJoinClause =
+        Base.new(:left, :right)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["left"],
+          hash["right"],
+        )
+        obj
+      end
+    end
 
     ##
     # Those model classes are automatically generated
