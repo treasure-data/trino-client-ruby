@@ -49,9 +49,26 @@ module Presto::Client
     end
 
     class StageId < String
+      def initialize(str)
+        super
+        splitted = split('.', 2)
+        @query_id = QueryId.new(splitted[0])
+        @id = QueryId.new(splitted[1])
+      end
+
+      attr_reader :query_id, :id
     end
 
     class TaskId < String
+      def initialize(str)
+        super
+        splitted = split('.', 3)
+        @stage_id = StageId.new("#{splitted[0]}.#{splitted[1]}")
+        @query_id = @stage_id.query_id
+        @id = splitted[2]
+      end
+
+      attr_reader :query_id, :stage_id, :id
     end
 
     class PlanNodeId < String
