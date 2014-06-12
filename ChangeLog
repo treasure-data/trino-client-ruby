@@ -1,4 +1,11 @@
 
+2014-06-12 version 0.4.1:
+
+* Added EquiJoinClause model class
+* Added StageId#query_id and #id methods
+* Added TaskId#query_id, #stage_id and #id methods
+
+
 2014-06-10 version 0.4.0:
 
 * Added Query#current_results, #advance and #query_info for advanced users
