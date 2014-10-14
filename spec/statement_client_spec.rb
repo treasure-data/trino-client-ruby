@@ -9,6 +9,7 @@ describe Presto::Client::StatementClient do
       schema: "default",
       time_zone: "US/Pacific",
       language: "ja_JP",
+      properties: {"hello" => "world", "name"=>"value"},
       debug: true,
     }
   end
@@ -34,6 +35,7 @@ describe Presto::Client::StatementClient do
               "X-Presto-User" => options[:user],
               "X-Presto-Language" => options[:language],
               "X-Presto-Time-Zone" => options[:time_zone],
+              "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
     }).to_return(body: response_json.to_json)
 
     faraday = Faraday.new(url: "http://localhost")

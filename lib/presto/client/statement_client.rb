@@ -26,6 +26,7 @@ module Presto::Client
     PRESTO_SCHEMA = "X-Presto-Schema"
     PRESTO_TIME_ZONE = "X-Presto-Time-Zone"
     PRESTO_LANGUAGE = "X-Presto-Language"
+    PRESTO_SESSION = "X-Presto-Session"
 
     PRESTO_CURRENT_STATE = "X-Presto-Current-State"
     PRESTO_MAX_WAIT = "X-Presto-Max-Wait"
@@ -77,6 +78,9 @@ module Presto::Client
         end
         if v = @options[:language]
           req.headers[PrestoHeaders::PRESTO_LANGUAGE] = v
+        end
+        if v = @options[:properties]
+          req.headers[PrestoHeaders::PRESTO_SESSION] = serialize_session(v)
         end
 
         req.body = @query
@@ -181,6 +185,11 @@ module Presto::Client
         return response.status / 100 == 2
       end
       return false
+    end
+
+    def serialize_session(properties)
+        properties.map { |k, v| "#{k}=#{v}" } # TODO escape key and value
+                  .join ("\r\n#{PrestoHeaders::PRESTO_SESSION}: ")
     end
 
     def close
