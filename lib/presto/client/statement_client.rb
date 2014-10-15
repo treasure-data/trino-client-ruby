@@ -197,15 +197,15 @@ module Presto::Client
       # this is a hack to set same header multiple times.
       properties.map do |k, v|
         token = k.to_s
-        quoted_string = v.to_s.gsub("\"", "\\\"")  # TODO LWS encoding is not implemented
+        field_value = v.to_s  # TODO LWS encoding is not implemented
         unless k =~ HTTP11_TOKEN_REGEXP
-          raise Faraday::ClientError, "properties can't include HTTP/1.1 control characters"
+          raise Faraday::ClientError, "Key of properties can't include HTTP/1.1 control characters or separators (#{HTTP11_SEPARATOR.map {|c| c =~ /\s/ ? c.dump : c }.join(' ')})"
         end
-        if quoted_string =~ HTTP11_CTL_CHARSET_REGEXP
-          raise Faraday::ClientError, "properties can't include HTTP/1.1 control characters"
+        if field_value =~ HTTP11_CTL_CHARSET_REGEXP
+          raise Faraday::ClientError, "Value of properties can't include HTTP/1.1 control characters"
         end
-        "#{token}=\"#{quoted_string}\""
-      end.join("\r\nhdr: ")
+        "#{token}=#{field_value}"
+      end.join("\r\n#{PrestoHeaders::PRESTO_SESSION}: ")
     end
 
     def close
