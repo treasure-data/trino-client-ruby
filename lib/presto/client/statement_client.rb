@@ -80,7 +80,7 @@ module Presto::Client
           req.headers[PrestoHeaders::PRESTO_LANGUAGE] = v
         end
         if v = @options[:properties]
-          req.headers[PrestoHeaders::PRESTO_SESSION] = serialize_session(v)
+          req.headers[PrestoHeaders::PRESTO_SESSION] = encode_properties(v)
         end
 
         req.body = @query
@@ -187,9 +187,25 @@ module Presto::Client
       return false
     end
 
-    def serialize_session(properties)
-        properties.map { |k, v| "#{k}=#{v}" } # TODO escape key and value
-                  .join ("\r\n#{PrestoHeaders::PRESTO_SESSION}: ")
+    HTTP11_SEPARATOR = ["(", ")", "<", ">", "@", ",", ";", ":", "\\", "<", ">", "/", "[", "]", "?", "=", "{", "}", " ", "\v"]
+    HTTP11_TOKEN_CHARSET = (32..126).map {|x| x.chr } - HTTP11_SEPARATOR
+    HTTP11_TOKEN_REGEXP = /^[#{Regexp.escape(HTTP11_TOKEN_CHARSET.join)}]+\z/
+    HTTP11_CTL_CHARSET = (0..31).map {|x| x.chr } + [127.chr]
+    HTTP11_CTL_CHARSET_REGEXP = /[#{Regexp.escape(HTTP11_CTL_CHARSET.join)}]/
+
+    def encode_properties(properties)
+      # this is a hack to set same header multiple times.
+      properties.map do |k, v|
+        token = k.to_s
+        quoted_string = v.to_s.gsub("\"", "\\\"")  # TODO LWS encoding is not implemented
+        unless k =~ HTTP11_TOKEN_REGEXP
+          raise Faraday::ClientError, "properties can't include HTTP/1.1 control characters"
+        end
+        if quoted_string =~ HTTP11_CTL_CHARSET_REGEXP
+          raise Faraday::ClientError, "properties can't include HTTP/1.1 control characters"
+        end
+        "#{token}=\"#{quoted_string}\""
+      end.join("\r\nhdr: ")
     end
 
     def close
