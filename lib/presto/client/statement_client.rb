@@ -205,7 +205,7 @@ module Presto::Client
           raise Faraday::ClientError, "properties can't include HTTP/1.1 control characters"
         end
         "#{token}=\"#{quoted_string}\""
-      end.join("\r\n#{PrestoHeaders::PRESTO_SESSION}: ")
+      end.join("\r\nhdr: ")
     end
 
     def close
