@@ -1,4 +1,10 @@
 
+2014-10-15 version 0.4.2:
+
+* Added support for :properties option to set session properties introduced
+since Presto 0.78
+
+
 2014-06-12 version 0.4.1:
 
 * Added EquiJoinClause model class
