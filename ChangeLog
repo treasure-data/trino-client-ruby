@@ -1,4 +1,9 @@
 
+2014-11-20 version 0.4.3:
+
+* Updated gem dependency to accept faraday ~> 0.9.x as well as ~> 0.8.8
+
+
 2014-10-15 version 0.4.2:
 
 * Added support for :properties option to set session properties introduced
