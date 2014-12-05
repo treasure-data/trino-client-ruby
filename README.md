@@ -17,7 +17,7 @@ client = Presto::Client.new(
   schema: "default",
   user: "frsyuki",
   time_zone: "US/Pacific", # optional
-  language: "en_us", # optional
+  language: "English", # optional
   properties: {"hello" => "world", "mycatalog.hello" => "world"},  # optional
   http_debug: true,
 )
