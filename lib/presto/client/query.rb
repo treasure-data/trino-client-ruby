@@ -48,15 +48,21 @@ module Presto::Client
       @api.advance
     end
 
+    def wait_for_columns
+      while @api.current_results.columns == nil && @api.advance
+      end
+    end
+
     def wait_for_data
       while @api.current_results.data == nil && @api.advance
       end
     end
 
+    private :wait_for_columns
     private :wait_for_data
 
     def columns
-      wait_for_data
+      wait_for_columns
 
       raise_error unless @api.query_succeeded?
 
