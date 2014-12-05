@@ -64,7 +64,7 @@ module Presto::Client
     def columns
       wait_for_columns
 
-      raise_error unless @api.query_succeeded?
+      raise_if_failed
 
       return @api.current_results.columns
     end
@@ -86,7 +86,7 @@ module Presto::Client
     def each_row_chunk(&block)
       wait_for_data
 
-      raise_error unless @api.query_succeeded?
+      raise_if_failed
 
       if self.columns == nil
         raise PrestoError, "Query #{@api.current_results.id} has no columns"
@@ -112,7 +112,7 @@ module Presto::Client
       nil
     end
 
-    def raise_error
+    def raise_if_failed
       if @api.closed?
         raise PrestoClientError, "Query aborted by user"
       elsif @api.exception?
@@ -124,8 +124,6 @@ module Presto::Client
         raise PrestoQueryError.new("Query #{results.id} failed: #{error.message}", results.id, error.error_code, error.failure_info)
       end
     end
-
-    private :raise_error
   end
 
 end
