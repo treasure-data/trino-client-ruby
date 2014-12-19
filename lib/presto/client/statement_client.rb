@@ -15,7 +15,7 @@
 #
 module Presto::Client
 
-  require 'multi_json'
+  require 'oj'
   require 'presto/client/models'
   require 'presto/client/errors'
 
@@ -92,7 +92,7 @@ module Presto::Client
       end
 
       body = response.body
-      hash = MultiJson.load(body)
+      hash = Oj.load(body)
       @results = Models::QueryResults.decode(hash)
     end
 
@@ -137,14 +137,14 @@ module Presto::Client
       uri = @results.next_uri
 
       body = faraday_get_with_retry(uri)
-      @results = Models::QueryResults.decode(MultiJson.load(body))
+      @results = Models::QueryResults.decode(Oj.load(body))
 
       return true
     end
 
     def query_info
       body = faraday_get_with_retry("/v1/query/#{@results.id}")
-      Models::QueryInfo.decode(MultiJson.load(body))
+      Models::QueryInfo.decode(Oj.load(body))
     end
 
     def faraday_get_with_retry(uri, &block)
