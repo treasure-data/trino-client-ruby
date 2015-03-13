@@ -174,9 +174,9 @@ module PrestoClient
         partial_cache_uri: hash["partialCancelUri"],
         next_uri: hash["nextUri"],
         columns: hash["columns"] ? hash["columns"].map {|h| Column.decode_hash(h) } : nil,
-        data: hash["data"]
+        data: hash["data"],
         stats: StatementStats.decode_hash(hash["stats"]),
-        error: hash["error"],  # TODO
+        error: hash["error"]  # TODO
       )
     end
   end
