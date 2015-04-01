@@ -1,4 +1,9 @@
 
+2015-04-01 version 0.4.5:
+
+* Upgraded Presto model version to 0.99
+
+
 2014-11-20 version 0.4.3:
 
 * Updated gem dependency to accept faraday ~> 0.9.x as well as ~> 0.8.8
