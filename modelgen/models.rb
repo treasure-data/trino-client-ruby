@@ -102,7 +102,7 @@ module Presto::Client
           when "sample"             then SampleNode
           when "sort"               then SortNode
           when "exchange"           then ExchangeNode
-          when "sink"               then SinkNode
+          when "remoteSource"       then RemoteSourceNode
           when "join"               then JoinNode
           when "INNER"              then JoinNode
           when "LEFT"               then JoinNode
@@ -150,6 +150,18 @@ module Presto::Client
         obj.send(:initialize_struct,
           hash["left"],
           hash["right"],
+        )
+        obj
+      end
+    end
+
+    class << WriterTarget =
+        Base.new(:type, :handle)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["type"],
+          hash["type"] == 'InsertHandle' ? InsertTableHandle.decode(hash['handle']) : OutputTableHandle.decode(hash['handle'])
         )
         obj
       end

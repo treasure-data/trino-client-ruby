@@ -10,13 +10,13 @@ require_relative 'presto_models'
 require 'erb'
 erb = ERB.new(File.read(template_path))
 
-source_path = "/Users/frsyuki/project/presto-client-ruby/presto"
+source_path = source_dir
 
 predefined_simple_classes = %w[QueryId StageId TaskId PlanNodeId PlanFragmentId ConnectorSession]
-predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause]
+predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause WriterTarget]
 
-assume_primitive = %w[Object Type Symbol URI Duration DataSize DateTime ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle Expression FunctionCall]
-enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder]
+assume_primitive = %w[Object Type Long Symbol URI Duration DataSize DateTime ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame]
+enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState]
 
 root_models = %w[QueryResults QueryInfo] + %w[
 OutputNode
@@ -25,7 +25,6 @@ TableScanNode
 ValuesNode
 AggregationNode
 MarkDistinctNode
-MaterializeSampleNode
 FilterNode
 WindowNode
 LimitNode
@@ -34,14 +33,14 @@ TopNNode
 SampleNode
 SortNode
 ExchangeNode
-SinkNode
+RemoteSourceNode
 JoinNode
 SemiJoinNode
 IndexJoinNode
 IndexSourceNode
 TableWriterNode
 TableCommitNode
-]
+] + %w[InsertTableHandle OutputTableHandle]
 
 analyzer = PrestoModels::ModelAnalyzer.new(
   source_path,
