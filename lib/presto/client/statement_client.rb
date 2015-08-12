@@ -154,19 +154,24 @@ module Presto::Client
       begin
         begin
           response = @faraday.get(uri)
+        rescue Faraday::Error::TimeoutError, Faraday::Error::ConnectionFailed
+          # temporally error to retry
+          response = nil
         rescue => e
           @exception = e
           raise @exception
         end
 
-        if response.status == 200 && !response.body.to_s.empty?
-          return response.body
-        end
+        if response
+          if response.status == 200 && !response.body.to_s.empty?
+            return response.body
+          end
 
-        if response.status != 503  # retry only if 503 Service Unavailable
-          # deterministic error
-          @exception = PrestoHttpError.new(response.status, "Presto API error at #{uri} returned #{response.status}: #{response.body}")
-          raise @exception
+          if response.status != 503  # retry only if 503 Service Unavailable
+            # deterministic error
+            @exception = PrestoHttpError.new(response.status, "Presto API error at #{uri} returned #{response.status}: #{response.body}")
+            raise @exception
+          end
         end
 
         attempts += 1
