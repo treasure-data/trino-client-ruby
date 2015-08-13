@@ -25,6 +25,8 @@ module PrestoModels
     def initialize(source_path, options={})
       @source_path = source_path
       @ignore_types = PRIMITIVE_TYPES + (options[:skip_models] || [])
+      @path_mapping = options[:path_mapping] || {}
+      @name_mapping = options[:name_mapping] || {}
       @models = {}
       @skipped_models = []
     end
@@ -46,15 +48,15 @@ module PrestoModels
     PROPERTY_PATTERN = /@JsonProperty\(\"(\w+)\"\)\s+(@Nullable\s+)?([\w\<\>\,\s]+)\s+(\w+)/
     CREATOR_PATTERN = /@JsonCreator[\w\s]+\((?:\s*#{PROPERTY_PATTERN}\s*,?)+\)/
 
-    def analyze_model(model_name)
+    def analyze_model(model_name, parent_model = nil)
       return if @models[model_name] || @ignore_types.include?(model_name)
 
-      path = find_class_file(model_name)
+      path = find_class_file(model_name, parent_model)
       java = File.read(path)
 
       m = CREATOR_PATTERN.match(java)
       unless m
-        raise ModelAnalysisError, "Can't find JsonCreator of a model class #{model_name}"
+        raise ModelAnalysisError, "Can't find JsonCreator of a model class #{model_name} of #{parent_model} at #{path}"
       end
 
       fields = m[0].scan(PROPERTY_PATTERN).map do |key,nullable,type,field|
@@ -76,6 +78,8 @@ module PrestoModels
         else
           raise ModelAnalysisError, "Unsupported type #{type} in model #{model_name}"
         end
+        base_type = @name_mapping[[model_name, base_type]] || base_type
+        map_value_base_type = @name_mapping[[model_name, map_value_base_type]] || map_value_base_type
         Field.new(key, !!nullable, array, map, type, base_type, map_value_base_type)
       end
 
@@ -83,8 +87,8 @@ module PrestoModels
 
       # recursive call
       fields.each do |field|
-        analyze_model(field.base_type)
-        analyze_model(field.map_value_base_type) if field.map_value_base_type
+        analyze_model(field.base_type, model_name)
+        analyze_model(field.map_value_base_type, model_name) if field.map_value_base_type
       end
 
     rescue => e
@@ -92,14 +96,20 @@ module PrestoModels
       @skipped_models << model_name
     end
 
-    def find_class_file(model_name)
+    def find_class_file(model_name, parent_model)
+      return @path_mapping[model_name] if @path_mapping.has_key? model_name
+
       @source_files ||= Find.find(@source_path).to_a
       pattern = /\/#{model_name}.java$/
-      matched = @source_files.find {|path| path =~ pattern }
-      unless matched
+      matched = @source_files.find_all {|path| path =~ pattern }
+      if matched.empty?
         raise ModelAnalysisError, "Model class #{model_name} is not found"
       end
-      return matched
+      if matched.size == 1
+        return matched.first
+      else
+        raise ModelAnalysisError, "Model class #{model_name} of #{parent_model} found multiple match #{matched}"
+      end
     end
   end
 

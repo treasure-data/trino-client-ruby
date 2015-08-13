@@ -77,6 +77,9 @@ module Presto::Client
     class PlanFragmentId < String
     end
 
+    class MemoryPoolId < String
+    end
+
     class ConnectorSession < Hash
       def initialize(hash)
         super()
@@ -162,6 +165,22 @@ module Presto::Client
         obj.send(:initialize_struct,
           hash["type"],
           hash["type"] == 'InsertHandle' ? InsertTableHandle.decode(hash['handle']) : OutputTableHandle.decode(hash['handle'])
+        )
+        obj
+      end
+    end
+
+    # A missing JsonCreator in Presto
+    class << PageBufferInfo =
+        Base.new(:partition, :buffered_pages, :queued_pages, :buffered_bytes, :pages_added)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["partition"],
+          hash["bufferedPages"],
+          hash["queuedPages"],
+          hash["bufferedBytes"],
+          hash["pagesAdded"],
         )
         obj
       end
