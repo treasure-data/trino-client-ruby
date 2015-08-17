@@ -84,6 +84,7 @@ module Presto::Client
         end
 
         req.body = @query
+        init_request(req)
       end
 
       # TODO error handling
