@@ -8,6 +8,9 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 
+require 'simplecov'
+SimpleCov.start
+
 require 'json'
 require 'webmock/rspec'
 
