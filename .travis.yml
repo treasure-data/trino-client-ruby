@@ -7,5 +7,7 @@ rvm:
 
 script: "bundle exec rake spec"
 
+sudo: false
+
 notifications:
   webhooks: http://td-beda.herokuapp.com/travisci_callback
