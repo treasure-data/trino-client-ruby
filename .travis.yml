@@ -6,3 +6,6 @@ rvm:
   - ruby-head
 
 script: "bundle exec rake spec"
+
+notifications:
+  webhooks: http://td-beda.herokuapp.com/travisci_callback
