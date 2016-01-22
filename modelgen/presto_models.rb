@@ -3,7 +3,7 @@ module PrestoModels
   require 'find'
   require 'stringio'
 
-  PRIMITIVE_TYPES = %w[String boolean long int short byte double float]
+  PRIMITIVE_TYPES = %w[String boolean long int short byte double float Integer]
 
   class Model < Struct.new(:name, :fields)
   end
@@ -66,12 +66,15 @@ module PrestoModels
         if m = /(?:List|Set)<(\w+)>/.match(type)
           base_type = m[1]
           array = true
-        elsif m = /(?:Map)<(\w+),\s*(\w+)>/.match(type)
+        elsif m = /(?:Map|ListMultimap)<(\w+),\s*(\w+)>/.match(type)
           base_type = m[1]
           map_value_base_type = m[2]
           map = true
         elsif m = /Optional<(\w+)>/.match(type)
           base_type = m[1]
+          nullable = true
+        elsif m = /OptionalInt/.match(type)
+          base_type = 'Integer'
           nullable = true
         elsif type =~ /\w+/
           base_type = type
@@ -92,7 +95,7 @@ module PrestoModels
       end
 
     rescue => e
-      puts "Skipping model #{model_name}: #{e}"
+      puts "Skipping model #{parent_model}/#{model_name}: #{e}"
       @skipped_models << model_name
     end
 
