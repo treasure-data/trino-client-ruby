@@ -45,15 +45,12 @@ module Presto::Client
       end
     end
 
-    class QueryId < String
-    end
-
     class StageId < String
       def initialize(str)
         super
         splitted = split('.', 2)
-        @query_id = QueryId.new(splitted[0])
-        @id = QueryId.new(splitted[1])
+        @query_id = splitted[0]
+        @id = splitted[1]
       end
 
       attr_reader :query_id, :id
@@ -71,15 +68,6 @@ module Presto::Client
       attr_reader :query_id, :stage_id, :id
     end
 
-    class PlanNodeId < String
-    end
-
-    class PlanFragmentId < String
-    end
-
-    class MemoryPoolId < String
-    end
-
     class ConnectorSession < Hash
       def initialize(hash)
         super()
@@ -89,35 +77,43 @@ module Presto::Client
 
     module PlanNode
       def self.decode(hash)
-        model_class = case hash["type"]
+        model_class = case hash["@type"]
           when "output"             then OutputNode
           when "project"            then ProjectNode
           when "tablescan"          then TableScanNode
           when "values"             then ValuesNode
           when "aggregation"        then AggregationNode
           when "markDistinct"       then MarkDistinctNode
-          when "materializeSample"  then MaterializeSampleNode
           when "filter"             then FilterNode
           when "window"             then WindowNode
+          when "rowNumber"          then RowNumberNode
+          when "topnRowNumber"      then TopNRowNumberNode
           when "limit"              then LimitNode
           when "distinctlimit"      then DistinctLimitNode
           when "topn"               then TopNNode
           when "sample"             then SampleNode
           when "sort"               then SortNode
-          when "exchange"           then ExchangeNode
           when "remoteSource"       then RemoteSourceNode
           when "join"               then JoinNode
-          when "INNER"              then JoinNode
-          when "LEFT"               then JoinNode
-          when "RIGHT"              then JoinNode
-          when "CROSS"              then JoinNode
           when "semijoin"           then SemiJoinNode
           when "indexjoin"          then IndexJoinNode
           when "indexsource"        then IndexSourceNode
           when "tablewriter"        then TableWriterNode
-          when "tablecommit"        then TableCommitNode
-          end
-        model_class.decode(hash) if model_class
+          when "delete"             then DeleteNode
+          when "metadatadelete"     then MetadataDeleteNode
+          when "tablecommit"        then TableFinishNode
+          when "unnest"             then UnnestNode
+          when "exchange"           then ExchangeNode
+          when "union"              then UnionNode
+          when "scalar"             then EnforceSingleRowNode
+        end
+        if model_class
+           node = model_class.decode(hash)
+           class << node
+             attr_accessor :plan_node_type
+           end
+           node.plan_node_type = hash['@type']
+        end
       end
     end
 
@@ -147,12 +143,12 @@ module Presto::Client
     end
 
     class << EquiJoinClause =
-        Base.new(:left, :right)
+        Base.new(:probe, :index)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["left"],
-          hash["right"],
+          hash["probe"],
+          hash["index"],
         )
         obj
       end
@@ -162,13 +158,30 @@ module Presto::Client
         Base.new(:type, :handle)
       def decode(hash)
         obj = allocate
+        model_class = case hash["@type"]
+            when "CreateHandle"       then OutputTableHandle
+            when "InsertHandle"       then InsertTableHandle
+            when "DeleteHandle"       then TableHandle
+        end
         obj.send(:initialize_struct,
-          hash["type"],
-          hash["type"] == 'InsertHandle' ? InsertTableHandle.decode(hash['handle']) : OutputTableHandle.decode(hash['handle'])
+          hash["@type"],
+          model_class.decode(hash['handle'])
         )
         obj
       end
     end
+
+    class << DeleteHandle =
+        Base.new(:handle)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          TableHandle.decode(hash['handle'])
+        )
+        obj
+      end
+    end
+
 
     # A missing JsonCreator in Presto
     class << PageBufferInfo =

@@ -45,15 +45,12 @@ module Presto::Client
       end
     end
 
-    class QueryId < String
-    end
-
     class StageId < String
       def initialize(str)
         super
         splitted = split('.', 2)
-        @query_id = QueryId.new(splitted[0])
-        @id = QueryId.new(splitted[1])
+        @query_id = splitted[0]
+        @id = splitted[1]
       end
 
       attr_reader :query_id, :id
@@ -71,15 +68,6 @@ module Presto::Client
       attr_reader :query_id, :stage_id, :id
     end
 
-    class PlanNodeId < String
-    end
-
-    class PlanFragmentId < String
-    end
-
-    class MemoryPoolId < String
-    end
-
     class ConnectorSession < Hash
       def initialize(hash)
         super()
@@ -89,35 +77,43 @@ module Presto::Client
 
     module PlanNode
       def self.decode(hash)
-        model_class = case hash["type"]
+        model_class = case hash["@type"]
           when "output"             then OutputNode
           when "project"            then ProjectNode
           when "tablescan"          then TableScanNode
           when "values"             then ValuesNode
           when "aggregation"        then AggregationNode
           when "markDistinct"       then MarkDistinctNode
-          when "materializeSample"  then MaterializeSampleNode
           when "filter"             then FilterNode
           when "window"             then WindowNode
+          when "rowNumber"          then RowNumberNode
+          when "topnRowNumber"      then TopNRowNumberNode
           when "limit"              then LimitNode
           when "distinctlimit"      then DistinctLimitNode
           when "topn"               then TopNNode
           when "sample"             then SampleNode
           when "sort"               then SortNode
-          when "exchange"           then ExchangeNode
           when "remoteSource"       then RemoteSourceNode
           when "join"               then JoinNode
-          when "INNER"              then JoinNode
-          when "LEFT"               then JoinNode
-          when "RIGHT"              then JoinNode
-          when "CROSS"              then JoinNode
           when "semijoin"           then SemiJoinNode
           when "indexjoin"          then IndexJoinNode
           when "indexsource"        then IndexSourceNode
           when "tablewriter"        then TableWriterNode
-          when "tablecommit"        then TableCommitNode
-          end
-        model_class.decode(hash) if model_class
+          when "delete"             then DeleteNode
+          when "metadatadelete"     then MetadataDeleteNode
+          when "tablecommit"        then TableFinishNode
+          when "unnest"             then UnnestNode
+          when "exchange"           then ExchangeNode
+          when "union"              then UnionNode
+          when "scalar"             then EnforceSingleRowNode
+        end
+        if model_class
+           node = model_class.decode(hash)
+           class << node
+             attr_accessor :plan_node_type
+           end
+           node.plan_node_type = hash['@type']
+        end
       end
     end
 
@@ -147,12 +143,12 @@ module Presto::Client
     end
 
     class << EquiJoinClause =
-        Base.new(:left, :right)
+        Base.new(:probe, :index)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["left"],
-          hash["right"],
+          hash["probe"],
+          hash["index"],
         )
         obj
       end
@@ -162,13 +158,30 @@ module Presto::Client
         Base.new(:type, :handle)
       def decode(hash)
         obj = allocate
+        model_class = case hash["@type"]
+            when "CreateHandle"       then OutputTableHandle
+            when "InsertHandle"       then InsertTableHandle
+            when "DeleteHandle"       then TableHandle
+        end
         obj.send(:initialize_struct,
-          hash["type"],
-          hash["type"] == 'InsertHandle' ? InsertTableHandle.decode(hash['handle']) : OutputTableHandle.decode(hash['handle'])
+          hash["@type"],
+          model_class.decode(hash['handle'])
         )
         obj
       end
     end
+
+    class << DeleteHandle =
+        Base.new(:handle)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          TableHandle.decode(hash['handle'])
+        )
+        obj
+      end
+    end
+
 
     # A missing JsonCreator in Presto
     class << PageBufferInfo =
@@ -195,7 +208,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["groupBy"],
           hash["aggregations"],
@@ -263,26 +276,53 @@ module Presto::Client
     end
 
     class << ClientTypeSignature =
-        Base.new(:raw_type, :type_arguments, :literal_arguments)
+        Base.new(:raw_type, :type_arguments, :literal_arguments, :arguments)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
           hash["rawType"],
           hash["typeArguments"] && hash["typeArguments"].map {|h| ClientTypeSignature.decode(h) },
           hash["literalArguments"],
+          hash["arguments"] && hash["arguments"].map {|h| ClientTypeSignatureParameter.decode(h) },
+        )
+        obj
+      end
+    end
+
+    class << ClientTypeSignatureParameter =
+        Base.new(:kind, :value)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["kind"] && hash["kind"].downcase.to_sym,
+          hash["value"],
         )
         obj
       end
     end
 
     class << Column =
-        Base.new(:name, :type, :domain)
+        Base.new(:name, :type)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
           hash["name"],
           hash["type"],
-          hash["domain"] && SimpleDomain.decode(hash["domain"]),
+        )
+        obj
+      end
+    end
+
+    class << DeleteNode =
+        Base.new(:id, :source, :target, :row_id, :outputs)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["id"],
+          hash["source"] && PlanNode.decode(hash["source"]),
+          hash["target"] && DeleteHandle.decode(hash["target"]),
+          hash["rowId"],
+          hash["outputs"],
         )
         obj
       end
@@ -293,7 +333,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["limit"],
           hash["hashSymbol"],
@@ -303,7 +343,7 @@ module Presto::Client
     end
 
     class << DriverStats =
-        Base.new(:create_time, :start_time, :end_time, :queued_time, :elapsed_time, :memory_reservation, :total_scheduled_time, :total_cpu_time, :total_user_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :raw_input_data_size, :raw_input_positions, :raw_input_read_time, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :operator_stats)
+        Base.new(:create_time, :start_time, :end_time, :queued_time, :elapsed_time, :memory_reservation, :system_memory_reservation, :total_scheduled_time, :total_cpu_time, :total_user_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :raw_input_data_size, :raw_input_positions, :raw_input_read_time, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :operator_stats)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
@@ -313,6 +353,7 @@ module Presto::Client
           hash["queuedTime"],
           hash["elapsedTime"],
           hash["memoryReservation"],
+          hash["systemMemoryReservation"],
           hash["totalScheduledTime"],
           hash["totalCpuTime"],
           hash["totalUserTime"],
@@ -327,6 +368,18 @@ module Presto::Client
           hash["outputDataSize"],
           hash["outputPositions"],
           hash["operatorStats"] && hash["operatorStats"].map {|h| OperatorStats.decode(h) },
+        )
+        obj
+      end
+    end
+
+    class << EnforceSingleRowNode =
+        Base.new(:id, :source)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["id"],
+          hash["source"] && PlanNode.decode(hash["source"]),
         )
         obj
       end
@@ -357,14 +410,13 @@ module Presto::Client
     end
 
     class << ExchangeNode =
-        Base.new(:id, :type, :partition_keys, :hash_symbol, :sources, :outputs, :inputs)
+        Base.new(:id, :type, :partition_function, :sources, :outputs, :inputs)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["type"],
-          hash["partitionKeys"],
-          hash["hashSymbol"],
+          hash["partitionFunction"] && PartitionFunctionBinding.decode(hash["partitionFunction"]),
           hash["sources"] && hash["sources"].map {|h| PlanNode.decode(h) },
           hash["outputs"],
           hash["inputs"],
@@ -411,7 +463,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["predicate"],
         )
@@ -420,11 +472,12 @@ module Presto::Client
     end
 
     class << IndexHandle =
-        Base.new(:connector_id, :connector_handle)
+        Base.new(:connector_id, :transaction_handle, :connector_handle)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
           hash["connectorId"],
+          hash["transactionHandle"],
           hash["connectorHandle"],
         )
         obj
@@ -436,7 +489,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["type"],
           hash["probeSource"] && PlanNode.decode(hash["probeSource"]),
           hash["indexSource"] && PlanNode.decode(hash["indexSource"]),
@@ -453,7 +506,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["indexHandle"] && IndexHandle.decode(hash["indexHandle"]),
           hash["tableHandle"] && TableHandle.decode(hash["tableHandle"]),
           hash["lookupSymbols"],
@@ -480,11 +533,12 @@ module Presto::Client
     end
 
     class << InsertTableHandle =
-        Base.new(:connector_id, :connector_handle)
+        Base.new(:connector_id, :transaction_handle, :connector_handle)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
           hash["connectorId"],
+          hash["transactionHandle"],
           hash["connectorHandle"],
         )
         obj
@@ -496,7 +550,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["type"],
           hash["left"] && PlanNode.decode(hash["left"]),
           hash["right"] && PlanNode.decode(hash["right"]),
@@ -513,7 +567,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["count"],
         )
@@ -526,7 +580,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["markerSymbol"],
           hash["distinctSymbols"],
@@ -536,12 +590,27 @@ module Presto::Client
       end
     end
 
+    class << MetadataDeleteNode =
+        Base.new(:id, :target, :output, :table_layout)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["id"],
+          hash["target"] && DeleteHandle.decode(hash["target"]),
+          hash["output"],
+          hash["tableLayout"] && TableLayoutHandle.decode(hash["tableLayout"]),
+        )
+        obj
+      end
+    end
+
     class << OperatorStats =
-        Base.new(:operator_id, :operator_type, :add_input_calls, :add_input_wall, :add_input_cpu, :add_input_user, :input_data_size, :input_positions, :get_output_calls, :get_output_wall, :get_output_cpu, :get_output_user, :output_data_size, :output_positions, :blocked_wall, :finish_calls, :finish_wall, :finish_cpu, :finish_user, :memory_reservation, :blocked_reason, :info)
+        Base.new(:operator_id, :plan_node_id, :operator_type, :add_input_calls, :add_input_wall, :add_input_cpu, :add_input_user, :input_data_size, :input_positions, :get_output_calls, :get_output_wall, :get_output_cpu, :get_output_user, :output_data_size, :output_positions, :blocked_wall, :finish_calls, :finish_wall, :finish_cpu, :finish_user, :memory_reservation, :system_memory_reservation, :blocked_reason, :info)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
           hash["operatorId"],
+          hash["planNodeId"],
           hash["operatorType"],
           hash["addInputCalls"],
           hash["addInputWall"],
@@ -561,6 +630,7 @@ module Presto::Client
           hash["finishCpu"],
           hash["finishUser"],
           hash["memoryReservation"],
+          hash["systemMemoryReservation"],
           hash["blockedReason"] && BlockedReason.decode(hash["blockedReason"]),
           hash["info"],
         )
@@ -573,7 +643,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["columns"],
           hash["outputs"],
@@ -583,19 +653,35 @@ module Presto::Client
     end
 
     class << OutputTableHandle =
-        Base.new(:connector_id, :connector_handle)
+        Base.new(:connector_id, :transaction_handle, :connector_handle)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
           hash["connectorId"],
+          hash["transactionHandle"],
           hash["connectorHandle"],
         )
         obj
       end
     end
 
+    class << PartitionFunctionBinding =
+        Base.new(:function_handle, :partitioning_columns, :hash_column, :replicate_nulls, :partition_count)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["functionHandle"] && hash["functionHandle"].downcase.to_sym,
+          hash["partitioningColumns"],
+          hash["hashColumn"],
+          hash["replicateNulls"],
+          hash["partitionCount"],
+        )
+        obj
+      end
+    end
+
     class << PipelineStats =
-        Base.new(:input_pipeline, :output_pipeline, :total_drivers, :queued_drivers, :queued_partitioned_drivers, :running_drivers, :running_partitioned_drivers, :completed_drivers, :memory_reservation, :queued_time, :elapsed_time, :total_scheduled_time, :total_cpu_time, :total_user_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :operator_summaries, :drivers)
+        Base.new(:input_pipeline, :output_pipeline, :total_drivers, :queued_drivers, :queued_partitioned_drivers, :running_drivers, :running_partitioned_drivers, :completed_drivers, :memory_reservation, :system_memory_reservation, :queued_time, :elapsed_time, :total_scheduled_time, :total_cpu_time, :total_user_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :operator_summaries, :drivers)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
@@ -608,6 +694,7 @@ module Presto::Client
           hash["runningPartitionedDrivers"],
           hash["completedDrivers"],
           hash["memoryReservation"],
+          hash["systemMemoryReservation"],
           hash["queuedTime"] && DistributionSnapshot.decode(hash["queuedTime"]),
           hash["elapsedTime"] && DistributionSnapshot.decode(hash["elapsedTime"]),
           hash["totalScheduledTime"],
@@ -630,20 +717,17 @@ module Presto::Client
     end
 
     class << PlanFragment =
-        Base.new(:id, :root, :symbols, :output_layout, :distribution, :partitioned_source, :output_partitioning, :partition_by, :null_partition_policy, :hash)
+        Base.new(:id, :root, :symbols, :output_layout, :distribution, :partitioned_source, :partition_function)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanFragmentId.new(hash["id"]),
+          hash["id"],
           hash["root"] && PlanNode.decode(hash["root"]),
           hash["symbols"],
           hash["outputLayout"],
           hash["distribution"] && hash["distribution"].downcase.to_sym,
-          hash["partitionedSource"] && PlanNodeId.new(hash["partitionedSource"]),
-          hash["outputPartitioning"] && hash["outputPartitioning"].downcase.to_sym,
-          hash["partitionBy"],
-          hash["nullPartitionPolicy"] && NullPartitioning.decode(hash["nullPartitionPolicy"]),
-          hash["hash"],
+          hash["partitionedSource"],
+          hash["partitionFunction"] && PartitionFunctionBinding.decode(hash["partitionFunction"]),
         )
         obj
       end
@@ -654,7 +738,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["assignments"],
         )
@@ -680,14 +764,14 @@ module Presto::Client
     end
 
     class << QueryInfo =
-        Base.new(:query_id, :session, :state, :memory_pool, :scheduled, :self, :field_names, :query, :query_stats, :set_session_properties, :reset_session_properties, :update_type, :output_stage, :failure_info, :error_code, :inputs)
+        Base.new(:query_id, :session, :state, :memory_pool, :scheduled, :self, :field_names, :query, :query_stats, :set_session_properties, :reset_session_properties, :started_transaction_id, :clear_transaction_id, :update_type, :output_stage, :failure_info, :error_code, :inputs)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["queryId"] && QueryId.new(hash["queryId"]),
+          hash["queryId"],
           hash["session"] && SessionRepresentation.decode(hash["session"]),
           hash["state"] && hash["state"].downcase.to_sym,
-          hash["memoryPool"] && MemoryPoolId.new(hash["memoryPool"]),
+          hash["memoryPool"],
           hash["scheduled"],
           hash["self"],
           hash["fieldNames"],
@@ -695,6 +779,8 @@ module Presto::Client
           hash["queryStats"] && QueryStats.decode(hash["queryStats"]),
           hash["setSessionProperties"],
           hash["resetSessionProperties"],
+          hash["startedTransactionId"],
+          hash["clearTransactionId"],
           hash["updateType"],
           hash["outputStage"] && StageInfo.decode(hash["outputStage"]),
           hash["failureInfo"] && FailureInfo.decode(hash["failureInfo"]),
@@ -726,7 +812,7 @@ module Presto::Client
     end
 
     class << QueryStats =
-        Base.new(:create_time, :execution_start_time, :last_heartbeat, :end_time, :elapsed_time, :queued_time, :analysis_time, :distributed_planning_time, :total_planning_time, :total_tasks, :running_tasks, :completed_tasks, :total_drivers, :queued_drivers, :running_drivers, :completed_drivers, :total_memory_reservation, :peak_memory_reservation, :total_scheduled_time, :total_cpu_time, :total_user_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions)
+        Base.new(:create_time, :execution_start_time, :last_heartbeat, :end_time, :elapsed_time, :queued_time, :analysis_time, :distributed_planning_time, :total_planning_time, :finishing_time, :total_tasks, :running_tasks, :completed_tasks, :total_drivers, :queued_drivers, :running_drivers, :completed_drivers, :cumulative_memory, :total_memory_reservation, :peak_memory_reservation, :total_scheduled_time, :total_cpu_time, :total_user_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
@@ -739,6 +825,7 @@ module Presto::Client
           hash["analysisTime"],
           hash["distributedPlanningTime"],
           hash["totalPlanningTime"],
+          hash["finishingTime"],
           hash["totalTasks"],
           hash["runningTasks"],
           hash["completedTasks"],
@@ -746,6 +833,7 @@ module Presto::Client
           hash["queuedDrivers"],
           hash["runningDrivers"],
           hash["completedDrivers"],
+          hash["cumulativeMemory"],
           hash["totalMemoryReservation"],
           hash["peakMemoryReservation"],
           hash["totalScheduledTime"],
@@ -770,9 +858,25 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
-          hash["sourceFragmentIds"] && hash["sourceFragmentIds"].map {|h| PlanFragmentId.new(h) },
+          hash["id"],
+          hash["sourceFragmentIds"],
           hash["outputs"],
+        )
+        obj
+      end
+    end
+
+    class << RowNumberNode =
+        Base.new(:id, :source, :partition_by, :row_number_symbol, :max_row_count_per_partition, :hash_symbol)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["id"],
+          hash["source"] && PlanNode.decode(hash["source"]),
+          hash["partitionBy"],
+          hash["rowNumberSymbol"],
+          hash["maxRowCountPerPartition"],
+          hash["hashSymbol"],
         )
         obj
       end
@@ -783,7 +887,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["sampleRatio"],
           hash["sampleType"],
@@ -799,7 +903,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["filteringSource"] && PlanNode.decode(hash["filteringSource"]),
           hash["sourceJoinSymbol"],
@@ -813,11 +917,15 @@ module Presto::Client
     end
 
     class << SessionRepresentation =
-        Base.new(:user, :source, :catalog, :schema, :time_zone_key, :locale, :remote_user_address, :user_agent, :start_time, :system_properties, :catalog_properties)
+        Base.new(:query_id, :transaction_id, :client_transaction_support, :user, :principal, :source, :catalog, :schema, :time_zone_key, :locale, :remote_user_address, :user_agent, :start_time, :system_properties, :catalog_properties)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
+          hash["queryId"],
+          hash["transactionId"],
+          hash["clientTransactionSupport"],
           hash["user"],
+          hash["principal"],
           hash["source"],
           hash["catalog"],
           hash["schema"],
@@ -852,52 +960,16 @@ module Presto::Client
     end
 
     class << Signature =
-        Base.new(:name, :type_parameters, :return_type, :argument_types, :variable_arity, :internal)
+        Base.new(:name, :kind, :type_parameter_requirements, :return_type, :argument_types, :variable_arity)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
           hash["name"],
-          hash["typeParameters"] && hash["typeParameters"].map {|h| TypeParameter.decode(h) },
+          hash["kind"] && hash["kind"].downcase.to_sym,
+          hash["typeParameterRequirements"] && hash["typeParameterRequirements"].map {|h| TypeParameterRequirement.decode(h) },
           hash["returnType"],
           hash["argumentTypes"],
           hash["variableArity"],
-          hash["internal"],
-        )
-        obj
-      end
-    end
-
-    class << SimpleDomain =
-        Base.new(:null_allowed, :ranges)
-      def decode(hash)
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["nullAllowed"],
-          hash["ranges"] && hash["ranges"].map {|h| SimpleRange.decode(h) },
-        )
-        obj
-      end
-    end
-
-    class << SimpleMarker =
-        Base.new(:inclusive, :value)
-      def decode(hash)
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["inclusive"],
-          hash["value"],
-        )
-        obj
-      end
-    end
-
-    class << SimpleRange =
-        Base.new(:low, :high)
-      def decode(hash)
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["low"] && SimpleMarker.decode(hash["low"]),
-          hash["high"] && SimpleMarker.decode(hash["high"]),
         )
         obj
       end
@@ -908,7 +980,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["orderBy"],
           hash["orderings"] && Hash[hash["orderings"].to_a.map! {|k,v| [k, v.downcase.to_sym] }],
@@ -937,7 +1009,7 @@ module Presto::Client
     end
 
     class << StageStats =
-        Base.new(:scheduling_complete, :get_split_distribution, :schedule_task_distribution, :add_split_distribution, :total_tasks, :running_tasks, :completed_tasks, :total_drivers, :queued_drivers, :running_drivers, :completed_drivers, :total_memory_reservation, :total_scheduled_time, :total_cpu_time, :total_user_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions)
+        Base.new(:scheduling_complete, :get_split_distribution, :schedule_task_distribution, :add_split_distribution, :total_tasks, :running_tasks, :completed_tasks, :total_drivers, :queued_drivers, :running_drivers, :completed_drivers, :cumulative_memory, :total_memory_reservation, :total_scheduled_time, :total_cpu_time, :total_user_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
@@ -952,6 +1024,7 @@ module Presto::Client
           hash["queuedDrivers"],
           hash["runningDrivers"],
           hash["completedDrivers"],
+          hash["cumulativeMemory"],
           hash["totalMemoryReservation"],
           hash["totalScheduledTime"],
           hash["totalCpuTime"],
@@ -993,12 +1066,12 @@ module Presto::Client
       end
     end
 
-    class << TableCommitNode =
+    class << TableFinishNode =
         Base.new(:id, :source, :target, :outputs)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["target"] && WriterTarget.decode(hash["target"]),
           hash["outputs"],
@@ -1020,11 +1093,12 @@ module Presto::Client
     end
 
     class << TableLayoutHandle =
-        Base.new(:connector_id, :connector_handle)
+        Base.new(:connector_id, :transaction_handle, :connector_handle)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
           hash["connectorId"],
+          hash["transactionHandle"],
           hash["connectorHandle"],
         )
         obj
@@ -1036,7 +1110,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["table"] && TableHandle.decode(hash["table"]),
           hash["outputSymbols"],
           hash["assignments"],
@@ -1053,7 +1127,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["target"] && WriterTarget.decode(hash["target"]),
           hash["columns"],
@@ -1066,18 +1140,18 @@ module Presto::Client
     end
 
     class << TaskInfo =
-        Base.new(:task_id, :node_instance_id, :version, :state, :self, :last_heartbeat, :output_buffers, :no_more_splits, :stats, :failures)
+        Base.new(:task_id, :task_instance_id, :version, :state, :self, :last_heartbeat, :output_buffers, :no_more_splits, :stats, :failures)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
           hash["taskId"] && TaskId.new(hash["taskId"]),
-          hash["nodeInstanceId"],
+          hash["taskInstanceId"],
           hash["version"],
           hash["state"] && hash["state"].downcase.to_sym,
           hash["self"],
           hash["lastHeartbeat"],
           hash["outputBuffers"] && SharedBufferInfo.decode(hash["outputBuffers"]),
-          hash["noMoreSplits"] && hash["noMoreSplits"].map {|h| PlanNodeId.new(h) },
+          hash["noMoreSplits"],
           hash["stats"] && TaskStats.decode(hash["stats"]),
           hash["failures"] && hash["failures"].map {|h| ExecutionFailureInfo.decode(h) },
         )
@@ -1086,7 +1160,7 @@ module Presto::Client
     end
 
     class << TaskStats =
-        Base.new(:create_time, :first_start_time, :last_start_time, :end_time, :elapsed_time, :queued_time, :total_drivers, :queued_drivers, :queued_partitioned_drivers, :running_drivers, :running_partitioned_drivers, :completed_drivers, :memory_reservation, :total_scheduled_time, :total_cpu_time, :total_user_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :pipelines)
+        Base.new(:create_time, :first_start_time, :last_start_time, :end_time, :elapsed_time, :queued_time, :total_drivers, :queued_drivers, :queued_partitioned_drivers, :running_drivers, :running_partitioned_drivers, :completed_drivers, :cumulative_memory, :memory_reservation, :system_memory_reservation, :total_scheduled_time, :total_cpu_time, :total_user_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :pipelines)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
@@ -1102,7 +1176,9 @@ module Presto::Client
           hash["runningDrivers"],
           hash["runningPartitionedDrivers"],
           hash["completedDrivers"],
+          hash["cumulativeMemory"],
           hash["memoryReservation"],
+          hash["systemMemoryReservation"],
           hash["totalScheduledTime"],
           hash["totalCpuTime"],
           hash["totalUserTime"],
@@ -1126,7 +1202,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["count"],
           hash["orderBy"],
@@ -1137,7 +1213,26 @@ module Presto::Client
       end
     end
 
-    class << TypeParameter =
+    class << TopNRowNumberNode =
+        Base.new(:id, :source, :partition_by, :order_by, :orderings, :row_number_symbol, :max_row_count_per_partition, :partial, :hash_symbol)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["id"],
+          hash["source"] && PlanNode.decode(hash["source"]),
+          hash["partitionBy"],
+          hash["orderBy"],
+          hash["orderings"] && Hash[hash["orderings"].to_a.map! {|k,v| [k, v.downcase.to_sym] }],
+          hash["rowNumberSymbol"],
+          hash["maxRowCountPerPartition"],
+          hash["partial"],
+          hash["hashSymbol"],
+        )
+        obj
+      end
+    end
+
+    class << TypeParameterRequirement =
         Base.new(:name, :comparable_required, :orderable_required, :variadic_bound)
       def decode(hash)
         obj = allocate
@@ -1151,12 +1246,40 @@ module Presto::Client
       end
     end
 
+    class << UnionNode =
+        Base.new(:id, :sources, :symbol_mapping)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["id"],
+          hash["sources"] && hash["sources"].map {|h| PlanNode.decode(h) },
+          hash["symbolMapping"],
+        )
+        obj
+      end
+    end
+
+    class << UnnestNode =
+        Base.new(:id, :source, :replicate_symbols, :unnest_symbols, :ordinality_symbol)
+      def decode(hash)
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["id"],
+          hash["source"] && PlanNode.decode(hash["source"]),
+          hash["replicateSymbols"],
+          hash["unnestSymbols"],
+          hash["ordinalitySymbol"],
+        )
+        obj
+      end
+    end
+
     class << ValuesNode =
         Base.new(:id, :output_symbols, :rows)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["outputSymbols"],
           hash["rows"],
         )
@@ -1169,7 +1292,7 @@ module Presto::Client
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
-          hash["id"] && PlanNodeId.new(hash["id"]),
+          hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["partitionBy"],
           hash["orderBy"],
