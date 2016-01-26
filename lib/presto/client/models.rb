@@ -113,6 +113,7 @@ module Presto::Client
              attr_accessor :plan_node_type
            end
            node.plan_node_type = hash['@type']
+           node
         end
       end
     end
