@@ -143,11 +143,14 @@ module Presto::Client
       end
     end
 
+    # This is a hybrid of JoinNode.EquiJoinClause and IndexJoinNode.EquiJoinClause
     class << EquiJoinClause =
-        Base.new(:probe, :index)
+        Base.new(:left, :right, :probe, :index)
       def decode(hash)
         obj = allocate
         obj.send(:initialize_struct,
+          hash["left"],
+          hash["right"],
           hash["probe"],
           hash["index"],
         )
