@@ -30,6 +30,13 @@ rows.each {|row|
   p row
 }
 
+# run a query and get results as a hash:
+results = client.run_with_names("select alpha, beta from tablename")
+results.each {|row|
+  p "#{row['alpha']} == #{row[0]}"
+  p "#{row['beta']} == #{row[1]}"
+}
+
 # another way to run a query and fetch results streamingly:
 # start running a query on presto
 client.query("select * from sys.node") do |q|
@@ -57,4 +64,3 @@ end
 * **http_debug** enables debug message to STDOUT for each HTTP requests
 * **http_open_timeout** sets timeout in seconds to open new HTTP connection
 * **http_timeout** sets timeout in seconds to read data from a server
-

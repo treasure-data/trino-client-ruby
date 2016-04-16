@@ -1,3 +1,6 @@
+2016-04-06 version 0.4.13:
+
+* Added support for hashed Client response using `run_with_names` (thanks to MoovWeb for allowing me to contribute)
 
 2015-04-01 version 0.4.5:
 
@@ -62,4 +65,3 @@ since Presto 0.78
 2014-01-07 version 0.1.0:
 
 * First release
-
