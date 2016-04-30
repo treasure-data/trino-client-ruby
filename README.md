@@ -21,6 +21,7 @@ client = Presto::Client.new(
   time_zone: "US/Pacific", # optional
   language: "English", # optional
   properties: {"hello" => "world", "mycatalog.hello" => "world"},  # optional
+  proxy: "proxy.example.com:8080", # optional
   http_debug: true,
 )
 
