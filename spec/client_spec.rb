@@ -28,9 +28,17 @@ describe Presto::Client::Client do
       rehashed[0]['score'].should == 1
       rehashed[0]['name'].should == 'Lassie'
 
-      rehashed[0][0].should == 'dog'
-      rehashed[0][1].should == 1
-      rehashed[0][2].should == 'Lassie'
+      rehashed[0].values[0].should == 'dog'
+      rehashed[0].values[1].should == 1
+      rehashed[0].values[2].should == 'Lassie'
+
+      rehashed[1]['animal'].should == 'horse'
+      rehashed[1]['score'].should == 5
+      rehashed[1]['name'].should == 'Mr. Ed'
+
+      rehashed[1].values[0].should == 'horse'
+      rehashed[1].values[1].should == 5
+      rehashed[1].values[2].should == 'Mr. Ed'
     end
 
     it 'empty results' do
@@ -42,13 +50,26 @@ describe Presto::Client::Client do
       rehashed.length.should == 0
     end
 
-    it 'handles invalid results' do
+    it 'handles too few result columns' do
       rows = [['wrong', 'count']]
       client.stub(:run).and_return([columns, rows])
 
-      expect do
-        client.run_with_names('fake query').should raise_error(ArgumentError)
-      end.to raise_error(ArgumentError)
+      client.run_with_names('fake query').should == [{
+        "animal" => "wrong",
+        "score" => "count",
+        "name" => nil,
+      }]
+    end
+
+    it 'handles too many result columns' do
+      rows = [['wrong', 'count', 'too', 'much', 'columns']]
+      client.stub(:run).and_return([columns, rows])
+
+      client.run_with_names('fake query').should == [{
+        "animal" => "wrong",
+        "score" => "count",
+        "name" => 'too',
+      }]
     end
   end
 end

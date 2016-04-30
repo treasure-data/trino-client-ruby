@@ -51,24 +51,15 @@ module Presto::Client
 
     # Accepts the raw response from the Presto Client and returns an
     # array of hashes where you can access the data in each row using the
-    # index int or the output name specified in the query with AS:
+    # output name specified in the query with AS:
     #   SELECT expression AS output_name
     def run_with_names(query)
-      columns, rows = run query
+      columns, rows = run(query)
 
       column_names = columns.map(&:name)
 
       rows.map do |row|
-        fail ArgumentError if column_names.length != row.length
-
-        new_hash = {}
-
-        row.each.with_index do |val, idx|
-          new_hash[column_names[idx]] = val
-          new_hash[idx] = val
-        end
-
-        new_hash
+        Hash[column_names.zip(row)]
       end
     end
   end
