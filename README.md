@@ -31,10 +31,12 @@ rows.each {|row|
 }
 
 # run a query and get results as a hash:
-results = client.run_with_names("select alpha, beta from tablename")
+results = client.run_with_names("select alpha, 1 AS beta from tablename")
 results.each {|row|
-  p "#{row['alpha']} == #{row[0]}"
-  p "#{row['beta']} == #{row[1]}"
+  p row['alpha']   # access by name
+  p row['beta']
+  p row.values[0]  # access by index
+  p row.values[1]
 }
 
 # another way to run a query and fetch results streamingly:
