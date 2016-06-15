@@ -39,7 +39,7 @@ module Presto::Client
       "User-Agent" => "presto-ruby/#{VERSION}",
     }
 
-    def initialize(faraday, query, options, next_uri: nil)
+    def initialize(faraday, query, options, next_uri=nil)
       @faraday = faraday
       @faraday.headers.merge!(HEADERS)
 

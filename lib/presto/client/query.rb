@@ -26,7 +26,7 @@ module Presto::Client
     end
 
     def self.resume(next_uri, options)
-      new StatementClient.new(faraday_client(options), nil, options, next_uri: next_uri)
+      new StatementClient.new(faraday_client(options), nil, options, next_uri)
     end
 
     def self.faraday_client(options)
