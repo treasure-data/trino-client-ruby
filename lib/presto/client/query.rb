@@ -22,20 +22,29 @@ module Presto::Client
 
   class Query
     def self.start(query, options)
+      new StatementClient.new(faraday_client(options), query, options)
+    end
+
+    def self.resume(next_uri, options)
+      new StatementClient.new(faraday_client(options), nil, options, next_uri: next_uri)
+    end
+
+    def self.faraday_client(options)
       server = options[:server]
       unless server
         raise ArgumentError, ":server option is required"
       end
 
       proxy = options[:proxy]
-      faraday = Faraday.new(url: "http://#{server}", proxy: "#{proxy}") do |faraday|
-        #faraday.request :url_encoded
-        faraday.response :logger if options[:http_debug]
-        faraday.adapter Faraday.default_adapter
+      faraday = Faraday.new(url: "http://#{server}", proxy: proxy.to_s) do |f|
+        f.response :logger if options[:http_debug]
+        f.adapter Faraday.default_adapter
       end
 
-      new StatementClient.new(faraday, query, options)
+      return faraday
     end
+
+    private_class_method :faraday_client
 
     def initialize(api)
       @api = api
@@ -102,6 +111,10 @@ module Presto::Client
 
     def query_info
       @api.query_info
+    end
+
+    def next_uri
+      @api.current_results.next_uri
     end
 
     def cancel
