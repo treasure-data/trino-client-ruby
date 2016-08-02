@@ -21,7 +21,7 @@ client = Presto::Client.new(
   time_zone: "US/Pacific", # optional
   language: "English", # optional
   properties: {"hello" => "world", "mycatalog.hello" => "world"},  # optional
-  proxy: "proxy.example.com:8080", # optional
+  http_proxy: "proxy.example.com:8080", # optional
   http_debug: true,
 )
 
@@ -64,7 +64,7 @@ end
 * **user** sets user name to connect to a Presto.
 * **time_zone** sets time zone of the query. Time zone affects some functions such as `format_datetime`.
 * **language** sets language of the query. Language affects some functions such as `format_datetime`.
-* **proxy** sets host:port of a HTTP proxy server.
+* **http_proxy** sets host:port of a HTTP proxy server.
 * **http_debug** enables debug message to STDOUT for each HTTP requests
 * **http_open_timeout** sets timeout in seconds to open new HTTP connection
 * **http_timeout** sets timeout in seconds to read data from a server
