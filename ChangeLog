@@ -1,6 +1,8 @@
-2016-04-06 version 0.4.13:
+2016-08-02 version 0.4.6:
 
+* Added support for :http_proxy option to use a HTTP proxy server
 * Added support for hashed Client response using `run_with_names` (thanks to MoovWeb for allowing me to contribute)
+* Upgraded Presto model version to 0.134
 
 2015-04-01 version 0.4.5:
 
