@@ -64,6 +64,8 @@ end
 * **user** sets user name to connect to a Presto.
 * **time_zone** sets time zone of the query. Time zone affects some functions such as `format_datetime`.
 * **language** sets language of the query. Language affects some functions such as `format_datetime`.
+* **proxy** sets host:port of a HTTP proxy server.
 * **http_debug** enables debug message to STDOUT for each HTTP requests
 * **http_open_timeout** sets timeout in seconds to open new HTTP connection
 * **http_timeout** sets timeout in seconds to read data from a server
+
