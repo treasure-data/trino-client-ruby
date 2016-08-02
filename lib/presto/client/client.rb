@@ -36,6 +36,10 @@ module Presto::Client
       end
     end
 
+    def resume_query(next_uri)
+      return Query.resume(next_uri, @options)
+    end
+
     def run(query)
       q = Query.start(query, @options)
       begin

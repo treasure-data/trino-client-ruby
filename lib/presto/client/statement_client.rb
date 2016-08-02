@@ -39,7 +39,7 @@ module Presto::Client
       "User-Agent" => "presto-ruby/#{VERSION}",
     }
 
-    def initialize(faraday, query, options)
+    def initialize(faraday, query, options, next_uri=nil)
       @faraday = faraday
       @faraday.headers.merge!(HEADERS)
 
@@ -49,7 +49,13 @@ module Presto::Client
       @exception = nil
 
       @faraday.headers.merge!(optional_headers)
-      post_query_request!
+
+      if next_uri
+        body = faraday_get_with_retry(next_uri)
+        @results = Models::QueryResults.decode(MultiJson.load(body))
+      else
+        post_query_request!
+      end
     end
 
     def optional_headers
