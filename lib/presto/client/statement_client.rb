@@ -152,7 +152,12 @@ module Presto::Client
       uri = @results.next_uri
 
       body = faraday_get_with_retry(uri)
-      @results = Models::QueryResults.decode(MultiJson.load(body))
+      json = MultiJson.load(body)
+      unless json.kind_of? Hash
+        @exception = PrestoHttpError.new(500, "Presto API error at #{uri} returned #{body}")
+        raise @exception
+      end
+      @results = Models::QueryResults.decode(json)
 
       return true
     end
