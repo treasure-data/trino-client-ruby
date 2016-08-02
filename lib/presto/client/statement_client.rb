@@ -47,8 +47,38 @@ module Presto::Client
       @query = query
       @closed = false
       @exception = nil
+
+      @faraday.headers.merge!(optional_headers)
       post_query_request!
     end
+
+    def optional_headers
+      headers = {}
+      if v = @options[:user]
+        headers[PrestoHeaders::PRESTO_USER] = v
+      end
+      if v = @options[:source]
+        headers[PrestoHeaders::PRESTO_SOURCE] = v
+      end
+      if v = @options[:catalog]
+        headers[PrestoHeaders::PRESTO_CATALOG] = v
+      end
+      if v = @options[:schema]
+        headers[PrestoHeaders::PRESTO_SCHEMA] = v
+      end
+      if v = @options[:time_zone]
+        headers[PrestoHeaders::PRESTO_TIME_ZONE] = v
+      end
+      if v = @options[:language]
+        headers[PrestoHeaders::PRESTO_LANGUAGE] = v
+      end
+      if v = @options[:properties]
+        headers[PrestoHeaders::PRESTO_SESSION] = encode_properties(v)
+      end
+      headers
+    end
+
+    private :optional_headers
 
     def init_request(req)
       req.options.timeout = @options[:http_timeout] || 300
@@ -60,28 +90,6 @@ module Presto::Client
     def post_query_request!
       response = @faraday.post do |req|
         req.url "/v1/statement"
-
-        if v = @options[:user]
-          req.headers[PrestoHeaders::PRESTO_USER] = v
-        end
-        if v = @options[:source]
-          req.headers[PrestoHeaders::PRESTO_SOURCE] = v
-        end
-        if v = @options[:catalog]
-          req.headers[PrestoHeaders::PRESTO_CATALOG] = v
-        end
-        if v = @options[:schema]
-          req.headers[PrestoHeaders::PRESTO_SCHEMA] = v
-        end
-        if v = @options[:time_zone]
-          req.headers[PrestoHeaders::PRESTO_TIME_ZONE] = v
-        end
-        if v = @options[:language]
-          req.headers[PrestoHeaders::PRESTO_LANGUAGE] = v
-        end
-        if v = @options[:properties]
-          req.headers[PrestoHeaders::PRESTO_SESSION] = encode_properties(v)
-        end
 
         req.body = @query
         init_request(req)
