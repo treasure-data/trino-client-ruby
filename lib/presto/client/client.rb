@@ -48,10 +48,23 @@ module Presto::Client
         q.close
       end
     end
+
+    # Accepts the raw response from the Presto Client and returns an
+    # array of hashes where you can access the data in each row using the
+    # output name specified in the query with AS:
+    #   SELECT expression AS output_name
+    def run_with_names(query)
+      columns, rows = run(query)
+
+      column_names = columns.map(&:name)
+
+      rows.map do |row|
+        Hash[column_names.zip(row)]
+      end
+    end
   end
 
   def self.new(*args)
     Client.new(*args)
   end
-
 end
