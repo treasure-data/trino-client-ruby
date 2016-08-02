@@ -44,10 +44,11 @@ module Presto::Client
       @faraday.headers.merge!(HEADERS)
 
       @options = options
-      @faraday.headers.merge!(optional_headers)
       @query = query
       @closed = false
       @exception = nil
+
+      @faraday.headers.merge!(optional_headers)
       post_query_request!
     end
 
@@ -76,6 +77,8 @@ module Presto::Client
       end
       headers
     end
+
+    private :optional_headers
 
     def init_request(req)
       req.options.timeout = @options[:http_timeout] || 300
