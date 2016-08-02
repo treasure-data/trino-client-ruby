@@ -77,6 +77,9 @@ module Presto::Client
 
     module PlanNode
       def self.decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
         model_class = case hash["@type"]
           when "output"             then OutputNode
           when "project"            then ProjectNode
@@ -122,6 +125,9 @@ module Presto::Client
     class << DistributionSnapshot =
         Base.new(:max_error, :count, :total, :p01, :p05, :p10, :p25, :p50, :p75, :p90, :p95, :p99, :min, :max)
       def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
         obj = allocate
         obj.send(:initialize_struct,
           hash["maxError"],
@@ -147,6 +153,9 @@ module Presto::Client
     class << EquiJoinClause =
         Base.new(:left, :right, :probe, :index)
       def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
         obj = allocate
         obj.send(:initialize_struct,
           hash["left"],
@@ -161,6 +170,9 @@ module Presto::Client
     class << WriterTarget =
         Base.new(:type, :handle)
       def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
         obj = allocate
         model_class = case hash["@type"]
             when "CreateHandle"       then OutputTableHandle
@@ -178,6 +190,9 @@ module Presto::Client
     class << DeleteHandle =
         Base.new(:handle)
       def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
         obj = allocate
         obj.send(:initialize_struct,
           TableHandle.decode(hash['handle'])
@@ -191,6 +206,9 @@ module Presto::Client
     class << PageBufferInfo =
         Base.new(:partition, :buffered_pages, :queued_pages, :buffered_bytes, :pages_added)
       def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
         obj = allocate
         obj.send(:initialize_struct,
           hash["partition"],

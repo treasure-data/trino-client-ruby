@@ -82,5 +82,24 @@ describe Presto::Client::StatementClient do
     retry_p.should be_true
   end
 
+  it "decodes DeleteHandle" do
+    dh = Models::DeleteHandle.decode({
+      "handle" => {
+        "connectorId" => "c1",
+        "connectorHandle" => {},
+      }
+    })
+    dh.handle.should be_a_kind_of Models::TableHandle
+    dh.handle.connector_id.should == "c1"
+    dh.handle.connector_handle.should == {}
+  end
+
+  it "validates models" do
+    lambda do
+      Models::DeleteHandle.decode({
+        "handle" => "invalid"
+      })
+    end.should raise_error(TypeError, /String to Hash/)
+  end
 end
 
