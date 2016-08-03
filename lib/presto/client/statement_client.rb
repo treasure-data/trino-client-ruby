@@ -182,11 +182,13 @@ module Presto::Client
             return response.body
           end
 
-          if response.status != 503  # retry only if 503 Service Unavailable
-            # deterministic error
+          if (response.status / 100).to_i != 5
+            # client error is deterministic error
             @exception = PrestoHttpError.new(response.status, "Presto API error at #{uri} returned #{response.status}: #{response.body}")
             raise @exception
           end
+
+          # retry if server-error
         end
 
         attempts += 1
