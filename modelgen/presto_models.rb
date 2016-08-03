@@ -159,6 +159,11 @@ module PrestoModels
 
     def format_decode
       puts_with_indent 1, "def decode(hash)"
+
+      puts_with_indent 2, "unless hash.is_a?(Hash)"
+      puts_with_indent 3, "raise TypeError, \"Can't convert \#{hash.class} to Hash\""
+      puts_with_indent 2, "end"
+
       if @special_struct_initialize_method
         puts_with_indent 2, "obj = allocate"
         puts_with_indent 2, "obj.send(:#{@special_struct_initialize_method},"

@@ -94,8 +94,9 @@ module Presto::Client
     private :init_request
 
     def post_query_request!
+      uri = "/v1/statement"
       response = @faraday.post do |req|
-        req.url "/v1/statement"
+        req.url uri
 
         req.body = @query
         init_request(req)
@@ -107,8 +108,7 @@ module Presto::Client
       end
 
       body = response.body
-      hash = MultiJson.load(body)
-      @results = Models::QueryResults.decode(hash)
+      @results = load_json(uri, body, Models::QueryResults)
     end
 
     private :post_query_request!
@@ -152,15 +152,31 @@ module Presto::Client
       uri = @results.next_uri
 
       body = faraday_get_with_retry(uri)
-      @results = Models::QueryResults.decode(MultiJson.load(body))
+      @results = load_json(uri, body, Models::QueryResults)
 
       return true
     end
 
     def query_info
-      body = faraday_get_with_retry("/v1/query/#{@results.id}")
-      Models::QueryInfo.decode(MultiJson.load(body))
+      uri = "/v1/query/#{@results.id}"
+      body = faraday_get_with_retry(uri)
+      load_json(uri, body, Models::QueryInfo)
     end
+
+    def load_json(uri, body, body_class)
+      hash = MultiJson.load(body)
+      begin
+        body_class.decode(hash)
+      rescue => e
+        if body.size > 1024 + 3
+          body = "#{body[0, 1024]}..."
+        end
+        @exception = PrestoHttpError.new(500, "Presto API returned unexpected structure at #{uri}. Expected #{body_class} but got #{body}: #{e}")
+        raise @exception
+      end
+    end
+
+    private :load_json
 
     def faraday_get_with_retry(uri, &block)
       start = Time.now
