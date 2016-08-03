@@ -13,10 +13,10 @@ erb = ERB.new(File.read(template_path))
 source_path = source_dir
 
 predefined_simple_classes = %w[StageId TaskId ConnectorSession]
-predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause WriterTarget PageBufferInfo DeleteHandle]
+predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause WriterTarget DeleteHandle Specification ArgumentBinding]
 
-assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle]
-enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState NullPartitioning BlockedReason ParameterKind FunctionKind PartitionFunctionHandle]
+assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle OutputBufferId ConnectorPartitioningHandle NullableValue]
+enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState NullPartitioning BlockedReason ParameterKind FunctionKind PartitionFunctionHandle Scope ErrorType]
 
 root_models = %w[QueryResults QueryInfo] + %w[
 OutputNode
@@ -46,7 +46,11 @@ TableFinishNode
 UnnestNode
 ExchangeNode
 UnionNode
+IntersectNode
 EnforceSingleRowNode
+GroupIdNode
+ExplainAnalyzeNode
+ApplyNode
 ] + %w[InsertTableHandle OutputTableHandle TableHandle]
 
 name_mapping = Hash[*%w[

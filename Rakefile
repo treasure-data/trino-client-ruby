@@ -12,7 +12,7 @@ end
 
 task :default => [:spec, :build]
 
-GEN_MODELS_VERSION = "0.134"
+GEN_MODELS_VERSION = "0.151"
 
 task :modelgen do
   unless Dir.exists?("presto-#{GEN_MODELS_VERSION}")

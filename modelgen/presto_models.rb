@@ -4,6 +4,7 @@ module PrestoModels
   require 'stringio'
 
   PRIMITIVE_TYPES = %w[String boolean long int short byte double float Integer]
+  ARRAY_PRIMITIVE_TYPES = PRIMITIVE_TYPES.map { |t| "#{t}[]" }
 
   class Model < Struct.new(:name, :fields)
   end
@@ -24,7 +25,7 @@ module PrestoModels
   class ModelAnalyzer
     def initialize(source_path, options={})
       @source_path = source_path
-      @ignore_types = PRIMITIVE_TYPES + (options[:skip_models] || [])
+      @ignore_types = PRIMITIVE_TYPES + ARRAY_PRIMITIVE_TYPES + (options[:skip_models] || [])
       @path_mapping = options[:path_mapping] || {}
       @name_mapping = options[:name_mapping] || {}
       @models = {}
@@ -45,7 +46,7 @@ module PrestoModels
 
     private
 
-    PROPERTY_PATTERN = /@JsonProperty\(\"(\w+)\"\)\s+(@Nullable\s+)?([\w\<\>\,\s]+)\s+(\w+)/
+    PROPERTY_PATTERN = /@JsonProperty\(\"(\w+)\"\)\s+(@Nullable\s+)?([\w\<\>\[\]\,\s]+)\s+(\w+)/
     CREATOR_PATTERN = /@JsonCreator[\w\s]+\((?:\s*#{PROPERTY_PATTERN}\s*,?)+\)/
 
     def analyze_model(model_name, parent_model = nil)
@@ -70,7 +71,7 @@ module PrestoModels
           base_type = m[1]
           map_value_base_type = m[2]
           map = true
-        elsif m = /Optional<(\w+)>/.match(type)
+        elsif m = /Optional<([\w\[\]]+)>/.match(type)
           base_type = m[1]
           nullable = true
         elsif m = /OptionalInt/.match(type)
@@ -122,7 +123,7 @@ module PrestoModels
       @base_indent_count = options[:base_indent_count] || 0
       @struct_class = options[:struct_class] || 'Struct'
       @special_struct_initialize_method = options[:special_struct_initialize_method]
-      @primitive_types = PRIMITIVE_TYPES + (options[:primitive_types] || [])
+      @primitive_types = PRIMITIVE_TYPES + ARRAY_PRIMITIVE_TYPES + (options[:primitive_types] || [])
       @skip_types = options[:skip_types] || []
       @simple_classes = options[:simple_classes]
       @enum_types = options[:enum_types]
