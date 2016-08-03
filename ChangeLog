@@ -1,6 +1,12 @@
+2016-08-03 version 0.4.16:
+
+* Upgraded Presto model version to 0.151
+
+
 2016-08-03 version 0.4.15:
 
 * decode method of model classes validate Hash type
+
 
 2016-08-02 version 0.4.14:
 
