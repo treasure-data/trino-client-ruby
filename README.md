@@ -83,3 +83,5 @@ end
 * **http_open_timeout** sets timeout in seconds to open new HTTP connection.
 * **http_timeout** sets timeout in seconds to read data from a server.
 
+See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentation.
+
