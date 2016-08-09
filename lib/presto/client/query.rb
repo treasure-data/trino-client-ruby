@@ -35,8 +35,10 @@ module Presto::Client
         raise ArgumentError, ":server option is required"
       end
 
+      schema = options[:port] == 443 ? "https" : "http"
+
       proxy = options[:http_proxy] || options[:proxy]  # :proxy is obsoleted
-      faraday = Faraday.new(url: "http://#{server}", proxy: "#{proxy}") do |faraday|
+      faraday = Faraday.new(url: "#{schema}://#{server}", proxy: "#{proxy}") do |faraday|
         #faraday.request :url_encoded
         faraday.response :logger if options[:http_debug]
         faraday.adapter Faraday.default_adapter
