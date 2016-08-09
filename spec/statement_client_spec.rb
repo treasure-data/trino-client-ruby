@@ -101,5 +101,57 @@ describe Presto::Client::StatementClient do
       })
     end.should raise_error(TypeError, /String to Hash/)
   end
+
+  describe "ssl" do
+    it "is disabled by default" do
+      f = Query.__send__(:faraday_client, {
+        server: "localhost",
+      })
+      f.url_prefix.to_s.should == "http://localhost/"
+    end
+
+    it "is enabled with ssl: true" do
+      f = Query.__send__(:faraday_client, {
+        server: "localhost",
+        ssl: true,
+      })
+      f.url_prefix.to_s.should == "https://localhost/"
+      f.ssl.verify?.should == false
+    end
+
+    it "is enabled with ssl: :verify" do
+      f = Query.__send__(:faraday_client, {
+        server: "localhost",
+        ssl: :verify
+      })
+      f.url_prefix.to_s.should == "https://localhost/"
+      f.ssl.verify?.should == true
+    end
+
+    it "is enabled with ssl: Hash" do
+      require 'openssl'
+
+      ssl = {
+        ca_file: "/path/to/dummy.pem",
+        ca_path: "/path/to/pemdir",
+        cert_store: OpenSSL::X509::Store.new,
+        client_cert: OpenSSL::X509::Certificate.new,
+        client_key: OpenSSL::PKey::DSA.new,
+      }
+
+      f = Query.__send__(:faraday_client, {
+        server: "localhost",
+        ssl: ssl,
+      })
+
+      f.url_prefix.to_s.should == "https://localhost/"
+      f.ssl.verify?.should == true
+      f.ssl.ca_file.should == ssl[:ca_file]
+      f.ssl.ca_path.should == ssl[:ca_path]
+      f.ssl.cert_store.should == ssl[:cert_store]
+      f.ssl.client_cert.should == ssl[:client_cert]
+      f.ssl.client_key.should == ssl[:client_key]
+    end
+  end
 end
 

@@ -35,8 +35,24 @@ module Presto::Client
         raise ArgumentError, ":server option is required"
       end
 
+      ssl = options[:ssl]
+      case ssl
+      when true
+        ssl = {verify: false}
+      when :verify, "verify"
+        ssl = {verify: true}
+      when Hash
+        # detailed SSL options. pass through to faraday
+      when nil, false
+        ssl = false
+      else
+        raise ArgumentError, "Can't convert #{ssl.class} of :ssl option to true, false, or Hash"
+      end
+
+      url = "#{ssl ? "https" : "http"}://#{server}"
       proxy = options[:http_proxy] || options[:proxy]  # :proxy is obsoleted
-      faraday = Faraday.new(url: "http://#{server}", proxy: "#{proxy}") do |faraday|
+
+      faraday = Faraday.new(url: url, proxy: "#{proxy}", ssl: ssl) do |faraday|
         #faraday.request :url_encoded
         faraday.response :logger if options[:http_debug]
         faraday.adapter Faraday.default_adapter
