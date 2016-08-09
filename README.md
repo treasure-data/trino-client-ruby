@@ -20,7 +20,7 @@ client = Presto::Client.new(
   user: "frsyuki",
   time_zone: "US/Pacific", # optional
   language: "English", # optional
-  properties: {"hello" => "world", "mycatalog.hello" => "world"},  # optional
+  properties: {"hive.force_local_scheduling": true, raptor.reader_stream_buffer_size: "32MB"},  # optional
   http_proxy: "proxy.example.com:8080", # optional
   http_debug: true,
 )
@@ -57,15 +57,16 @@ end
 
 ## Options
 
-* **server** sets address[:port] to a Presto coordinator
+* **server** sets address (and port) of a Presto coordinator server.
 * **catalog** sets catalog (connector) name of Presto such as `hive-cdh4`, `hive-hadoop1`, etc.
-* **schema** sets default schema name of Presto. You can read other schemas by qualified name like `FROM myschema.table1`.
+* **schema** sets default schema name of Presto. You need to use qualified name like `FROM myschema.table1` to use non-default schemas.
 * **source** sets source name to connect to a Presto. This name is shown on Presto web interface.
 * **user** sets user name to connect to a Presto.
-* **time_zone** sets time zone of the query. Time zone affects some functions such as `format_datetime`.
-* **language** sets language of the query. Language affects some functions such as `format_datetime`.
+* **time_zone** sets time zone of queries. Time zone affects some functions such as `format_datetime`.
+* **language** sets language of queries. Language affects some functions such as `format_datetime`.
+* **properties** set session properties. Session properties affect internal behavior such as `hive.force_local_scheduling: true`, `raptor.reader_stream_buffer_size: "32MB"`, etc.
 * **http_proxy** sets host:port of a HTTP proxy server.
-* **http_debug** enables debug message to STDOUT for each HTTP requests
-* **http_open_timeout** sets timeout in seconds to open new HTTP connection
-* **http_timeout** sets timeout in seconds to read data from a server
+* **http_debug** enables debug message to STDOUT for each HTTP requests.
+* **http_open_timeout** sets timeout in seconds to open new HTTP connection.
+* **http_timeout** sets timeout in seconds to read data from a server.
 
