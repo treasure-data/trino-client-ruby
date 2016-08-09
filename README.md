@@ -27,7 +27,7 @@ client = Presto::Client.new(
   },
   http_proxy: "proxy.example.com:8080",
   http_debug: true,
-})
+)
 
 # run a query and get results as an array of arrays:
 columns, rows = client.run("select * from sys.node")
