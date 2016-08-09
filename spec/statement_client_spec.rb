@@ -116,16 +116,25 @@ describe Presto::Client::StatementClient do
         ssl: true,
       })
       f.url_prefix.to_s.should == "https://localhost/"
+      f.ssl.verify?.should == true
+    end
+
+    it "is enabled with ssl: {verify: false}" do
+      f = Query.__send__(:faraday_client, {
+        server: "localhost",
+        ssl: {verify: false}
+      })
+      f.url_prefix.to_s.should == "https://localhost/"
       f.ssl.verify?.should == false
     end
 
-    it "is enabled with ssl: :verify" do
-      f = Query.__send__(:faraday_client, {
-        server: "localhost",
-        ssl: :verify
-      })
-      f.url_prefix.to_s.should == "https://localhost/"
-      f.ssl.verify?.should == true
+    it "rejects invalid ssl: verify: object" do
+      lambda do
+        f = Query.__send__(:faraday_client, {
+          server: "localhost",
+          ssl: {verify: "??"}
+        })
+      end.should raise_error(ArgumentError, /String/)
     end
 
     it "is enabled with ssl: Hash" do
@@ -151,6 +160,24 @@ describe Presto::Client::StatementClient do
       f.ssl.cert_store.should == ssl[:cert_store]
       f.ssl.client_cert.should == ssl[:client_cert]
       f.ssl.client_key.should == ssl[:client_key]
+    end
+
+    it "rejects an invalid string" do
+      lambda do
+        Query.__send__(:faraday_client, {
+          server: "localhost",
+          ssl: '??',
+        })
+      end.should raise_error(ArgumentError, /String/)
+    end
+
+    it "rejects an integer" do
+      lambda do
+        Query.__send__(:faraday_client, {
+          server: "localhost",
+          ssl: 3,
+        })
+      end.should raise_error(ArgumentError, /:ssl/)
     end
   end
 end
