@@ -15,6 +15,7 @@ require 'presto-client'
 # create a client object:
 client = Presto::Client.new(
   server: "localhost:8880",   # required option
+  ssl: {verify: false},
   catalog: "native",
   schema: "default",
   user: "frsyuki",
@@ -22,7 +23,7 @@ client = Presto::Client.new(
   language: "English",
   properties: {
     "hive.force_local_scheduling": true,
-    "raptor.reader_stream_buffer_size: "32MB"
+    "raptor.reader_stream_buffer_size": "32MB"
   },
   http_proxy: "proxy.example.com:8080",
   http_debug: true,
@@ -61,6 +62,15 @@ end
 ## Options
 
 * **server** sets address (and port) of a Presto coordinator server.
+* **ssl** enables https.
+  * Setting `true` enables SSL and verifies server certificate using system's built-in certificates.
+  * Setting `{verify: false}` enables SSL but doesn't verify server certificate.
+  * Setting a Hash object enables SSL and verify server certificate with options:
+    * **ca_file**: path of a CA certification file in PEM format
+    * **ca_path**: path of a CA certification directory containing certifications in PEM format
+    * **cert_store**: a `OpenSSL::X509::Store` object used for verification
+    * **client_cert**: a `OpenSSL::X509::Certificate` object as client certificate
+    * **client_key**: a `OpenSSL::PKey::RSA` or `OpenSSL::PKey::DSA` object used for client certificate
 * **catalog** sets catalog (connector) name of Presto such as `hive-cdh4`, `hive-hadoop1`, etc.
 * **schema** sets default schema name of Presto. You need to use qualified name like `FROM myschema.table1` to use non-default schemas.
 * **source** sets source name to connect to a Presto. This name is shown on Presto web interface.
