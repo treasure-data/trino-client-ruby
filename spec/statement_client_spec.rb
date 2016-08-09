@@ -101,5 +101,20 @@ describe Presto::Client::StatementClient do
       })
     end.should raise_error(TypeError, /String to Hash/)
   end
-end
 
+  it 'StatementClient send in https' do
+    stub_request(:post, "https://localhost/v1/statement").
+      with(body: query,
+           headers: {
+              "User-Agent" => "presto-ruby/#{VERSION}",
+              "X-Presto-Catalog" => options[:catalog],
+              "X-Presto-Schema" => options[:schema],
+              "X-Presto-User" => options[:user],
+              "X-Presto-Language" => options[:language],
+              "X-Presto-Time-Zone" => options[:time_zone],
+              "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
+    }).to_return(body: response_json.to_json)
+    options[:port] = 443
+    Query.start(query, options)
+  end
+end
