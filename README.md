@@ -14,24 +14,27 @@ require 'presto-client'
 
 # create a client object:
 client = Presto::Client.new(
-  server: "localhost:8880",
+  server: "localhost:8880",   # required option
   catalog: "native",
   schema: "default",
   user: "frsyuki",
-  time_zone: "US/Pacific", # optional
-  language: "English", # optional
-  properties: {"hive.force_local_scheduling": true, raptor.reader_stream_buffer_size: "32MB"},  # optional
-  http_proxy: "proxy.example.com:8080", # optional
+  time_zone: "US/Pacific",
+  language: "English",
+  properties: {
+    "hive.force_local_scheduling": true,
+    "raptor.reader_stream_buffer_size: "32MB"
+  },
+  http_proxy: "proxy.example.com:8080",
   http_debug: true,
 )
 
-# run a query and get results:
+# run a query and get results as an array of arrays:
 columns, rows = client.run("select * from sys.node")
 rows.each {|row|
-  p row
+  p row  # row is an array
 }
 
-# run a query and get results as a hash:
+# run a query and get results as an array of hashes:
 results = client.run_with_names("select alpha, 1 AS beta from tablename")
 results.each {|row|
   p row['alpha']   # access by name
@@ -40,17 +43,17 @@ results.each {|row|
   p row.values[1]
 }
 
-# another way to run a query and fetch results streamingly:
-# start running a query on presto
+# run a query and fetch results streamingly:
 client.query("select * from sys.node") do |q|
-  # wait for completion and get columns
+  # get columns:
   q.columns.each {|column|
     puts "column: #{column.name}.#{column.type}"
   }
 
-  # get query results
+  # get query results. it feeds more rows until
+  # query execution finishes:
   q.each_row {|row|
-    p row
+    p row  # row is an array
   }
 end
 ```
