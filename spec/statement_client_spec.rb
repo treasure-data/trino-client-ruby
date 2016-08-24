@@ -180,5 +180,15 @@ describe Presto::Client::StatementClient do
       end.should raise_error(ArgumentError, /:ssl/)
     end
   end
+
+  it "support multiple model versions" do
+    stub_request(:post, "localhost/v1/statement").
+      with({body: query}).
+      to_return(body: response_json.to_json)
+
+    faraday = Faraday.new(url: "http://localhost")
+    client = StatementClient.new(faraday, query, options.merge(model_version: "0.149"))
+    client.current_results.should be_a_kind_of(ModelVersions::V0_149::QueryResults)
+  end
 end
 
