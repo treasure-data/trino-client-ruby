@@ -25,8 +25,8 @@ module Presto::Client
   end
 
   require 'presto/client/model_versions/0.149.rb'
-  require 'presto/client/model_versions/0.151.rb'
+  require 'presto/client/model_versions/0.153.rb'
 
-  Models = ModelVersions::V0_151
+  Models = ModelVersions::V0_153
 
 end

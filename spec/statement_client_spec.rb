@@ -85,13 +85,11 @@ describe Presto::Client::StatementClient do
   it "decodes DeleteHandle" do
     dh = Models::DeleteHandle.decode({
       "handle" => {
-        "connectorId" => "c1",
-        "connectorHandle" => {},
+        "connectorHandle" => {}
       }
     })
     dh.handle.should be_a_kind_of Models::TableHandle
-    dh.handle.connector_id.should == "c1"
-    dh.handle.connector_handle.should == {}
+        dh.handle.connector_handle.should == nil
   end
 
   it "validates models" do

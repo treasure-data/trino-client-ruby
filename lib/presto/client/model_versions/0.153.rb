@@ -21,7 +21,7 @@ module Presto::Client::ModelVersions
   ## modelgen/model_versions.rb file and run "rake modelgen:all".
   ##
 
-  module V0_151
+  module V0_153
     class Base < Struct
       class << self
         alias_method :new_struct, :new
@@ -243,7 +243,7 @@ module Presto::Client::ModelVersions
     #
 
     class << AggregationNode =
-        Base.new(:id, :source, :group_by, :aggregations, :functions, :masks, :grouping_sets, :step, :sample_weight, :confidence, :hash_symbol)
+        Base.new(:id, :source, :aggregations, :functions, :masks, :grouping_sets, :step, :sample_weight, :confidence, :hash_symbol, :group_id_symbol)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -252,7 +252,6 @@ module Presto::Client::ModelVersions
         obj.send(:initialize_struct,
           hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
-          hash["groupBy"],
           hash["aggregations"],
           hash["functions"] && Hash[hash["functions"].to_a.map! {|k,v| [k, Signature.decode(v)] }],
           hash["masks"],
@@ -261,6 +260,7 @@ module Presto::Client::ModelVersions
           hash["sampleWeight"],
           hash["confidence"],
           hash["hashSymbol"],
+          hash["groupIdSymbol"],
         )
         obj
       end
@@ -623,7 +623,6 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -652,7 +651,7 @@ module Presto::Client::ModelVersions
     end
 
     class << IndexSourceNode =
-        Base.new(:id, :index_handle, :table_handle, :lookup_symbols, :output_symbols, :assignments, :effective_tuple_domain)
+        Base.new(:id, :index_handle, :table_handle, :table_layout, :lookup_symbols, :output_symbols, :assignments, :effective_tuple_domain)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -662,6 +661,7 @@ module Presto::Client::ModelVersions
           hash["id"],
           hash["indexHandle"] && IndexHandle.decode(hash["indexHandle"]),
           hash["tableHandle"] && TableHandle.decode(hash["tableHandle"]),
+          hash["tableLayout"] && TableLayoutHandle.decode(hash["tableLayout"]),
           hash["lookupSymbols"],
           hash["outputSymbols"],
           hash["assignments"],
@@ -672,16 +672,16 @@ module Presto::Client::ModelVersions
     end
 
     class << Input =
-        Base.new(:connector_id, :schema, :table, :columns)
+        Base.new(:connector_id, :schema, :table, :connector_info, :columns)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
           hash["schema"],
           hash["table"],
+          hash["connectorInfo"],
           hash["columns"] && hash["columns"].map {|h| Column.decode(h) },
         )
         obj
@@ -696,9 +696,25 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
           hash["transactionHandle"],
           hash["connectorHandle"],
+        )
+        obj
+      end
+    end
+
+    class << IntersectNode =
+        Base.new(:id, :sources, :output_to_inputs, :outputs)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["id"],
+          hash["sources"] && hash["sources"].map {|h| PlanNode.decode(h) },
+          hash["outputToInputs"],
+          hash["outputs"],
         )
         obj
       end
@@ -829,6 +845,21 @@ module Presto::Client::ModelVersions
       end
     end
 
+    class << Output =
+        Base.new(:connector_id, :schema, :table)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["schema"],
+          hash["table"],
+        )
+        obj
+      end
+    end
+
     class << OutputBufferInfo =
         Base.new(:type, :state, :can_add_buffers, :can_add_pages, :total_buffered_bytes, :total_buffered_pages, :total_rows_sent, :total_pages_sent, :buffers)
       def decode(hash)
@@ -876,7 +907,6 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -925,7 +955,6 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -1049,7 +1078,7 @@ module Presto::Client::ModelVersions
     end
 
     class << QueryInfo =
-        Base.new(:query_id, :session, :state, :memory_pool, :scheduled, :self, :field_names, :query, :query_stats, :set_session_properties, :reset_session_properties, :added_prepared_statements, :deallocated_prepared_statements, :started_transaction_id, :clear_transaction_id, :update_type, :output_stage, :failure_info, :error_code, :inputs)
+        Base.new(:query_id, :session, :state, :memory_pool, :scheduled, :self, :field_names, :query, :query_stats, :set_session_properties, :reset_session_properties, :added_prepared_statements, :deallocated_prepared_statements, :started_transaction_id, :clear_transaction_id, :update_type, :output_stage, :failure_info, :error_code, :inputs, :output, :complete_info)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1076,6 +1105,8 @@ module Presto::Client::ModelVersions
           hash["failureInfo"] && FailureInfo.decode(hash["failureInfo"]),
           hash["errorCode"] && ErrorCode.decode(hash["errorCode"]),
           hash["inputs"] && hash["inputs"].map {|h| Input.decode(h) },
+          hash["output"] && Output.decode(hash["output"]),
+          hash["completeInfo"],
         )
         obj
       end
@@ -1403,7 +1434,6 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
           hash["connectorHandle"],
         )
         obj
@@ -1418,7 +1448,6 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -1468,7 +1497,7 @@ module Presto::Client::ModelVersions
     end
 
     class << TaskInfo =
-        Base.new(:task_status, :last_heartbeat, :output_buffers, :no_more_splits, :stats, :needs_plan)
+        Base.new(:task_status, :last_heartbeat, :output_buffers, :no_more_splits, :stats, :needs_plan, :complete)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1481,6 +1510,7 @@ module Presto::Client::ModelVersions
           hash["noMoreSplits"],
           hash["stats"] && TaskStats.decode(hash["stats"]),
           hash["needsPlan"],
+          hash["complete"],
         )
         obj
       end
@@ -1570,7 +1600,7 @@ module Presto::Client::ModelVersions
     end
 
     class << TopNRowNumberNode =
-        Base.new(:id, :source, :partition_by, :order_by, :orderings, :row_number_symbol, :max_row_count_per_partition, :partial, :hash_symbol)
+        Base.new(:id, :source, :specification, :row_number_symbol, :max_row_count_per_partition, :partial, :hash_symbol)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1579,9 +1609,7 @@ module Presto::Client::ModelVersions
         obj.send(:initialize_struct,
           hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
-          hash["partitionBy"],
-          hash["orderBy"],
-          hash["orderings"] && Hash[hash["orderings"].to_a.map! {|k,v| [k, v.downcase.to_sym] }],
+          hash["specification"] && Specification.decode(hash["specification"]),
           hash["rowNumberSymbol"],
           hash["maxRowCountPerPartition"],
           hash["partial"],
@@ -1660,7 +1688,7 @@ module Presto::Client::ModelVersions
     end
 
     class << WindowNode =
-        Base.new(:id, :source, :specification, :window_functions, :signatures, :hash_symbol, :pre_partitioned_inputs, :pre_sorted_order_prefix)
+        Base.new(:id, :source, :specification, :window_functions, :hash_symbol, :pre_partitioned_inputs, :pre_sorted_order_prefix)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1670,8 +1698,6 @@ module Presto::Client::ModelVersions
           hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["specification"] && Specification.decode(hash["specification"]),
-          hash["windowFunctions"],
-          hash["signatures"] && Hash[hash["signatures"].to_a.map! {|k,v| [k, Signature.decode(v)] }],
           hash["hashSymbol"],
           hash["prePartitionedInputs"],
           hash["preSortedOrderPrefix"],
