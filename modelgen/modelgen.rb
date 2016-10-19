@@ -1,9 +1,10 @@
 
-if ARGV.length != 3
-  puts "usage: <presto-source-dir> <template.erb> <output.rb>"
+if ARGV.length != 4
+  puts "usage: <model-version> <presto-source-dir> <template.erb> <output.rb>"
+  exit 1
 end
 
-source_dir, template_path, output_path = *ARGV
+model_version, source_dir, template_path, output_path = *ARGV
 
 require_relative 'presto_models'
 
@@ -89,7 +90,8 @@ formatter = PrestoModels::ModelFormatter.new(
 formatter.format(models)
 
 @contents = formatter.contents
+@model_version = model_version
 
 data = erb.result
-File.open(output_path, 'w') {|f| f.write data }
+File.write(output_path, data)
 

@@ -12,15 +12,37 @@ end
 
 task :default => [:spec, :build]
 
-GEN_MODELS_VERSION = "0.151"
+GEN_MODEL_VERSIONS = %w[
+  0.149
+  0.153
+]
 
-task :modelgen do
-  unless Dir.exists?("presto-#{GEN_MODELS_VERSION}")
-    sh "curl -L -o presto-#{GEN_MODELS_VERSION}.tar.gz https://github.com/facebook/presto/archive/#{GEN_MODELS_VERSION}.tar.gz"
-    sh "tar zxvf presto-#{GEN_MODELS_VERSION}.tar.gz"
+namespace "modelgen" do
+  task :latest => :all do
+    require 'erb'
+    erb = ERB.new(File.read("modelgen/models.rb"))
+    @versions = GEN_MODEL_VERSIONS
+    @latest_version = GEN_MODEL_VERSIONS.last
+    data = erb.result
+    File.write("lib/presto/client/models.rb", data)
   end
 
-  sh "#{RbConfig.ruby} modelgen/modelgen.rb presto-#{GEN_MODELS_VERSION} modelgen/models.rb lib/presto/client/models.rb"
-  puts "Generated lib/presto/client/models.rb."
+  task :all => GEN_MODEL_VERSIONS
+
+  GEN_MODEL_VERSIONS.each do |ver|
+    file "build/presto-#{ver}.tar.gz" do
+      mkdir_p "build"
+      sh "curl -L -o build/presto-#{ver}.tar.gz https://github.com/facebook/presto/archive/#{ver}.tar.gz"
+    end
+
+    file "lib/presto/client/model_versions/#{ver}.rb" => "build/presto-#{ver}.tar.gz" do
+      sh "tar zxf build/presto-#{ver}.tar.gz -C build"
+      mkdir_p "lib/presto/client/model_versions"
+      sh "#{RbConfig.ruby} modelgen/modelgen.rb #{ver} build/presto-#{ver} modelgen/model_versions.rb lib/presto/client/model_versions/#{ver}.rb"
+      puts "Generated lib/presto/client/model_versions/#{ver}.rb."
+    end
+
+    task ver => "lib/presto/client/model_versions/#{ver}.rb"
+  end
 end
 

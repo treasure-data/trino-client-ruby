@@ -59,6 +59,12 @@ client.query("select * from sys.node") do |q|
 end
 ```
 
+## Build models
+
+```
+$ bundle exec rake modelgen:latest
+```
+
 ## Options
 
 * **server** sets address (and port) of a Presto coordinator server.
@@ -82,6 +88,7 @@ end
 * **http_debug** enables debug message to STDOUT for each HTTP requests.
 * **http_open_timeout** sets timeout in seconds to open new HTTP connection.
 * **http_timeout** sets timeout in seconds to read data from a server.
+* **model_version** set the presto version to which a job is submitted. Supported versions are 0.153 and 0.149. Default is 0.153.
 
 See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentation.
 

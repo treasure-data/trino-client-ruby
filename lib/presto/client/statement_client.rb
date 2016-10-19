@@ -48,11 +48,17 @@ module Presto::Client
       @closed = false
       @exception = nil
 
+      if model_version = @options[:model_version]
+        @models = ModelVersions.const_get("V#{model_version.gsub(".", "_")}")
+      else
+        @models = Models
+      end
+
       @faraday.headers.merge!(optional_headers)
 
       if next_uri
         body = faraday_get_with_retry(next_uri)
-        @results = Models::QueryResults.decode(MultiJson.load(body))
+        @results = @models::QueryResults.decode(MultiJson.load(body))
       else
         post_query_request!
       end
@@ -108,7 +114,7 @@ module Presto::Client
       end
 
       body = response.body
-      @results = load_json(uri, body, Models::QueryResults)
+      @results = load_json(uri, body, @models::QueryResults)
     end
 
     private :post_query_request!
@@ -152,7 +158,7 @@ module Presto::Client
       uri = @results.next_uri
 
       body = faraday_get_with_retry(uri)
-      @results = load_json(uri, body, Models::QueryResults)
+      @results = load_json(uri, body, @models::QueryResults)
 
       return true
     end
@@ -160,7 +166,7 @@ module Presto::Client
     def query_info
       uri = "/v1/query/#{@results.id}"
       body = faraday_get_with_retry(uri)
-      load_json(uri, body, Models::QueryInfo)
+      load_json(uri, body, @models::QueryInfo)
     end
 
     def load_json(uri, body, body_class)

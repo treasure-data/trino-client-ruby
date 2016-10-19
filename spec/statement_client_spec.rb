@@ -85,13 +85,11 @@ describe Presto::Client::StatementClient do
   it "decodes DeleteHandle" do
     dh = Models::DeleteHandle.decode({
       "handle" => {
-        "connectorId" => "c1",
-        "connectorHandle" => {},
+        "connectorHandle" => {}
       }
     })
     dh.handle.should be_a_kind_of Models::TableHandle
-    dh.handle.connector_id.should == "c1"
-    dh.handle.connector_handle.should == {}
+        dh.handle.connector_handle.should == nil
   end
 
   it "validates models" do
@@ -179,6 +177,22 @@ describe Presto::Client::StatementClient do
         })
       end.should raise_error(ArgumentError, /:ssl/)
     end
+  end
+
+  it "supports multiple model versions" do
+    stub_request(:post, "localhost/v1/statement").
+      with({body: query}).
+      to_return(body: response_json.to_json)
+
+    faraday = Faraday.new(url: "http://localhost")
+    client = StatementClient.new(faraday, query, options.merge(model_version: "0.149"))
+    client.current_results.should be_a_kind_of(ModelVersions::V0_149::QueryResults)
+  end
+
+  it "rejects unsupported model version" do
+    lambda do
+      StatementClient.new(faraday, query, options.merge(model_version: "0.111"))
+    end.should raise_error(NameError)
   end
 end
 
