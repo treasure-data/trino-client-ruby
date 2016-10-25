@@ -838,7 +838,7 @@ module Presto::Client::ModelVersions
           hash["finishUser"],
           hash["memoryReservation"],
           hash["systemMemoryReservation"],
-          hash["blockedReason"] && BlockedReason.decode(hash["blockedReason"]),
+          hash["blockedReason"] && hash["blockedReason"].downcase.to_sym,
           hash["info"],
         )
         obj

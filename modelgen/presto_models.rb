@@ -214,7 +214,7 @@ module PrestoModels
     def convert_expression(type, base_type, key)
       if @special_types[type]
         special.call(key)
-      elsif @enum_types.include?(type)
+      elsif @enum_types.include?(type) || @enum_types.include?(base_type)
         "#{key}.downcase.to_sym"
       elsif @primitive_types.include?(base_type)
         key
