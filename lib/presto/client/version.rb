@@ -15,6 +15,6 @@
 #
 module Presto
   module Client
-    VERSION = "0.4.17"
+    VERSION = "0.5.0"
   end
 end
