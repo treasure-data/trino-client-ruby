@@ -16,7 +16,7 @@ source_path = source_dir
 predefined_simple_classes = %w[StageId TaskId ConnectorSession]
 predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause WriterTarget DeleteHandle Specification ArgumentBinding]
 
-assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle OutputBufferId ConnectorPartitioningHandle NullableValue]
+assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle OutputBufferId ConnectorPartitioningHandle NullableValue ConnectorId]
 enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState NullPartitioning BlockedReason ParameterKind FunctionKind PartitionFunctionHandle Scope ErrorType]
 
 root_models = %w[QueryResults QueryInfo] + %w[

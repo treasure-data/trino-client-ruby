@@ -623,6 +623,7 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["connectorId"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -679,6 +680,7 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["connectorId"],
           hash["schema"],
           hash["table"],
           hash["connectorInfo"],
@@ -696,6 +698,7 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["connectorId"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -853,6 +856,7 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["connectorId"],
           hash["schema"],
           hash["table"],
         )
@@ -907,6 +911,7 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["connectorId"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -955,6 +960,7 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["connectorId"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -1434,6 +1440,7 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["connectorId"],
           hash["connectorHandle"],
         )
         obj
@@ -1448,6 +1455,7 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["connectorId"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
