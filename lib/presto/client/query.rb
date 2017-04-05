@@ -30,6 +30,7 @@ module Presto::Client
     end
 
     def self.faraday_client(options)
+
       server = options[:server]
       unless server
         raise ArgumentError, ":server option is required"
@@ -40,7 +41,10 @@ module Presto::Client
       url = "#{ssl ? "https" : "http"}://#{server}"
       proxy = options[:http_proxy] || options[:proxy]  # :proxy is obsoleted
 
-      faraday = Faraday.new(url: url, proxy: "#{proxy}", ssl: ssl) do |faraday|
+      faraday_options = {url: url, proxy: "#{proxy}"}
+      faraday_options[:ssl] = ssl if ssl
+
+      faraday = Faraday.new(faraday_options) do |faraday|
         #faraday.request :url_encoded
         faraday.response :logger if options[:http_debug]
         faraday.adapter Faraday.default_adapter
