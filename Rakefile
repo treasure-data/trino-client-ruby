@@ -15,6 +15,7 @@ task :default => [:spec, :build]
 GEN_MODEL_VERSIONS = %w[
   0.149
   0.153
+  0.173
 ]
 
 namespace "modelgen" do
