@@ -16,6 +16,7 @@
 module Presto::Client
 
   require 'multi_json'
+  require 'msgpack'
   require 'presto/client/models'
   require 'presto/client/errors'
 
@@ -57,8 +58,8 @@ module Presto::Client
       @faraday.headers.merge!(optional_headers)
 
       if next_uri
-        body = faraday_get_with_retry(next_uri)
-        @results = @models::QueryResults.decode(MultiJson.load(body))
+        response = faraday_get_with_retry(next_uri)
+        @results = @models::QueryResults.decode(parse_body(response))
       else
         post_query_request!
       end
@@ -87,6 +88,13 @@ module Presto::Client
       if v = @options[:properties]
         headers[PrestoHeaders::PRESTO_SESSION] = encode_properties(v)
       end
+      if @options[:enable_x_msgpack]
+        # option name is enable_"x"_msgpack because "Accept: application/x-msgpack" header is
+        # not officially supported by Presto. We can use this option only if a proxy server
+        # decodes & encodes response body. Once this option is supported by Presto, option
+        # name should be enable_msgpack, which might be slightly different behavior.
+        headers['Accept'] = 'application/x-msgpack'
+      end
       headers
     end
 
@@ -113,8 +121,7 @@ module Presto::Client
         raise PrestoHttpError.new(response.status, "Failed to start query: #{response.body}")
       end
 
-      body = response.body
-      @results = load_json(uri, body, @models::QueryResults)
+      @results = decode_model(uri, parse_body(response), @models::QueryResults)
     end
 
     private :post_query_request!
@@ -157,20 +164,19 @@ module Presto::Client
       end
       uri = @results.next_uri
 
-      body = faraday_get_with_retry(uri)
-      @results = load_json(uri, body, @models::QueryResults)
+      response = faraday_get_with_retry(uri)
+      @results = decode_model(uri, parse_body(response), @models::QueryResults)
 
       return true
     end
 
     def query_info
       uri = "/v1/query/#{@results.id}"
-      body = faraday_get_with_retry(uri)
-      load_json(uri, body, @models::QueryInfo)
+      response = faraday_get_with_retry(uri)
+      decode_model(uri, parse_body(response), @models::QueryInfo)
     end
 
-    def load_json(uri, body, body_class)
-      hash = MultiJson.load(body)
+    def decode_model(uri, hash, body_class)
       begin
         body_class.decode(hash)
       rescue => e
@@ -182,7 +188,18 @@ module Presto::Client
       end
     end
 
-    private :load_json
+    private :decode_model
+
+    def parse_body(response)
+      case response.headers['Content-Type']
+      when 'application/x-msgpack'
+        MessagePack.load(response.body)
+      else
+        MultiJson.load(response.body)
+      end
+    end
+
+    private :parse_body
 
     def faraday_get_with_retry(uri, &block)
       start = Time.now
@@ -201,7 +218,7 @@ module Presto::Client
 
         if response
           if response.status == 200 && !response.body.to_s.empty?
-            return response.body
+            return response
           end
 
           if response.status != 503  # retry only if 503 Service Unavailable
