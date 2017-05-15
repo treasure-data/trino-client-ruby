@@ -1,3 +1,11 @@
+2017-05-15 version 0.5.4:
+
+* Support "Content-Type: application/x-msgpack" for more efficient parsing of
+  HTTP response body.
+* Added "enable_x_msgpack: true" option to send Accept header with
+  application/x-msgpack.
+
+
 2017-04-26 version 0.5.3:
 
 * Added support for model version 0.173.
