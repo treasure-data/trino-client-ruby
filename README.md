@@ -92,3 +92,13 @@ $ bundle exec rake modelgen:latest
 
 See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentation.
 
+## Development
+
+### Releasing a new version
+
+1. Update lib/presto/client/version.rb
+2. Update ChangeLog
+3. git commit -am "vX.Y.Z"
+4. git tag "vX.Y.Z"
+5. git push --tags
+

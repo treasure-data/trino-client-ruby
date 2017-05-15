@@ -3,7 +3,7 @@
 * Added support for model version 0.173.
 * Changed the default latest model version to 0.173.
 * Fixed compatibility with the new major version of Farady
-* Require Faraday 0.12
+* Require Faraday 0.12 or later
 
 
 2017-02-01 version 0.5.2:
