@@ -94,7 +94,7 @@ describe Presto::Client::StatementClient do
               "X-Presto-Language" => options[:language],
               "X-Presto-Time-Zone" => options[:time_zone],
               "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: "),
-              "Accept" => "application/x-msgpack, application/json"
+              "Accept" => "application/x-msgpack,application/json"
     }).to_return(body: MessagePack.dump(response_json2), headers: {"Content-Type" => "application/x-msgpack"})
 
     stub_request(:get, "localhost/v1/next_uri").
@@ -106,7 +106,7 @@ describe Presto::Client::StatementClient do
               "X-Presto-Language" => options[:language],
               "X-Presto-Time-Zone" => options[:time_zone],
               "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: "),
-              "Accept" => "application/x-msgpack, application/json"
+              "Accept" => "application/x-msgpack,application/json"
     }).to_return(body: lambda{|req|if retry_p; MessagePack.dump(response_json); else; retry_p=true; raise Timeout::Error.new("execution expired"); end }, headers: {"Content-Type" => "application/x-msgpack"})
 
     faraday = Faraday.new(url: "http://localhost")
