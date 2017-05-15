@@ -82,6 +82,40 @@ describe Presto::Client::StatementClient do
     retry_p.should be_true
   end
 
+  it "uses 'Accept: application/x-msgpack' if option is set" do
+    retry_p = false
+    stub_request(:post, "localhost/v1/statement").
+      with(body: query,
+           headers: {
+              "User-Agent" => "presto-ruby/#{VERSION}",
+              "X-Presto-Catalog" => options[:catalog],
+              "X-Presto-Schema" => options[:schema],
+              "X-Presto-User" => options[:user],
+              "X-Presto-Language" => options[:language],
+              "X-Presto-Time-Zone" => options[:time_zone],
+              "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: "),
+              "Accept" => "application/x-msgpack,application/json"
+    }).to_return(body: MessagePack.dump(response_json2), headers: {"Content-Type" => "application/x-msgpack"})
+
+    stub_request(:get, "localhost/v1/next_uri").
+      with(headers: {
+              "User-Agent" => "presto-ruby/#{VERSION}",
+              "X-Presto-Catalog" => options[:catalog],
+              "X-Presto-Schema" => options[:schema],
+              "X-Presto-User" => options[:user],
+              "X-Presto-Language" => options[:language],
+              "X-Presto-Time-Zone" => options[:time_zone],
+              "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: "),
+              "Accept" => "application/x-msgpack,application/json"
+    }).to_return(body: lambda{|req|if retry_p; MessagePack.dump(response_json); else; retry_p=true; raise Timeout::Error.new("execution expired"); end }, headers: {"Content-Type" => "application/x-msgpack"})
+
+    faraday = Faraday.new(url: "http://localhost")
+    sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1, enable_x_msgpack: "application/x-msgpack"))
+    sc.has_next?.should be_true
+    sc.advance.should be_true
+    retry_p.should be_true
+  end
+
   it "decodes DeleteHandle" do
     dh = Models::DeleteHandle.decode({
       "handle" => {
