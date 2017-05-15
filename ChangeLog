@@ -1,3 +1,30 @@
+2017-04-26 version 0.5.3:
+
+* Added support for model version 0.173.
+* Changed the default latest model version to 0.173.
+* Fixed compatibility with the new major version of Farady
+* Require Faraday 0.12
+
+
+2017-02-01 version 0.5.2:
+
+* Relax dependent version of Faraday to be able to use all 0.x versions.
+* Fix build script that was broken due to new major version of rake.
+
+
+2016-11-01 version 0.5.1:
+
+* Assume ConnectorId as a primitive type to be able to decode "connectorId"
+  fields.
+
+
+2016-10-28 version 0.5.0:
+
+* Support multiple model versions
+* Added support for model version 0.153.
+* Changed the default latest model version to 0.513.
+
+
 2016-08-09 version 0.4.17:
 
 * Added support for :ssl option.
