@@ -30,7 +30,6 @@ module Presto::Client
     end
 
     def self.faraday_client(options)
-
       server = options[:server]
       unless server
         raise ArgumentError, ":server option is required"

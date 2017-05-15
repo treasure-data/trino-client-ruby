@@ -93,7 +93,7 @@ module Presto::Client
         # not officially supported by Presto. We can use this option only if a proxy server
         # decodes & encodes response body. Once this option is supported by Presto, option
         # name should be enable_msgpack, which might be slightly different behavior.
-        headers['Accept'] = 'application/x-msgpack'
+        headers['Accept'] = 'application/x-msgpack, application/json'
       end
       headers
     end
@@ -118,7 +118,7 @@ module Presto::Client
 
       # TODO error handling
       if response.status != 200
-        raise PrestoHttpError.new(response.status, "Failed to start query: #{response.body}")
+        raise PrestoHttpError.new(response.status, "Failed to start query: #{response.body} (#{response.status})")
       end
 
       @results = decode_model(uri, parse_body(response), @models::QueryResults)
