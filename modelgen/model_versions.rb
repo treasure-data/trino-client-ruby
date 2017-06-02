@@ -113,6 +113,7 @@ module Presto::Client::ModelVersions
           when "groupid"            then GroupIdNode
           when "explainAnalyze"     then ExplainAnalyzeNode
           when "apply"              then ApplyNode
+          when "assignUniqueId"     then AssignUniqueId
         end
         if model_class
            node = model_class.decode(hash)
@@ -233,6 +234,88 @@ module Presto::Client::ModelVersions
         obj.send(:initialize_struct,
           hash["column"],
           hash["constant"]
+        )
+        obj
+      end
+    end
+
+    class << Aggregation =
+        Base.new(:call, :signature, :mask)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["call"],
+          hash["signature"] && Signature.decode(hash["signature"]),
+          hash["mask"] 
+        )
+        obj
+      end
+    end
+
+    class << Function =
+        Base.new(:function_call, :signature, :frame)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["function_call"],
+          hash["signature"] && Signature.decode(hash["signature"]),
+          hash["frame"]  && Frame.decode(hash["frame"])
+        )
+        obj
+      end
+    end
+
+    module OperatorInfo
+      def self.decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        model_class = case hash["@type"]
+          when "exchangeClientStatus"   then ExchangeClientStatus
+          when "localExchangeBuffer"    then LocalExchangeBufferInfo
+          when "tableFinish"            then TableFinishInfo
+          when "splitOperator"          then SplitOperatorInfo
+          when "hashCollisionsInfo"     then HashCollisionsInfo
+          when "partitionedOutput"      then PartitionedOutputInfo
+        end
+        if model_class
+           model_class.decode(hash)
+        end
+      end
+    end
+
+    class << PartitionedOutputInfo =
+        Base.new(:rows_added, :pages_added)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["rows_added"],
+          hash["pages_added"],
+        )
+        obj
+      end
+    end
+
+    class << HashCollisionsInfo =
+        Base.new(:weighted_hash_collisions, :weighted_sum_squared_hash_collisions, :weighted_expectedHash_collisions)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["weighted_hash_collisions"],
+          hash["weighted_sum_squared_hash_collisions"],
+          hash["weighted_expectedHash_collisions"]
         )
         obj
       end
