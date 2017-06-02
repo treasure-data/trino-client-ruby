@@ -14,10 +14,10 @@ erb = ERB.new(File.read(template_path))
 source_path = source_dir
 
 predefined_simple_classes = %w[StageId TaskId ConnectorSession]
-predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause WriterTarget DeleteHandle Specification ArgumentBinding]
+predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause WriterTarget DeleteHandle Specification ArgumentBinding Aggregation Function OperatorInfo PartitionedOutputInfo HashCollisionsInfo]
 
-assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle OutputBufferId ConnectorPartitioningHandle NullableValue ConnectorId]
-enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState NullPartitioning BlockedReason ParameterKind FunctionKind PartitionFunctionHandle Scope ErrorType]
+assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle OutputBufferId ConnectorPartitioningHandle NullableValue ConnectorId HostAddress JsonNode]
+enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState NullPartitioning BlockedReason ParameterKind FunctionKind PartitionFunctionHandle Scope ErrorType DistributionType]
 
 root_models = %w[QueryResults QueryInfo] + %w[
 OutputNode
@@ -52,7 +52,9 @@ EnforceSingleRowNode
 GroupIdNode
 ExplainAnalyzeNode
 ApplyNode
-] + %w[InsertTableHandle OutputTableHandle TableHandle]
+AssignUniqueId
+] + %w[InsertTableHandle OutputTableHandle TableHandle
+] + %w[ExchangeClientStatus LocalExchangeBufferInfo TableFinishInfo SplitOperatorInfo]
 
 name_mapping = Hash[*%w[
 StatementStats StageStats ClientStageStats

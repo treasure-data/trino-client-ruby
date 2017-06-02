@@ -77,6 +77,9 @@ module PrestoModels
         elsif m = /OptionalInt/.match(type)
           base_type = 'Integer'
           nullable = true
+        elsif m = /OptionalLong/.match(type)
+          base_type = 'Long'
+          nullable = true
         elsif type =~ /\w+/
           base_type = type
         else

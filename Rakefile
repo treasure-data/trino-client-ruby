@@ -16,6 +16,7 @@ GEN_MODEL_VERSIONS = %w[
   0.149
   0.153
   0.173
+  0.177
 ]
 
 namespace "modelgen" do
