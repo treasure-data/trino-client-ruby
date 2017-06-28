@@ -1,3 +1,6 @@
+2017-06-28 version 0.5.5:
+* Added support for model version 0.178
+
 2017-05-15 version 0.5.4:
 
 * Support "Content-Type: application/x-msgpack" for more efficient parsing of
