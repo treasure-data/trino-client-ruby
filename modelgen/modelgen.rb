@@ -69,11 +69,17 @@ QueryStats presto-main/src/main/java/com/facebook/presto/execution/QueryStats.ja
 StageStats presto-main/src/main/java/com/facebook/presto/execution/StageStats.java
 ].map.with_index { |v,i| i % 2 == 0 ? v : (source_path + "/" + v) }]
 
+# model => [ [key,nullable,type], ... ]
+extra_fields = {
+    'QueryInfo' => [['finalQueryInfo', nil, 'boolean']]
+}
+
 analyzer = PrestoModels::ModelAnalyzer.new(
   source_path,
   skip_models: predefined_models + predefined_simple_classes + assume_primitive + enum_types,
   path_mapping: path_mapping,
-  name_mapping: name_mapping
+  name_mapping: name_mapping,
+  extra_fields: extra_fields
 )
 analyzer.analyze(root_models)
 models = analyzer.models

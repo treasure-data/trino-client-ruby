@@ -1261,7 +1261,7 @@ module Presto::Client::ModelVersions
     end
 
     class << QueryInfo =
-        Base.new(:query_id, :session, :state, :memory_pool, :scheduled, :self, :field_names, :query, :query_stats, :set_session_properties, :reset_session_properties, :added_prepared_statements, :deallocated_prepared_statements, :started_transaction_id, :clear_transaction_id, :update_type, :output_stage, :failure_info, :error_code, :inputs, :output, :complete_info, :resource_group_name)
+        Base.new(:query_id, :session, :state, :memory_pool, :scheduled, :self, :field_names, :query, :query_stats, :set_session_properties, :reset_session_properties, :added_prepared_statements, :deallocated_prepared_statements, :started_transaction_id, :clear_transaction_id, :update_type, :output_stage, :failure_info, :error_code, :inputs, :output, :complete_info, :resource_group_name, :final_query_info)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1291,6 +1291,7 @@ module Presto::Client::ModelVersions
           hash["output"] && Output.decode(hash["output"]),
           hash["completeInfo"],
           hash["resourceGroupName"],
+          hash["finalQueryInfo"],
         )
         obj
       end

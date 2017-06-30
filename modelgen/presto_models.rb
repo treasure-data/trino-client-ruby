@@ -28,6 +28,7 @@ module PrestoModels
       @ignore_types = PRIMITIVE_TYPES + ARRAY_PRIMITIVE_TYPES + (options[:skip_models] || [])
       @path_mapping = options[:path_mapping] || {}
       @name_mapping = options[:name_mapping] || {}
+      @extra_fields = options[:extra_fields] || {}
       @models = {}
       @skipped_models = []
     end
@@ -46,11 +47,12 @@ module PrestoModels
 
     private
 
-    PROPERTY_PATTERN = /@JsonProperty\(\"(\w+)\"\)\s+(@Nullable\s+)?([\w\<\>\[\]\,\s]+)\s+(\w+)/
+    PROPERTY_PATTERN = /@JsonProperty\(\"(\w+)\"\)\s+(@Nullable\s+)?([\w\<\>\[\]\,\s]+)\s+\w+/
     CREATOR_PATTERN = /@JsonCreator[\s]+public[\s]+(static\s+)?(\w+)[\w\s]*\((?:\s*#{PROPERTY_PATTERN}\s*,?)+\)/
 
     def analyze_fields(model_name, creator_block)
-      fields = creator_block.scan(PROPERTY_PATTERN).map do |key,nullable,type,field|
+      extra = @extra_fields[model_name] || []
+      fields = creator_block.scan(PROPERTY_PATTERN).concat(extra).map do |key,nullable,type|
         map = false
         array = false
         nullable = !!nullable
