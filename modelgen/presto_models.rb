@@ -28,6 +28,7 @@ module PrestoModels
       @ignore_types = PRIMITIVE_TYPES + ARRAY_PRIMITIVE_TYPES + (options[:skip_models] || [])
       @path_mapping = options[:path_mapping] || {}
       @name_mapping = options[:name_mapping] || {}
+      @extra_fields = options[:extra_fields] || {}
       @models = {}
       @skipped_models = []
     end
@@ -46,21 +47,12 @@ module PrestoModels
 
     private
 
-    PROPERTY_PATTERN = /@JsonProperty\(\"(\w+)\"\)\s+(@Nullable\s+)?([\w\<\>\[\]\,\s]+)\s+(\w+)/
-    CREATOR_PATTERN = /@JsonCreator[\w\s]+\((?:\s*#{PROPERTY_PATTERN}\s*,?)+\)/
+    PROPERTY_PATTERN = /@JsonProperty\(\"(\w+)\"\)\s+(@Nullable\s+)?([\w\<\>\[\]\,\s]+)\s+\w+/
+    CREATOR_PATTERN = /@JsonCreator[\s]+public[\s]+(static\s+)?(\w+)[\w\s]*\((?:\s*#{PROPERTY_PATTERN}\s*,?)+\)/
 
-    def analyze_model(model_name, parent_model = nil)
-      return if @models[model_name] || @ignore_types.include?(model_name)
-
-      path = find_class_file(model_name, parent_model)
-      java = File.read(path)
-
-      m = CREATOR_PATTERN.match(java)
-      unless m
-        raise ModelAnalysisError, "Can't find JsonCreator of a model class #{model_name} of #{parent_model} at #{path}"
-      end
-
-      fields = m[0].scan(PROPERTY_PATTERN).map do |key,nullable,type,field|
+    def analyze_fields(model_name, creator_block)
+      extra = @extra_fields[model_name] || []
+      fields = creator_block.scan(PROPERTY_PATTERN).concat(extra).map do |key,nullable,type|
         map = false
         array = false
         nullable = !!nullable
@@ -91,12 +83,38 @@ module PrestoModels
       end
 
       @models[model_name] = Model.new(model_name, fields)
-
       # recursive call
       fields.each do |field|
         analyze_model(field.base_type, model_name)
         analyze_model(field.map_value_base_type, model_name) if field.map_value_base_type
       end
+
+      return fields
+    end
+
+    def analyze_model(model_name, parent_model = nil)
+      return if @models[model_name] || @ignore_types.include?(model_name)
+
+      path = find_class_file(model_name, parent_model)
+      java = File.read(path)
+
+      m = CREATOR_PATTERN.match(java)
+      unless m
+        raise ModelAnalysisError, "Can't find JsonCreator of a model class #{model_name} of #{parent_model} at #{path}"
+      end
+
+      body = m[0] 
+      # check inner class first
+      while true
+        offset = m.end(0)
+        m = CREATOR_PATTERN.match(java, offset)
+        break unless m
+        inner_model_name = m[2]
+        next if @models[inner_model_name] || @ignore_types.include?(inner_model_name)
+        fields = analyze_fields(inner_model_name, m[0])
+      end
+
+      fields = analyze_fields(model_name, body)
 
     rescue => e
       puts "Skipping model #{parent_model}/#{model_name}: #{e}"

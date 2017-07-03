@@ -14,7 +14,7 @@ erb = ERB.new(File.read(template_path))
 source_path = source_dir
 
 predefined_simple_classes = %w[StageId TaskId ConnectorSession]
-predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause WriterTarget DeleteHandle Specification ArgumentBinding Aggregation Function OperatorInfo PartitionedOutputInfo HashCollisionsInfo]
+predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause WriterTarget OperatorInfo HashCollisionsInfo]
 
 assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle OutputBufferId ConnectorPartitioningHandle NullableValue ConnectorId HostAddress JsonNode]
 enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState NullPartitioning BlockedReason ParameterKind FunctionKind PartitionFunctionHandle Scope ErrorType DistributionType]
@@ -53,7 +53,6 @@ GroupIdNode
 ExplainAnalyzeNode
 ApplyNode
 AssignUniqueId
-] + %w[InsertTableHandle OutputTableHandle TableHandle
 ] + %w[ExchangeClientStatus LocalExchangeBufferInfo TableFinishInfo SplitOperatorInfo]
 
 name_mapping = Hash[*%w[
@@ -70,11 +69,17 @@ QueryStats presto-main/src/main/java/com/facebook/presto/execution/QueryStats.ja
 StageStats presto-main/src/main/java/com/facebook/presto/execution/StageStats.java
 ].map.with_index { |v,i| i % 2 == 0 ? v : (source_path + "/" + v) }]
 
+# model => [ [key,nullable,type], ... ]
+extra_fields = {
+    'QueryInfo' => [['finalQueryInfo', nil, 'boolean']]
+}
+
 analyzer = PrestoModels::ModelAnalyzer.new(
   source_path,
   skip_models: predefined_models + predefined_simple_classes + assume_primitive + enum_types,
   path_mapping: path_mapping,
-  name_mapping: name_mapping
+  name_mapping: name_mapping,
+  extra_fields: extra_fields
 )
 analyzer.analyze(root_models)
 models = analyzer.models

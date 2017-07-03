@@ -180,97 +180,17 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         model_class = case hash["@type"]
-            when "CreateHandle"       then OutputTableHandle
-            when "InsertHandle"       then InsertTableHandle
-            when "DeleteHandle"       then TableHandle
+            when "CreateHandle"       then CreateHandle
+            when "InsertHandle"       then InsertHandle
+            when "DeleteHandle"       then DeleteHandle
         end
-        obj.send(:initialize_struct,
-          hash["@type"],
-          model_class.decode(hash['handle'])
-        )
-        obj
-      end
-    end
-
-    class << DeleteHandle =
-        Base.new(:handle)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
+        if model_class
+           model_class.decode(hash)
         end
-        obj = allocate
-        obj.send(:initialize_struct,
-          TableHandle.decode(hash['handle'])
-        )
-        obj
       end
     end
 
     # Inner classes 
-    class << Specification =
-        Base.new(:partition_by, :order_by, :orderings, :frame, :pages_added)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["partitionBy"],
-          hash["orderBy"],
-          hash["orderings"],
-          hash["frame"],
-        )
-        obj
-      end
-    end
-
-    class << ArgumentBinding =
-        Base.new(:column, :constant)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["column"],
-          hash["constant"]
-        )
-        obj
-      end
-    end
-
-    class << Aggregation =
-        Base.new(:call, :signature, :mask)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["call"],
-          hash["signature"] && Signature.decode(hash["signature"]),
-          hash["mask"] 
-        )
-        obj
-      end
-    end
-
-    class << Function =
-        Base.new(:function_call, :signature, :frame)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["function_call"],
-          hash["signature"] && Signature.decode(hash["signature"]),
-          hash["frame"]  && Frame.decode(hash["frame"])
-        )
-        obj
-      end
-    end
-
     module OperatorInfo
       def self.decode(hash)
         unless hash.is_a?(Hash)
@@ -287,21 +207,6 @@ module Presto::Client::ModelVersions
         if model_class
            model_class.decode(hash)
         end
-      end
-    end
-
-    class << PartitionedOutputInfo =
-        Base.new(:rows_added, :pages_added)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["rows_added"],
-          hash["pages_added"],
-        )
-        obj
       end
     end
 
