@@ -37,6 +37,10 @@ module Presto::Client
 
       ssl = faraday_ssl_options(options)
 
+      if options[:password] && !ssl
+        raise ArgumentError, "Protocol must be https when passing a password"
+      end
+
       url = "#{ssl ? "https" : "http"}://#{server}"
       proxy = options[:http_proxy] || options[:proxy]  # :proxy is obsoleted
 
@@ -45,6 +49,11 @@ module Presto::Client
 
       faraday = Faraday.new(faraday_options) do |faraday|
         #faraday.request :url_encoded
+
+        if options[:user] && options[:password]
+          faraday.basic_auth(options[:user], options[:password])
+        end
+
         faraday.response :logger if options[:http_debug]
         faraday.adapter Faraday.default_adapter
       end
