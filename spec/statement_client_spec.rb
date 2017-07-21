@@ -136,6 +136,38 @@ describe Presto::Client::StatementClient do
     end.should raise_error(TypeError, /String to Hash/)
   end
 
+  describe 'HTTP basic auth' do
+    let(:password) { 'abcd' }
+
+    it "adds basic auth headers when ssl is enabled and a password is given" do
+      stub_request(:post, "https://localhost/v1/statement").
+        with(body: query,
+             headers: {
+                "User-Agent" => "presto-ruby/#{VERSION}",
+                "X-Presto-Catalog" => options[:catalog],
+                "X-Presto-Schema" => options[:schema],
+                "X-Presto-User" => options[:user],
+                "X-Presto-Language" => options[:language],
+                "X-Presto-Time-Zone" => options[:time_zone],
+                "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
+            },
+            basic_auth: [options[:user], password]
+      ).to_return(body: response_json.to_json)
+
+      faraday = Query.__send__(:faraday_client, options.merge(ssl: { verify: true }, password: password))
+      StatementClient.new(faraday, query, options)
+    end
+
+    it "forbids using basic auth when ssl is disabled" do
+      lambda do
+        Query.__send__(:faraday_client, {
+          server: 'localhost',
+          password: 'abcd'
+        })
+      end.should raise_error(ArgumentError)
+    end
+  end
+
   describe "ssl" do
     it "is disabled by default" do
       f = Query.__send__(:faraday_client, {

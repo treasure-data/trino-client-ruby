@@ -19,6 +19,7 @@ client = Presto::Client.new(
   catalog: "native",
   schema: "default",
   user: "frsyuki",
+  password: "********",
   time_zone: "US/Pacific",
   language: "English",
   properties: {
@@ -81,6 +82,7 @@ $ bundle exec rake modelgen:latest
 * **schema** sets default schema name of Presto. You need to use qualified name like `FROM myschema.table1` to use non-default schemas.
 * **source** sets source name to connect to a Presto. This name is shown on Presto web interface.
 * **user** sets user name to connect to a Presto.
+* **password** sets a password to connect to Presto using basic auth.
 * **time_zone** sets time zone of queries. Time zone affects some functions such as `format_datetime`.
 * **language** sets language of queries. Language affects some functions such as `format_datetime`.
 * **properties** set session properties. Session properties affect internal behavior such as `hive.force_local_scheduling: true`, `raptor.reader_stream_buffer_size: "32MB"`, etc.
