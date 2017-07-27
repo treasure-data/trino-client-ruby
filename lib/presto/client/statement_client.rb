@@ -48,7 +48,7 @@ module Presto::Client
       @query = query
       @closed = false
       @exception = nil
-
+      @retry_timeout = options[:retry_timeout] || 120
       if model_version = @options[:model_version]
         @models = ModelVersions.const_get("V#{model_version.gsub(".", "_")}")
       else
@@ -230,7 +230,7 @@ module Presto::Client
 
         attempts += 1
         sleep attempts * 0.1
-      end while (Time.now - start) < 2*60*60 && !@closed
+      end while (Time.now - start) < @retry_timeout && !@closed
 
       @exception = PrestoHttpError.new(408, "Presto API error due to timeout")
       raise @exception
