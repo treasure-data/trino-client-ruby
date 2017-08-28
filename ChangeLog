@@ -1,3 +1,8 @@
+2017-08-28 version 0.5.7
+* Support a password option with HTTP basic auth
+* Changed retry timeout from hard coded 2h to configurable default 2min
+* Fix too deep nested json failure
+
 2017-07-03 version 0.5.6:
 * Added missing inner class models for version 0.178
 
