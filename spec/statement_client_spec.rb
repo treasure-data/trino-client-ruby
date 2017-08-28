@@ -262,5 +262,35 @@ describe Presto::Client::StatementClient do
       StatementClient.new(faraday, query, options.merge(model_version: "0.111"))
     end.should raise_error(NameError)
   end
+
+
+  let :nested_json do
+    nested_stats = {createTime: Time.now}
+    # JSON max nesting default value is 100
+    for i in 0..100 do
+      nested_stats = {stats: nested_stats}
+    end
+    {
+        id: "queryid",
+        stats: nested_stats
+    }
+  end
+
+  it "parse nested json properly" do
+    stub_request(:post, "localhost/v1/statement").
+        with(body: query,
+             headers: {
+                 "User-Agent" => "presto-ruby/#{VERSION}",
+                 "X-Presto-Catalog" => options[:catalog],
+                 "X-Presto-Schema" => options[:schema],
+                 "X-Presto-User" => options[:user],
+                 "X-Presto-Language" => options[:language],
+                 "X-Presto-Time-Zone" => options[:time_zone],
+                 "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
+             }).to_return(body: nested_json.to_json(:max_nesting => false))
+
+    faraday = Faraday.new(url: "http://localhost")
+    StatementClient.new(faraday, query, options)
+  end
 end
 

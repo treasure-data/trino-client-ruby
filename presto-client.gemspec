@@ -20,8 +20,7 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = ">= 1.9.1"
 
   gem.add_dependency "faraday", ["~> 0.12"]
-  gem.add_dependency "multi_json", ["~> 1.0"]
-  gem.add_dependency "msgpack", [">= 0.7.0"]
+    gem.add_dependency "msgpack", [">= 0.7.0"]
 
   gem.add_development_dependency "rake", [">= 0.9.2", "< 11.0"]
   gem.add_development_dependency "rspec", ["~> 2.13.0"]
