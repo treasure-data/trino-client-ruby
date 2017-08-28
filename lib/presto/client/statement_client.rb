@@ -15,7 +15,7 @@
 #
 module Presto::Client
 
-  require 'multi_json'
+  require 'json'
   require 'msgpack'
   require 'presto/client/models'
   require 'presto/client/errors'
@@ -38,6 +38,11 @@ module Presto::Client
   class StatementClient
     HEADERS = {
       "User-Agent" => "presto-ruby/#{VERSION}",
+    }
+
+    # Presto can return too deep nested JSON
+    JSON_OPTIONS = {
+        :max_nesting => false
     }
 
     def initialize(faraday, query, options, next_uri=nil)
@@ -195,7 +200,7 @@ module Presto::Client
       when 'application/x-msgpack'
         MessagePack.load(response.body)
       else
-        MultiJson.load(response.body)
+        JSON.parse(response.body, opts = JSON_OPTIONS)
       end
     end
 
