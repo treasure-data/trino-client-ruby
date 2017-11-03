@@ -152,6 +152,8 @@ module Presto::Client
           block.call(data)
         end
       end while @api.advance
+
+      raise_if_failed
     end
 
     def query_info
