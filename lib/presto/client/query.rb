@@ -103,23 +103,28 @@ module Presto::Client
       @api.advance
     end
 
+    def advance_and_raise
+      cont = @api.advance
+      raise_if_failed
+      cont
+    end
+
     def wait_for_columns
-      while @api.current_results.columns == nil && @api.advance
+      while @api.current_results.columns == nil && advance_and_raise
       end
     end
 
     def wait_for_data
-      while @api.current_results.data == nil && @api.advance
+      while @api.current_results.data == nil && advance_and_raise
       end
     end
 
+    private :advance_and_raise
     private :wait_for_columns
     private :wait_for_data
 
     def columns
       wait_for_columns
-
-      raise_if_failed
 
       return @api.current_results.columns
     end
@@ -141,8 +146,6 @@ module Presto::Client
     def each_row_chunk(&block)
       wait_for_data
 
-      raise_if_failed
-
       if self.columns == nil
         raise PrestoError, "Query #{@api.current_results.id} has no columns"
       end
@@ -151,7 +154,7 @@ module Presto::Client
         if data = @api.current_results.data
           block.call(data)
         end
-      end while @api.advance
+      end while advance_and_raise
     end
 
     def query_info
