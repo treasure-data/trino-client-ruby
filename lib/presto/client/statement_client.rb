@@ -20,26 +20,7 @@ module Presto::Client
   require 'presto/client/models'
   require 'presto/client/errors'
 
-  module PrestoHeaders
-    PRESTO_USER = "X-Presto-User"
-    PRESTO_SOURCE = "X-Presto-Source"
-    PRESTO_CATALOG = "X-Presto-Catalog"
-    PRESTO_SCHEMA = "X-Presto-Schema"
-    PRESTO_TIME_ZONE = "X-Presto-Time-Zone"
-    PRESTO_LANGUAGE = "X-Presto-Language"
-    PRESTO_SESSION = "X-Presto-Session"
-
-    PRESTO_CURRENT_STATE = "X-Presto-Current-State"
-    PRESTO_MAX_WAIT = "X-Presto-Max-Wait"
-    PRESTO_MAX_SIZE = "X-Presto-Max-Size"
-    PRESTO_PAGE_SEQUENCE_ID = "X-Presto-Page-Sequence-Id"
-  end
-
   class StatementClient
-    HEADERS = {
-      "User-Agent" => "presto-ruby/#{VERSION}",
-    }
-
     # Presto can return too deep nested JSON
     JSON_OPTIONS = {
         :max_nesting => false
@@ -47,7 +28,6 @@ module Presto::Client
 
     def initialize(faraday, query, options, next_uri=nil)
       @faraday = faraday
-      @faraday.headers.merge!(HEADERS)
 
       @options = options
       @query = query
@@ -60,8 +40,6 @@ module Presto::Client
         @models = Models
       end
 
-      @faraday.headers.merge!(optional_headers)
-
       if next_uri
         response = faraday_get_with_retry(next_uri)
         @results = @models::QueryResults.decode(parse_body(response))
@@ -69,41 +47,6 @@ module Presto::Client
         post_query_request!
       end
     end
-
-    def optional_headers
-      headers = {}
-      if v = @options[:user]
-        headers[PrestoHeaders::PRESTO_USER] = v
-      end
-      if v = @options[:source]
-        headers[PrestoHeaders::PRESTO_SOURCE] = v
-      end
-      if v = @options[:catalog]
-        headers[PrestoHeaders::PRESTO_CATALOG] = v
-      end
-      if v = @options[:schema]
-        headers[PrestoHeaders::PRESTO_SCHEMA] = v
-      end
-      if v = @options[:time_zone]
-        headers[PrestoHeaders::PRESTO_TIME_ZONE] = v
-      end
-      if v = @options[:language]
-        headers[PrestoHeaders::PRESTO_LANGUAGE] = v
-      end
-      if v = @options[:properties]
-        headers[PrestoHeaders::PRESTO_SESSION] = encode_properties(v)
-      end
-      if @options[:enable_x_msgpack]
-        # option name is enable_"x"_msgpack because "Accept: application/x-msgpack" header is
-        # not officially supported by Presto. We can use this option only if a proxy server
-        # decodes & encodes response body. Once this option is supported by Presto, option
-        # name should be enable_msgpack, which might be slightly different behavior.
-        headers['Accept'] = 'application/x-msgpack,application/json'
-      end
-      headers
-    end
-
-    private :optional_headers
 
     def init_request(req)
       req.options.timeout = @options[:http_timeout] || 300
@@ -250,27 +193,6 @@ module Presto::Client
         return response.status / 100 == 2
       end
       return false
-    end
-
-    HTTP11_SEPARATOR = ["(", ")", "<", ">", "@", ",", ";", ":", "\\", "<", ">", "/", "[", "]", "?", "=", "{", "}", " ", "\v"]
-    HTTP11_TOKEN_CHARSET = (32..126).map {|x| x.chr } - HTTP11_SEPARATOR
-    HTTP11_TOKEN_REGEXP = /^[#{Regexp.escape(HTTP11_TOKEN_CHARSET.join)}]+\z/
-    HTTP11_CTL_CHARSET = (0..31).map {|x| x.chr } + [127.chr]
-    HTTP11_CTL_CHARSET_REGEXP = /[#{Regexp.escape(HTTP11_CTL_CHARSET.join)}]/
-
-    def encode_properties(properties)
-      # this is a hack to set same header multiple times.
-      properties.map do |k, v|
-        token = k.to_s
-        field_value = v.to_s  # TODO LWS encoding is not implemented
-        unless k =~ HTTP11_TOKEN_REGEXP
-          raise Faraday::ClientError, "Key of properties can't include HTTP/1.1 control characters or separators (#{HTTP11_SEPARATOR.map {|c| c =~ /\s/ ? c.dump : c }.join(' ')})"
-        end
-        if field_value =~ HTTP11_CTL_CHARSET_REGEXP
-          raise Faraday::ClientError, "Value of properties can't include HTTP/1.1 control characters"
-        end
-        "#{token}=#{field_value}"
-      end.join("\r\n#{PrestoHeaders::PRESTO_SESSION}: ")
     end
 
     def close
