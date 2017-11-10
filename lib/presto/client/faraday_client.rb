@@ -53,8 +53,6 @@ module Presto::Client
     faraday_options[:ssl] = ssl if ssl
 
     faraday = Faraday.new(faraday_options) do |faraday|
-      #faraday.request :url_encoded
-
       if options[:user] && options[:password]
         faraday.basic_auth(options[:user], options[:password])
       end

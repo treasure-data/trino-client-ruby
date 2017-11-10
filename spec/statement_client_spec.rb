@@ -166,7 +166,7 @@ describe Presto::Client::StatementClient do
     end
   end
 
-  describe "Canceling query" do
+  describe "Killing a query" do
     let(:query_id) { 'A_QUERY_ID' }
 
     it "sends DELETE request with empty body to /v1/query/{queryId}" do
@@ -182,7 +182,7 @@ describe Presto::Client::StatementClient do
                 "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: "),
       }).to_return(body: {}.to_json)
 
-      Presto::Client.new(options).cancel_query_id(query_id)
+      Presto::Client.new(options).kill(query_id)
     end
   end
 
