@@ -154,7 +154,6 @@ describe Presto::Client::StatementClient do
         with(body: query, headers: headers).
         to_return(body: response_json2.to_json)
 
-      faraday = Query.__send__(:faraday_client, options)
       sc = StatementClient.new(faraday, query, options)
 
       stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
@@ -164,6 +163,26 @@ describe Presto::Client::StatementClient do
       lambda do
         sc.query_info
       end.should raise_error(PrestoHttpError, /Presto API returned unexpected structure at \/v1\/query\/queryid\. Expected Presto::Client::ModelVersions::.*::QueryInfo but got {"session":"invalid session structure"}/)
+    end
+  end
+
+  describe "Canceling query" do
+    let(:query_id) { 'A_QUERY_ID' }
+
+    it "sends DELETE request with empty body to /v1/query/{queryId}" do
+      stub_request(:delete, "http://localhost/v1/query/#{query_id}").
+        with(body: "",
+             headers: {
+                "User-Agent" => "presto-ruby/#{VERSION}",
+                "X-Presto-Catalog" => options[:catalog],
+                "X-Presto-Schema" => options[:schema],
+                "X-Presto-User" => options[:user],
+                "X-Presto-Language" => options[:language],
+                "X-Presto-Time-Zone" => options[:time_zone],
+                "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: "),
+      }).to_return(body: {}.to_json)
+
+      Presto::Client.new(options).cancel_query_id(query_id)
     end
   end
 

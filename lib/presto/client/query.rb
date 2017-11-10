@@ -30,6 +30,14 @@ module Presto::Client
       new StatementClient.new(faraday_client(options), nil, options, next_uri)
     end
 
+    def self.cancel_id(query_id, options)
+      faraday = faraday_client(options)
+      response = faraday.delete do |req|
+        req.url "/v1/query/#{query_id}"
+      end
+      return response.status / 100 == 2
+    end
+
     def self.faraday_client(options)
       Presto::Client.faraday_client(options)
     end
