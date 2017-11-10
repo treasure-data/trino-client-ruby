@@ -136,6 +136,35 @@ describe Presto::Client::StatementClient do
     end.should raise_error(TypeError, /String to Hash/)
   end
 
+  describe '#query_info' do
+    it "raises an exception with sample JSON if response is unexpected" do
+      headers = {
+        "User-Agent" => "presto-ruby/#{VERSION}",
+        "X-Presto-Catalog" => options[:catalog],
+          "X-Presto-Schema" => options[:schema],
+          "X-Presto-User" => options[:user],
+          "X-Presto-Language" => options[:language],
+          "X-Presto-Time-Zone" => options[:time_zone],
+          "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
+      }
+
+      stub_request(:post, "http://localhost/v1/statement").
+        with(body: query, headers: headers).
+        to_return(body: response_json2.to_json)
+
+      faraday = Query.__send__(:faraday_client, options)
+      sc = StatementClient.new(faraday, query, options)
+
+      stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
+        with(headers: headers).
+        to_return(body: {"session" => "invalid session structure"}.to_json)
+
+      lambda do
+        sc.query_info
+      end.should raise_error(PrestoHttpError, /Presto API returned unexpected structure at \/v1\/query\/queryid\. Expected Presto::Client::ModelVersions::.*::QueryInfo but got {"session":"invalid session structure"}/)
+    end
+  end
+
   describe 'HTTP basic auth' do
     let(:password) { 'abcd' }
 
