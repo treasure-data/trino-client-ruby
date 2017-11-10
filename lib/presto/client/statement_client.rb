@@ -185,6 +185,7 @@ module Presto::Client
       begin
         body_class.decode(hash)
       rescue => e
+        body = JSON.dump(hash)
         if body.size > 1024 + 3
           body = "#{body[0, 1024]}..."
         end
