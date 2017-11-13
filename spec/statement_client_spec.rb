@@ -25,6 +25,10 @@ describe Presto::Client::StatementClient do
     }
   end
 
+  let :faraday do
+    Presto::Client.faraday_client(options)
+  end
+
   it "sets headers" do
     stub_request(:post, "localhost/v1/statement").
       with(body: query,
@@ -38,7 +42,6 @@ describe Presto::Client::StatementClient do
               "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
     }).to_return(body: response_json.to_json)
 
-    faraday = Faraday.new(url: "http://localhost")
     StatementClient.new(faraday, query, options)
   end
 
@@ -75,7 +78,6 @@ describe Presto::Client::StatementClient do
               "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
     }).to_return(body: lambda{|req|if retry_p; response_json.to_json; else; retry_p=true; raise Timeout::Error.new("execution expired"); end })
 
-    faraday = Faraday.new(url: "http://localhost")
     sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
     sc.has_next?.should be_true
     sc.advance.should be_true
@@ -109,8 +111,8 @@ describe Presto::Client::StatementClient do
               "Accept" => "application/x-msgpack,application/json"
     }).to_return(body: lambda{|req|if retry_p; MessagePack.dump(response_json); else; retry_p=true; raise Timeout::Error.new("execution expired"); end }, headers: {"Content-Type" => "application/x-msgpack"})
 
-    faraday = Faraday.new(url: "http://localhost")
-    sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1, enable_x_msgpack: "application/x-msgpack"))
+    options.merge!(http_open_timeout: 1, enable_x_msgpack: "application/x-msgpack")
+    sc = StatementClient.new(faraday, query, options)
     sc.has_next?.should be_true
     sc.advance.should be_true
     retry_p.should be_true
@@ -152,7 +154,6 @@ describe Presto::Client::StatementClient do
         with(body: query, headers: headers).
         to_return(body: response_json2.to_json)
 
-      faraday = Query.__send__(:faraday_client, options)
       sc = StatementClient.new(faraday, query, options)
 
       stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
@@ -162,6 +163,26 @@ describe Presto::Client::StatementClient do
       lambda do
         sc.query_info
       end.should raise_error(PrestoHttpError, /Presto API returned unexpected structure at \/v1\/query\/queryid\. Expected Presto::Client::ModelVersions::.*::QueryInfo but got {"session":"invalid session structure"}/)
+    end
+  end
+
+  describe "Killing a query" do
+    let(:query_id) { 'A_QUERY_ID' }
+
+    it "sends DELETE request with empty body to /v1/query/{queryId}" do
+      stub_request(:delete, "http://localhost/v1/query/#{query_id}").
+        with(body: "",
+             headers: {
+                "User-Agent" => "presto-ruby/#{VERSION}",
+                "X-Presto-Catalog" => options[:catalog],
+                "X-Presto-Schema" => options[:schema],
+                "X-Presto-User" => options[:user],
+                "X-Presto-Language" => options[:language],
+                "X-Presto-Time-Zone" => options[:time_zone],
+                "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: "),
+      }).to_return(body: {}.to_json)
+
+      Presto::Client.new(options).kill(query_id)
     end
   end
 
@@ -183,7 +204,7 @@ describe Presto::Client::StatementClient do
             basic_auth: [options[:user], password]
       ).to_return(body: response_json.to_json)
 
-      faraday = Query.__send__(:faraday_client, options.merge(ssl: { verify: true }, password: password))
+      options.merge!(ssl: { verify: true }, password: password)
       StatementClient.new(faraday, query, options)
     end
 
@@ -318,7 +339,6 @@ describe Presto::Client::StatementClient do
                  "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
              }).to_return(body: nested_json.to_json(:max_nesting => false))
 
-    faraday = Faraday.new(url: "http://localhost")
     StatementClient.new(faraday, query, options)
   end
 end

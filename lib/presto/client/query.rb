@@ -18,6 +18,7 @@ module Presto::Client
   require 'faraday'
   require 'presto/client/models'
   require 'presto/client/errors'
+  require 'presto/client/faraday_client'
   require 'presto/client/statement_client'
 
   class Query
@@ -29,67 +30,17 @@ module Presto::Client
       new StatementClient.new(faraday_client(options), nil, options, next_uri)
     end
 
+    def self.kill(query_id, options)
+      faraday = faraday_client(options)
+      response = faraday.delete do |req|
+        req.url "/v1/query/#{query_id}"
+      end
+      return response.status / 100 == 2
+    end
+
     def self.faraday_client(options)
-      server = options[:server]
-      unless server
-        raise ArgumentError, ":server option is required"
-      end
-
-      ssl = faraday_ssl_options(options)
-
-      if options[:password] && !ssl
-        raise ArgumentError, "Protocol must be https when passing a password"
-      end
-
-      url = "#{ssl ? "https" : "http"}://#{server}"
-      proxy = options[:http_proxy] || options[:proxy]  # :proxy is obsoleted
-
-      faraday_options = {url: url, proxy: "#{proxy}"}
-      faraday_options[:ssl] = ssl if ssl
-
-      faraday = Faraday.new(faraday_options) do |faraday|
-        #faraday.request :url_encoded
-
-        if options[:user] && options[:password]
-          faraday.basic_auth(options[:user], options[:password])
-        end
-
-        faraday.response :logger if options[:http_debug]
-        faraday.adapter Faraday.default_adapter
-      end
-
-      return faraday
+      Presto::Client.faraday_client(options)
     end
-
-    def self.faraday_ssl_options(options)
-      ssl = options[:ssl]
-
-      case ssl
-      when true
-        ssl = {verify: true}
-
-      when Hash
-        verify = ssl.fetch(:verify, true)
-        case verify
-        when true
-          # detailed SSL options. pass through to faraday
-        when nil, false
-          ssl = {verify: false}
-        else
-          raise ArgumentError, "Can't convert #{verify.class} of :verify option of :ssl option to true or false"
-        end
-
-      when nil, false
-        ssl = false
-
-      else
-        raise ArgumentError, "Can't convert #{ssl.class} of :ssl option to true, false, or Hash"
-      end
-
-      return ssl
-    end
-
-    private_class_method :faraday_client, :faraday_ssl_options
 
     def initialize(api)
       @api = api

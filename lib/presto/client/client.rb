@@ -40,6 +40,10 @@ module Presto::Client
       return Query.resume(next_uri, @options)
     end
 
+    def kill(query_id)
+      return Query.kill(query_id, @options)
+    end
+
     def run(query)
       q = Query.start(query, @options)
       begin
