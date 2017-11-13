@@ -1,3 +1,12 @@
+2017-11-13 version 0.5.8
+
+* Added `Client#kill(query_id)` method.
+* Added additional checking of internal exceptions so that client doesn't
+  silently return in case when Presto query is killed and Presto returns a
+  valid `200 OK` response with `result_uri: null`.
+* Fixed `undefined local variable 'body'` error that was possibly happening
+  when Presto returned an unexpected data structure.
+
 2017-08-28 version 0.5.7
 * Support a password option with HTTP basic auth
 * Changed retry timeout from hard coded 2h to configurable default 2min
