@@ -58,6 +58,12 @@ client.query("select * from sys.node") do |q|
     p row  # row is an array
   }
 end
+
+# killing a query
+query = client.query("select * from sys.node")
+query_id = query.query_info.query_id
+query.each_row {|row| ... }  # when a thread is processing the query,
+client.kill(query_id)  # another thread / process can kill the query.
 ```
 
 ## Build models
