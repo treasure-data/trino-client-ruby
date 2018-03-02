@@ -53,6 +53,7 @@ GroupIdNode
 ExplainAnalyzeNode
 ApplyNode
 AssignUniqueId
+LateralJoinNode
 ] + %w[ExchangeClientStatus LocalExchangeBufferInfo TableFinishInfo SplitOperatorInfo]
 
 name_mapping = Hash[*%w[
