@@ -1,3 +1,6 @@
+2018-03-02 version 0.5.9
+* Added error_name field at PrestoQueryError
+
 2017-11-13 version 0.5.8
 
 * Added `Client#kill(query_id)` method.
