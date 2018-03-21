@@ -23,6 +23,8 @@ module Presto::Client
     PRESTO_TIME_ZONE = "X-Presto-Time-Zone"
     PRESTO_LANGUAGE = "X-Presto-Language"
     PRESTO_SESSION = "X-Presto-Session"
+    PRESTO_CLIENT_INFO = "X-Presto-Client-Info";
+    PRESTO_CLIENT_TAGS = "X-Presto-Client-Tags";
 
     PRESTO_CURRENT_STATE = "X-Presto-Current-State"
     PRESTO_MAX_WAIT = "X-Presto-Max-Wait"
@@ -118,12 +120,21 @@ module Presto::Client
     if v = options[:properties]
       headers[PrestoHeaders::PRESTO_SESSION] = encode_properties(v)
     end
+    if v = options[:client_info]
+      headers[PrestoHeaders::PRESTO_CLIENT_INFO] = encode_client_info(v)
+    end
+    if v = options[:client_tags]
+      headers[PrestoHeaders::PRESTO_CLIENT_TAGS] = encode_client_tags(v)
+    end
     if options[:enable_x_msgpack]
       # option name is enable_"x"_msgpack because "Accept: application/x-msgpack" header is
       # not officially supported by Presto. We can use this option only if a proxy server
       # decodes & encodes response body. Once this option is supported by Presto, option
       # name should be enable_msgpack, which might be slightly different behavior.
       headers['Accept'] = 'application/x-msgpack,application/json'
+    end
+    if v = options[:http_headers]
+      headers.merge!(v)
     end
     headers
   end
@@ -149,6 +160,18 @@ module Presto::Client
     end.join("\r\n#{PrestoHeaders::PRESTO_SESSION}: ")
   end
 
-  private_class_method :faraday_ssl_options, :optional_headers, :encode_properties
+  def self.encode_client_info(info)
+    if info.is_a?(String)
+      info
+    else
+      JSON.dump(info)
+    end
+  end
+
+  def self.encode_client_tags(tags)
+    Array(tags).join(",")
+  end
+
+  private_class_method :faraday_ssl_options, :optional_headers, :encode_properties, :encode_client_info, :encode_client_tags
 
 end
