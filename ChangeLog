@@ -1,4 +1,9 @@
+2018-03-22 version 0.5.10
+
+* Added client_info, client_tags, and http_headers options.
+
 2018-03-02 version 0.5.9
+
 * Added error_name field at PrestoQueryError
 
 2017-11-13 version 0.5.8
