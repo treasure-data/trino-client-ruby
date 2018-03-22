@@ -87,11 +87,14 @@ $ bundle exec rake modelgen:latest
 * **catalog** sets catalog (connector) name of Presto such as `hive-cdh4`, `hive-hadoop1`, etc.
 * **schema** sets default schema name of Presto. You need to use qualified name like `FROM myschema.table1` to use non-default schemas.
 * **source** sets source name to connect to a Presto. This name is shown on Presto web interface.
+* **client_info** sets client info to queries. It can be a string to pass a raw string, or an object that can be encoded to JSON.
+* **client_tags** sets client tags to queries. It needs to be an array of strings. The tags are shown on web interface.
 * **user** sets user name to connect to a Presto.
 * **password** sets a password to connect to Presto using basic auth.
 * **time_zone** sets time zone of queries. Time zone affects some functions such as `format_datetime`.
 * **language** sets language of queries. Language affects some functions such as `format_datetime`.
 * **properties** set session properties. Session properties affect internal behavior such as `hive.force_local_scheduling: true`, `raptor.reader_stream_buffer_size: "32MB"`, etc.
+* **http_headers** sets custom HTTP headers. It must be a Hash of string to string.
 * **http_proxy** sets host:port of a HTTP proxy server.
 * **http_debug** enables debug message to STDOUT for each HTTP requests.
 * **http_open_timeout** sets timeout in seconds to open new HTTP connection.

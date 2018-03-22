@@ -9,7 +9,6 @@ describe Presto::Client::StatementClient do
       schema: "default",
       time_zone: "US/Pacific",
       language: "ja_JP",
-      properties: {"hello" => "world", "name"=>"value"},
       debug: true,
     }
   end
@@ -39,7 +38,6 @@ describe Presto::Client::StatementClient do
               "X-Presto-User" => options[:user],
               "X-Presto-Language" => options[:language],
               "X-Presto-Time-Zone" => options[:time_zone],
-              "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
     }).to_return(body: response_json.to_json)
 
     StatementClient.new(faraday, query, options)
@@ -64,7 +62,6 @@ describe Presto::Client::StatementClient do
               "X-Presto-User" => options[:user],
               "X-Presto-Language" => options[:language],
               "X-Presto-Time-Zone" => options[:time_zone],
-              "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
     }).to_return(body: response_json2.to_json)
 
     stub_request(:get, "localhost/v1/next_uri").
@@ -75,7 +72,6 @@ describe Presto::Client::StatementClient do
               "X-Presto-User" => options[:user],
               "X-Presto-Language" => options[:language],
               "X-Presto-Time-Zone" => options[:time_zone],
-              "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
     }).to_return(body: lambda{|req|if retry_p; response_json.to_json; else; retry_p=true; raise Timeout::Error.new("execution expired"); end })
 
     sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
@@ -95,7 +91,6 @@ describe Presto::Client::StatementClient do
               "X-Presto-User" => options[:user],
               "X-Presto-Language" => options[:language],
               "X-Presto-Time-Zone" => options[:time_zone],
-              "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: "),
               "Accept" => "application/x-msgpack,application/json"
     }).to_return(body: MessagePack.dump(response_json2), headers: {"Content-Type" => "application/x-msgpack"})
 
@@ -107,7 +102,6 @@ describe Presto::Client::StatementClient do
               "X-Presto-User" => options[:user],
               "X-Presto-Language" => options[:language],
               "X-Presto-Time-Zone" => options[:time_zone],
-              "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: "),
               "Accept" => "application/x-msgpack,application/json"
     }).to_return(body: lambda{|req|if retry_p; MessagePack.dump(response_json); else; retry_p=true; raise Timeout::Error.new("execution expired"); end }, headers: {"Content-Type" => "application/x-msgpack"})
 
@@ -147,7 +141,6 @@ describe Presto::Client::StatementClient do
           "X-Presto-User" => options[:user],
           "X-Presto-Language" => options[:language],
           "X-Presto-Time-Zone" => options[:time_zone],
-          "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
       }
 
       stub_request(:post, "http://localhost/v1/statement").
@@ -179,10 +172,68 @@ describe Presto::Client::StatementClient do
                 "X-Presto-User" => options[:user],
                 "X-Presto-Language" => options[:language],
                 "X-Presto-Time-Zone" => options[:time_zone],
-                "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: "),
       }).to_return(body: {}.to_json)
 
       Presto::Client.new(options).kill(query_id)
+    end
+  end
+
+  describe 'advanced HTTP headers' do
+    let(:headers) do
+      {
+        "User-Agent" => "presto-ruby/#{VERSION}",
+        "X-Presto-Catalog" => options[:catalog],
+        "X-Presto-Schema" => options[:schema],
+        "X-Presto-User" => options[:user],
+        "X-Presto-Language" => options[:language],
+        "X-Presto-Time-Zone" => options[:time_zone],
+      }
+    end
+
+    it "sets X-Presto-Session from properties" do
+      options[:properties] = {"hello" => "world", "name"=>"value"}
+
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query,
+             headers: headers.merge({
+               "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
+             })).
+        to_return(body: response_json.to_json)
+
+      StatementClient.new(faraday, query, options)
+    end
+
+    it "sets X-Presto-Client-Info from client_info" do
+      options[:client_info] = "raw"
+
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query,
+             headers: headers.merge("X-Presto-Client-Info" => "raw")).
+        to_return(body: response_json.to_json)
+
+      StatementClient.new(faraday, query, options)
+    end
+
+    it "sets X-Presto-Client-Info in JSON from client_info" do
+      options[:client_info] = {"k1" => "v1", "k2" => "v2"}
+
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query,
+             headers: headers.merge("X-Presto-Client-Info" => '{"k1":"v1","k2":"v2"}')).
+        to_return(body: response_json.to_json)
+
+      StatementClient.new(faraday, query, options)
+    end
+
+    it "sets X-Presto-Client-Tags" do
+      options[:client_tags] = ["k1:v1", "k2:v2"]
+
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query,
+             headers: headers.merge("X-Presto-Client-Tags" => "k1:v1,k2:v2")).
+        to_return(body: response_json.to_json)
+
+      StatementClient.new(faraday, query, options)
     end
   end
 
@@ -199,7 +250,6 @@ describe Presto::Client::StatementClient do
                 "X-Presto-User" => options[:user],
                 "X-Presto-Language" => options[:language],
                 "X-Presto-Time-Zone" => options[:time_zone],
-                "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
             },
             basic_auth: [options[:user], password]
       ).to_return(body: response_json.to_json)
@@ -336,7 +386,6 @@ describe Presto::Client::StatementClient do
                  "X-Presto-User" => options[:user],
                  "X-Presto-Language" => options[:language],
                  "X-Presto-Time-Zone" => options[:time_zone],
-                 "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
              }).to_return(body: nested_json.to_json(:max_nesting => false))
 
     StatementClient.new(faraday, query, options)
