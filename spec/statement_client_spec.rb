@@ -196,7 +196,7 @@ describe Presto::Client::StatementClient do
       stub_request(:post, "localhost/v1/statement").
         with(body: query,
              headers: headers.merge({
-               "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join("\r\nX-Presto-Session: ")
+               "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join(", ")
              })).
         to_return(body: response_json.to_json)
 
