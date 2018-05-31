@@ -146,7 +146,6 @@ module Presto::Client
   HTTP11_CTL_CHARSET_REGEXP = /[#{Regexp.escape(HTTP11_CTL_CHARSET.join)}]/
 
   def self.encode_properties(properties)
-    # this is a hack to set same header multiple times.
     properties.map do |k, v|
       token = k.to_s
       field_value = v.to_s  # TODO LWS encoding is not implemented
@@ -157,7 +156,7 @@ module Presto::Client
         raise Faraday::ClientError, "Value of properties can't include HTTP/1.1 control characters"
       end
       "#{token}=#{field_value}"
-    end.join("\r\n#{PrestoHeaders::PRESTO_SESSION}: ")
+    end
   end
 
   def self.encode_client_info(info)
