@@ -140,11 +140,16 @@ module Presto::Client
     private :decode_model
 
     def parse_body(response)
-      case response.headers['Content-Type']
-      when 'application/x-msgpack'
-        MessagePack.load(response.body)
-      else
-        JSON.parse(response.body, opts = JSON_OPTIONS)
+      begin
+        case response.headers['Content-Type']
+        when 'application/x-msgpack'
+          MessagePack.load(response.body)
+        else
+          JSON.parse(response.body, opts = JSON_OPTIONS)
+        end
+      rescue => e
+        @exception = PrestoHttpError.new(500, "Presto API returned unexpected data format. #{e}")
+        raise @exception
       end
     end
 

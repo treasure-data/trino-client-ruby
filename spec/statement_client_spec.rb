@@ -133,8 +133,8 @@ describe Presto::Client::StatementClient do
   end
 
   describe '#query_info' do
-    it "raises an exception with sample JSON if response is unexpected" do
-      headers = {
+    let :headers do
+      {
         "User-Agent" => "presto-ruby/#{VERSION}",
         "X-Presto-Catalog" => options[:catalog],
           "X-Presto-Schema" => options[:schema],
@@ -142,20 +142,31 @@ describe Presto::Client::StatementClient do
           "X-Presto-Language" => options[:language],
           "X-Presto-Time-Zone" => options[:time_zone],
       }
+    end
 
+    let :statement_client do
       stub_request(:post, "http://localhost/v1/statement").
         with(body: query, headers: headers).
         to_return(body: response_json2.to_json)
+      StatementClient.new(faraday, query, options)
+    end
 
-      sc = StatementClient.new(faraday, query, options)
-
-      stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
-        with(headers: headers).
-        to_return(body: {"session" => "invalid session structure"}.to_json)
-
+    it "raises an exception with sample JSON if response is unexpected" do
       lambda do
-        sc.query_info
+        stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
+          with(headers: headers).
+          to_return(body: {"session" => "invalid session structure"}.to_json)
+        statement_client.query_info
       end.should raise_error(PrestoHttpError, /Presto API returned unexpected structure at \/v1\/query\/queryid\. Expected Presto::Client::ModelVersions::.*::QueryInfo but got {"session":"invalid session structure"}/)
+    end
+
+    it "raises an exception if response format is unexpected" do
+      lambda do
+        stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
+          with(headers: headers).
+          to_return(body: "unexpected data structure (not JSON)")
+        statement_client.query_info
+      end.should raise_error(PrestoHttpError, /Presto API returned unexpected data format./)
     end
   end
 
