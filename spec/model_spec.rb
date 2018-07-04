@@ -33,7 +33,7 @@ describe Presto::Client::Models do
     stats.blocked_reason.should == :waiting_for_memory
   end
 
-  describe 'rehash of BlockedReason' do
+  describe 'OperatorInfo with type partitionedOutput' do
     h = {
       "@type" => "partitionedOutput",
       "rowsAdded" => 1,
