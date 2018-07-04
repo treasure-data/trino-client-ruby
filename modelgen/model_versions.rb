@@ -190,7 +190,7 @@ module Presto::Client::ModelVersions
       end
     end
 
-    # Inner classes 
+    # Inner classes
     module OperatorInfo
       def self.decode(hash)
         unless hash.is_a?(Hash)
@@ -221,6 +221,22 @@ module Presto::Client::ModelVersions
           hash["weighted_hash_collisions"],
           hash["weighted_sum_squared_hash_collisions"],
           hash["weighted_expectedHash_collisions"]
+        )
+        obj
+      end
+    end
+
+    class << PartitionedOutputInfo =
+        Base.new(:rows_added, :pages_added, :output_buffer_peak_memory_usage)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["rowsAdded"],
+          hash["pagesAdded"],
+          hash["outputBufferPeakMemoryUsage"]
         )
         obj
       end
