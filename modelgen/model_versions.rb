@@ -68,6 +68,22 @@ module Presto::Client::ModelVersions
       attr_reader :query_id, :stage_id, :id
     end
 
+    class Lifespan < String
+      def initialize(str)
+        super
+        if str == "TaskWide"
+          @grouped = false
+          @group_id = 0
+        else
+          # Group1
+          @grouped = true
+          @group_id = str[5..-1].to_i
+        end
+      end
+
+      attr_reader :grouped, :group_id
+    end
+
     class ConnectorSession < Hash
       def initialize(hash)
         super()
@@ -114,6 +130,7 @@ module Presto::Client::ModelVersions
           when "explainAnalyze"     then ExplainAnalyzeNode
           when "apply"              then ApplyNode
           when "assignUniqueId"     then AssignUniqueId
+          when "lateralJoin"        then LateralJoinNode
         end
         if model_class
            node = model_class.decode(hash)
@@ -203,6 +220,9 @@ module Presto::Client::ModelVersions
           when "splitOperator"          then SplitOperatorInfo
           when "hashCollisionsInfo"     then HashCollisionsInfo
           when "partitionedOutput"      then PartitionedOutputInfo
+          when "joinOperatorInfo"       then JoinOperatorInfo
+          when "windowInfo"             then WindowInfo
+          when "tableWriter"            then TableWriterInfo
         end
         if model_class
            model_class.decode(hash)
