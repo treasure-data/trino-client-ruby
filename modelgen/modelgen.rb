@@ -13,11 +13,11 @@ erb = ERB.new(File.read(template_path))
 
 source_path = source_dir
 
-predefined_simple_classes = %w[StageId TaskId ConnectorSession]
+predefined_simple_classes = %w[StageId TaskId Lifespan ConnectorSession]
 predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause WriterTarget OperatorInfo HashCollisionsInfo]
 
-assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle OutputBufferId ConnectorPartitioningHandle NullableValue ConnectorId HostAddress JsonNode]
-enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState NullPartitioning BlockedReason ParameterKind FunctionKind PartitionFunctionHandle Scope ErrorType DistributionType]
+assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle OutputBufferId ConnectorPartitioningHandle NullableValue ConnectorId HostAddress JsonNode Node]
+enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState NullPartitioning BlockedReason ParameterKind FunctionKind PartitionFunctionHandle Scope ErrorType DistributionType PipelineExecutionStrategy JoinType]
 
 root_models = %w[QueryResults QueryInfo] + %w[
 OutputNode
@@ -54,7 +54,15 @@ ExplainAnalyzeNode
 ApplyNode
 AssignUniqueId
 LateralJoinNode
-] + %w[ExchangeClientStatus LocalExchangeBufferInfo TableFinishInfo SplitOperatorInfo]
+] + %w[
+ExchangeClientStatus
+LocalExchangeBufferInfo
+TableFinishInfo
+SplitOperatorInfo
+PartitionedOutputInfo
+JoinOperatorInfo
+WindowInfo
+TableWriterInfo]
 
 name_mapping = Hash[*%w[
 StatementStats StageStats ClientStageStats
@@ -68,6 +76,8 @@ ClientStageStats presto-client/src/main/java/com/facebook/presto/client/StageSta
 Column presto-main/src/main/java/com/facebook/presto/execution/Column.java
 QueryStats presto-main/src/main/java/com/facebook/presto/execution/QueryStats.java
 StageStats presto-main/src/main/java/com/facebook/presto/execution/StageStats.java
+PartitionedOutputInfo presto-main/src/main/java/com/facebook/presto/operator/PartitionedOutputOperator.java
+TableWriterInfo presto-main/src/main/java/com/facebook/presto/operator/TableWriterOperator.java
 ].map.with_index { |v,i| i % 2 == 0 ? v : (source_path + "/" + v) }]
 
 # model => [ [key,nullable,type], ... ]
