@@ -99,7 +99,7 @@ $ bundle exec rake modelgen:latest
 * **http_debug** enables debug message to STDOUT for each HTTP requests.
 * **http_open_timeout** sets timeout in seconds to open new HTTP connection.
 * **http_timeout** sets timeout in seconds to read data from a server.
-* **model_version** set the presto version to which a job is submitted. Supported versions are 0.153 and 0.149. Default is 0.153.
+* **model_version** set the presto version to which a job is submitted. Supported versions are 0.205, 0.178, 0.173, 0.153 and 0.149. Default is 0.205.
 
 See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentation.
 
@@ -112,4 +112,3 @@ See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentati
 3. git commit -am "vX.Y.Z"
 4. git tag "vX.Y.Z"
 5. git push --tags
-
