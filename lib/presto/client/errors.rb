@@ -40,4 +40,7 @@ module Presto::Client
 
     attr_reader :error_code, :error_name, :failure_info
   end
+
+  class PrestoQueryTimeoutError < PrestoError
+  end
 end

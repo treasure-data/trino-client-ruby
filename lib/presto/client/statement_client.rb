@@ -40,6 +40,15 @@ module Presto::Client
         @models = Models
       end
 
+      @plan_timeout = options[:plan_timeout]
+      @query_timeout = options[:query_timeout]
+
+      if @plan_timeout || @query_timeout
+        # this is set before the first call of faraday_get_with_retry so that
+        # resuming StatementClient with next_uri is also under timeout control.
+        @query_submitted_at = Time.now
+      end
+
       if next_uri
         response = faraday_get_with_retry(next_uri)
         @results = @models::QueryResults.decode(parse_body(response))
@@ -110,10 +119,12 @@ module Presto::Client
       if closed? || !has_next?
         return false
       end
-      uri = @results.next_uri
 
+      uri = @results.next_uri
       response = faraday_get_with_retry(uri)
       @results = decode_model(uri, parse_body(response), @models::QueryResults)
+
+      raise_if_timeout!
 
       return true
     end
@@ -182,12 +193,44 @@ module Presto::Client
           end
         end
 
+        raise_if_timeout!
+
         attempts += 1
         sleep attempts * 0.1
       end while (Time.now - start) < @retry_timeout && !@closed
 
       @exception = PrestoHttpError.new(408, "Presto API error due to timeout")
       raise @exception
+    end
+
+    def raise_if_timeout!
+      if @query_submitted_at
+        if @results && @results.next_uri == nil
+          # query is already done
+          return
+        end
+
+        elapsed = Time.now - @query_submitted_at
+
+        if @query_timeout && elapsed > @query_timeout
+          raise_timeout_error!
+        end
+
+        if @plan_timeout && (@results == nil || @results.columns == nil) &&
+            elapsed > @plan_timeout
+          # @results is not set (even first faraday_get_with_retry isn't called yet) or
+          # result from Presto doesn't include result schema. Query planning isn't done yet.
+          raise_timeout_error!
+        end
+      end
+    end
+
+    def raise_timeout_error!
+      if query_id = @results && @results.id
+        raise PrestoQueryTimeoutError, "Query #{query_id} timed out"
+      else
+        raise PrestoQueryTimeoutError, "Query timed out"
+      end
     end
 
     def cancel_leaf_stage
