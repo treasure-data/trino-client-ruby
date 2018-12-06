@@ -46,7 +46,7 @@ module Presto::Client
       if @plan_timeout || @query_timeout
         # this is set before the first call of faraday_get_with_retry so that
         # resuming StatementClient with next_uri is also under timeout control.
-        @query_submitted_at = Time.now
+        @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
 
       if next_uri
@@ -204,13 +204,13 @@ module Presto::Client
     end
 
     def raise_if_timeout!
-      if @query_submitted_at
+      if @started_at
         if @results && @results.next_uri == nil
           # query is already done
           return
         end
 
-        elapsed = Time.now - @query_submitted_at
+        elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - @started_at
 
         if @query_timeout && elapsed > @query_timeout
           raise_timeout_error!
