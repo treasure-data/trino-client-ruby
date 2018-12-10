@@ -1,3 +1,9 @@
+2018-12-10 version 0.5.13
+
+* Added `query_timeout` and `plan_timeout` options with default disabled
+* Changed timer to use CLOCK_MONOTONIC to avoid unexpected behavior when
+  system clock is updated
+
 2018-08-07 version 0.5.12
 
 * Upgrade to Presto 0.205 model
