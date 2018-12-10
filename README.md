@@ -94,6 +94,8 @@ $ bundle exec rake modelgen:latest
 * **time_zone** sets time zone of queries. Time zone affects some functions such as `format_datetime`.
 * **language** sets language of queries. Language affects some functions such as `format_datetime`.
 * **properties** set session properties. Session properties affect internal behavior such as `hive.force_local_scheduling: true`, `raptor.reader_stream_buffer_size: "32MB"`, etc.
+* **query_timeout** sets timeout in seconds for the entire query execution (from the first API call until there're no more output data). If timeout happens, client raises PrestoQueryTimeoutError. Default is nil (disabled).
+* **plan_timeout** sets timeout in seconds for query planning execution (from the first API call until result columns become available). If timeout happens, client raises PrestoQueryTimeoutError. Default is nil (disabled).
 * **http_headers** sets custom HTTP headers. It must be a Hash of string to string.
 * **http_proxy** sets host:port of a HTTP proxy server.
 * **http_debug** enables debug message to STDOUT for each HTTP requests.

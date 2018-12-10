@@ -401,5 +401,160 @@ describe Presto::Client::StatementClient do
 
     StatementClient.new(faraday, query, options)
   end
+
+  describe "query timeout" do
+    let :headers do
+      {
+        "User-Agent" => "presto-ruby/#{VERSION}",
+        "X-Presto-Catalog" => options[:catalog],
+        "X-Presto-Schema" => options[:schema],
+        "X-Presto-User" => options[:user],
+        "X-Presto-Language" => options[:language],
+        "X-Presto-Time-Zone" => options[:time_zone],
+      }
+    end
+
+    let :planning_response do
+      {
+        id: "queryid",
+        nextUri: 'http://localhost/v1/next_uri',
+        stats: {},
+      }
+    end
+
+    let :early_running_response do
+      {
+        id: "queryid",
+        nextUri: 'http://localhost/v1/next_uri',
+        stats: {},
+        columns: [{name: "_col0", type: "bigint"}],
+      }
+    end
+
+    let :late_running_response do
+      {
+        id: "queryid",
+        nextUri: 'http://localhost/v1/next_uri',
+        stats: {},
+        columns: [{name: "_col0", type: "bigint"}],
+        data: "",
+      }
+    end
+
+    let :done_response do
+      {
+        id: "queryid",
+        stats: {},
+        columns: [{name: "_col0", type: "bigint"}],
+      }
+    end
+
+    before(:each) do
+    end
+
+    [:plan_timeout, :query_timeout].each do |timeout_type|
+      it "raises PrestoQueryTimeoutError if timeout during planning" do
+        stub_request(:post, "localhost/v1/statement").
+          with(body: query, headers: headers).
+          to_return(body: planning_response.to_json)
+
+        client = StatementClient.new(faraday, query, options.merge(timeout_type => 1))
+
+        stub_request(:get, "localhost/v1/next_uri").
+          with(headers: headers).
+          to_return(body: planning_response.to_json)
+        client.advance
+
+        sleep 1
+        stub_request(:get, "localhost/v1/next_uri").
+          with(headers: headers).
+          to_return(body: planning_response.to_json)
+        lambda do
+          client.advance
+        end.should raise_error(Presto::Client::PrestoQueryTimeoutError, "Query queryid timed out")
+      end
+
+      it "raises PrestoQueryTimeoutError if timeout during initial resuming" do
+        stub_request(:get, "localhost/v1/next_uri").
+          with(headers: headers).
+          to_return(body: lambda{|req| raise Timeout::Error.new("execution expired")})
+
+        lambda do
+          StatementClient.new(faraday, query, options.merge(timeout_type => 1), "/v1/next_uri")
+        end.should raise_error(Presto::Client::PrestoQueryTimeoutError, "Query timed out")
+      end
+
+      it "raises PrestoHttpError if timeout during initial resuming and #{timeout_type} < retry_timeout" do
+        stub_request(:get, "localhost/v1/next_uri").
+          with(headers: headers).
+          to_return(body: lambda{|req| raise Timeout::Error.new("execution expired")})
+
+        lambda do
+          StatementClient.new(faraday, query, options.merge(timeout_type => 2, retry_timeout: 1), "/v1/next_uri")
+        end.should raise_error(Presto::Client::PrestoHttpError, "Presto API error due to timeout")
+      end
+    end
+
+    it "doesn't raise errors with plan_timeout if query planning is done" do
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query, headers: headers).
+        to_return(body: planning_response.to_json)
+
+      client = StatementClient.new(faraday, query, options.merge(plan_timeout: 1))
+
+      sleep 1
+
+      stub_request(:get, "localhost/v1/next_uri").
+        with(headers: headers).
+        to_return(body: early_running_response.to_json)
+      client.advance
+
+      stub_request(:get, "localhost/v1/next_uri").
+        with(headers: headers).
+        to_return(body: late_running_response.to_json)
+      client.advance
+    end
+
+    it "raises PrestoQueryTimeoutError if timeout during execution" do
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query, headers: headers).
+        to_return(body: planning_response.to_json)
+
+      client = StatementClient.new(faraday, query, options.merge(query_timeout: 1))
+
+      stub_request(:get, "localhost/v1/next_uri").
+        with(headers: headers).
+        to_return(body: early_running_response.to_json)
+      client.advance
+
+      sleep 1
+      stub_request(:get, "localhost/v1/next_uri").
+        with(headers: headers).
+        to_return(body: late_running_response.to_json)
+      lambda do
+        client.advance
+      end.should raise_error(Presto::Client::PrestoQueryTimeoutError, "Query queryid timed out")
+    end
+
+    it "doesn't raise errors if query is done" do
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query, headers: headers).
+        to_return(body: planning_response.to_json)
+
+      client = StatementClient.new(faraday, query, options.merge(query_timeout: 1))
+
+      stub_request(:get, "localhost/v1/next_uri").
+        with(headers: headers).
+        to_return(body: early_running_response.to_json)
+      client.advance
+
+      sleep 1
+      stub_request(:get, "localhost/v1/next_uri").
+        with(headers: headers).
+        to_return(body: done_response.to_json)
+      client.advance
+    end
+
+  end
 end
 
