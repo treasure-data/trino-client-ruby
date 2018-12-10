@@ -167,7 +167,7 @@ module Presto::Client
     private :parse_body
 
     def faraday_get_with_retry(uri, &block)
-      start = Time.now
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       attempts = 0
 
       begin
@@ -197,7 +197,7 @@ module Presto::Client
 
         attempts += 1
         sleep attempts * 0.1
-      end while (Time.now - start) < @retry_timeout && !@closed
+      end while (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) < @retry_timeout && !@closed
 
       @exception = PrestoHttpError.new(408, "Presto API error due to timeout")
       raise @exception
