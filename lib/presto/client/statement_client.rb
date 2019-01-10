@@ -15,6 +15,7 @@
 #
 module Presto::Client
 
+  require 'bigdecimal'
   require 'json'
   require 'msgpack'
   require 'presto/client/models'
@@ -51,7 +52,8 @@ module Presto::Client
 
       if next_uri
         response = faraday_get_with_retry(next_uri)
-        @results = @models::QueryResults.decode(parse_body(response))
+        decoded = @models::QueryResults.decode(parse_body(response))
+        @results = cast_results(decoded)
       else
         post_query_request!
       end
@@ -78,7 +80,8 @@ module Presto::Client
         raise PrestoHttpError.new(response.status, "Failed to start query: #{response.body} (#{response.status})")
       end
 
-      @results = decode_model(uri, parse_body(response), @models::QueryResults)
+      decoded = decode_model(uri, parse_body(response), @models::QueryResults)
+      @results = cast_results(decoded)
     end
 
     private :post_query_request!
@@ -122,7 +125,8 @@ module Presto::Client
 
       uri = @results.next_uri
       response = faraday_get_with_retry(uri)
-      @results = decode_model(uri, parse_body(response), @models::QueryResults)
+      decoded = decode_model(uri, parse_body(response), @models::QueryResults)
+      @results = cast_results(decoded)
 
       raise_if_timeout!
 
@@ -133,6 +137,26 @@ module Presto::Client
       uri = "/v1/query/#{@results.id}"
       response = faraday_get_with_retry(uri)
       decode_model(uri, parse_body(response), @models::QueryInfo)
+    end
+
+    def cast_results(query_results)
+      data = query_results.data
+      columns = query_results.columns
+      return query_results if data.nil? || columns.nil?
+
+      decimal_indices = columns.each_with_index.select { |c, i| c.type.start_with?('decimal(') }.map(&:last)
+      if decimal_indices.empty?
+        query_results
+      else
+        new_data = data.map do |row|
+          copy = row.dup
+          decimal_indices.each do |index|
+            copy[index] = BigDecimal(copy[index])
+          end
+          copy
+        end
+        query_results.class.new(query_results.to_h.merge(data: new_data))
+      end
     end
 
     def decode_model(uri, hash, body_class)

@@ -43,6 +43,36 @@ describe Presto::Client::StatementClient do
     StatementClient.new(faraday, query, options)
   end
 
+  it "returns results correctly" do
+    query = 'select 1 as i, 1.0 as d'
+    stub_request(:post, "localhost/v1/statement").
+      with(body: query,
+           headers: {
+              "User-Agent" => "presto-ruby/#{VERSION}",
+              "X-Presto-Catalog" => options[:catalog],
+              "X-Presto-Schema" => options[:schema],
+              "X-Presto-User" => options[:user],
+              "X-Presto-Language" => options[:language],
+              "X-Presto-Time-Zone" => options[:time_zone],
+    }).to_return(body: <<-JSON)
+      {"id":"queryid","infoUri":"http://localhost/ui/query.html?queryid","nextUri":"http://localhost/v1/statement/queryid/1","stats":{"state":"QUEUED","queued":true,"scheduled":false,"nodes":0,"totalSplits":0,"queuedSplits":0,"runningSplits":0,"completedSplits":0,"userTimeMillis":0,"cpuTimeMillis":0,"wallTimeMillis":0,"queuedTimeMillis":0,"elapsedTimeMillis":0,"processedRows":0,"processedBytes":0,"peakMemoryBytes":0}}
+    JSON
+    client = StatementClient.new(faraday, query, options)
+    client.current_results.data.should be_nil
+
+    stub_request(:get, "http://localhost/v1/statement/queryid/1").to_return(body: <<-JSON)
+      {"id":"queryid","infoUri":"http://localhost/ui/query.html?queryid","partialCancelUri":"http://192.168.128.77:8091/v1/stage/queryid.0","nextUri":"http://localhost/v1/statement/queryid/2","columns":[{"name":"i","type":"integer","typeSignature":{"rawType":"integer","typeArguments":[],"literalArguments":[],"arguments":[]}},{"name":"d","type":"decimal(2,1)","typeSignature":{"rawType":"decimal","typeArguments":[],"literalArguments":[],"arguments":[{"kind":"LONG_LITERAL","value":2},{"kind":"LONG_LITERAL","value":1}]}}],"data":[[1,"1.0"]],"stats":{"state":"RUNNING","queued":false,"scheduled":true,"nodes":1,"totalSplits":17,"queuedSplits":17,"runningSplits":0,"completedSplits":0,"userTimeMillis":0,"cpuTimeMillis":0,"wallTimeMillis":0,"queuedTimeMillis":1,"elapsedTimeMillis":121,"processedRows":0,"processedBytes":0,"peakMemoryBytes":0,"rootStage":{"stageId":"0","state":"RUNNING","done":false,"nodes":1,"totalSplits":17,"queuedSplits":17,"runningSplits":0,"completedSplits":0,"userTimeMillis":0,"cpuTimeMillis":0,"wallTimeMillis":0,"processedRows":0,"processedBytes":0,"subStages":[]},"progressPercentage":0.0}}
+    JSON
+    client.advance.should be_true
+    client.current_results.data.should == [[1, BigDecimal('1.0')]]
+
+    stub_request(:get, "http://localhost/v1/statement/queryid/2").to_return(body: <<-JSON)
+      {"id":"queryid","infoUri":"http://localhost/ui/query.html?queryid","columns":[{"name":"i","type":"integer","typeSignature":{"rawType":"integer","typeArguments":[],"literalArguments":[],"arguments":[]}},{"name":"d","type":"decimal(2,1)","typeSignature":{"rawType":"decimal","typeArguments":[],"literalArguments":[],"arguments":[{"kind":"LONG_LITERAL","value":2},{"kind":"LONG_LITERAL","value":1}]}}],"stats":{"state":"FINISHED","queued":false,"scheduled":true,"nodes":1,"totalSplits":17,"queuedSplits":0,"runningSplits":0,"completedSplits":17,"userTimeMillis":4,"cpuTimeMillis":5,"wallTimeMillis":109,"queuedTimeMillis":1,"elapsedTimeMillis":128,"processedRows":0,"processedBytes":0,"peakMemoryBytes":0,"rootStage":{"stageId":"0","state":"FINISHED","done":true,"nodes":1,"totalSplits":17,"queuedSplits":0,"runningSplits":0,"completedSplits":17,"userTimeMillis":4,"cpuTimeMillis":5,"wallTimeMillis":109,"processedRows":1,"processedBytes":0,"subStages":[]},"progressPercentage":100.0}}
+    JSON
+    client.advance.should be_true
+    client.current_results.data.should be_nil
+  end
+
   let :response_json2 do
     {
       id: "queryid",
@@ -557,4 +587,3 @@ describe Presto::Client::StatementClient do
 
   end
 end
-
