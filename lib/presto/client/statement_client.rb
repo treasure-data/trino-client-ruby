@@ -51,6 +51,7 @@ module Presto::Client
 
       if next_uri
         response = faraday_get_with_retry(next_uri)
+        @results_headers = response.headers
         @results = @models::QueryResults.decode(parse_body(response))
       else
         post_query_request!
@@ -78,6 +79,7 @@ module Presto::Client
         raise PrestoHttpError.new(response.status, "Failed to start query: #{response.body} (#{response.status})")
       end
 
+      @results_headers = response.headers
       @results = decode_model(uri, parse_body(response), @models::QueryResults)
     end
 
@@ -111,6 +113,10 @@ module Presto::Client
       @results
     end
 
+    def current_results_headers
+      @results_headers
+    end
+
     def has_next?
       !!@results.next_uri
     end
@@ -122,6 +128,7 @@ module Presto::Client
 
       uri = @results.next_uri
       response = faraday_get_with_retry(uri)
+      @results_headers = response.headers
       @results = decode_model(uri, parse_body(response), @models::QueryResults)
 
       raise_if_timeout!
