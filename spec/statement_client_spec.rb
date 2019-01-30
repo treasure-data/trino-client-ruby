@@ -132,6 +132,22 @@ describe Presto::Client::StatementClient do
     end.should raise_error(TypeError, /String to Hash/)
   end
 
+  it "receives headers of POST" do
+    stub_request(:post, "localhost/v1/statement").
+      with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
+
+    sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
+    sc.current_results_headers["X-Test-Header"].should == "123"
+  end
+
+  it "receives headers of POST through Query" do
+    stub_request(:post, "localhost/v1/statement").
+      with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
+
+    q = Presto::Client.new(options).query(query)
+    q.current_results_headers["X-Test-Header"].should == "123"
+  end
+
   describe '#query_info' do
     let :headers do
       {

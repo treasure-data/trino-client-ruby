@@ -50,6 +50,10 @@ module Presto::Client
       @api.current_results
     end
 
+    def current_results_headers
+      @api.current_results_headers
+    end
+
     def advance
       @api.advance
     end
