@@ -241,21 +241,24 @@ module Presto::Client
     end
 
     def cancel_leaf_stage
-      if uri = @results.next_uri
-        response = @faraday.delete do |req|
+      if uri = @results.partial_cancel_uri
+        @faraday.delete do |req|
           req.url uri
         end
-        return response.status / 100 == 2
       end
-      return false
     end
 
     def close
       return if @closed
 
-      # cancel running statement
-      # TODO make async reqeust and ignore response?
-      cancel_leaf_stage
+      begin
+        if uri = @results.next_uri
+          @faraday.delete do |req|
+            req.url uri
+          end
+        end
+      rescue => e
+      end
 
       @closed = true
       nil

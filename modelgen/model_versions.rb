@@ -131,6 +131,7 @@ module Presto::Client::ModelVersions
           when "apply"              then ApplyNode
           when "assignUniqueId"     then AssignUniqueId
           when "lateralJoin"        then LateralJoinNode
+          when "statisticsWriterNode" then StatisticsWriterNode
         end
         if model_class
            node = model_class.decode(hash)
@@ -207,6 +208,22 @@ module Presto::Client::ModelVersions
       end
     end
 
+    class << WriteStatisticsTarget =
+        Base.new(:type, :handle)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        model_class = case hash["@type"]
+            when "WriteStatisticsHandle"       then WriteStatisticsHandle
+        end
+        if model_class
+           model_class.decode(hash)
+        end
+      end
+    end
+
     # Inner classes 
     module OperatorInfo
       def self.decode(hash)
@@ -243,6 +260,13 @@ module Presto::Client::ModelVersions
           hash["weighted_expectedHash_collisions"]
         )
         obj
+      end
+    end
+
+    class ResourceGroupId < Array
+      def initialize(array)
+        super()
+        concat(array)
       end
     end
 

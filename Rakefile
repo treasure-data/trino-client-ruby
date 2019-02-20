@@ -18,6 +18,7 @@ GEN_MODEL_VERSIONS = %w[
   0.173
   0.178
   0.205
+  303
 ]
 
 namespace "modelgen" do
@@ -35,7 +36,7 @@ namespace "modelgen" do
   GEN_MODEL_VERSIONS.each do |ver|
     file "build/presto-#{ver}.tar.gz" do
       mkdir_p "build"
-      sh "curl -L -o build/presto-#{ver}.tar.gz https://github.com/facebook/presto/archive/#{ver}.tar.gz"
+      sh "curl -L -o build/presto-#{ver}.tar.gz https://github.com/prestosql/presto/archive/#{ver}.tar.gz"
     end
 
     file "lib/presto/client/model_versions/#{ver}.rb" => "build/presto-#{ver}.tar.gz" do

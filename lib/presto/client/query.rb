@@ -125,7 +125,7 @@ module Presto::Client
     end
 
     def close
-      @api.cancel_leaf_stage
+      @api.close
       nil
     end
 
