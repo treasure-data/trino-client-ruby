@@ -3,13 +3,13 @@ module PrestoModels
   require 'find'
   require 'stringio'
 
-  PRIMITIVE_TYPES = %w[String boolean long int short byte double float Integer]
+  PRIMITIVE_TYPES = %w[String boolean long int short byte double float Integer Double]
   ARRAY_PRIMITIVE_TYPES = PRIMITIVE_TYPES.map { |t| "#{t}[]" }
 
   class Model < Struct.new(:name, :fields)
   end
 
-  class Field < Struct.new(:key, :nullable, :array, :map, :type, :base_type, :map_value_base_type)
+  class Field < Struct.new(:key, :nullable, :array, :map, :type, :base_type, :map_value_base_type, :base_type_alias)
     alias_method :nullable?, :nullable
     alias_method :array?, :array
     alias_method :map?, :map
@@ -47,10 +47,12 @@ module PrestoModels
 
     private
 
-    PROPERTY_PATTERN = /@JsonProperty\(\"(\w+)\"\)\s+(@Nullable\s+)?([\w\<\>\[\]\,\s]+)\s+\w+/
+    PROPERTY_PATTERN = /@JsonProperty\(\"(\w+)\"\)\s+(@Nullable\s+)?([\w\<\>\[\]\,\s\.]+)\s+\w+/
     CREATOR_PATTERN = /@JsonCreator[\s]+public[\s]+(static\s+)?(\w+)[\w\s]*\((?:\s*#{PROPERTY_PATTERN}\s*,?)+\)/
+    GENERIC_PATTERN = /(\w+)\<(\w+)\>/
 
-    def analyze_fields(model_name, creator_block)
+    def analyze_fields(model_name, creator_block, generic: nil)
+      model_name = "#{model_name}_#{generic}" if generic
       extra = @extra_fields[model_name] || []
       fields = creator_block.scan(PROPERTY_PATTERN).concat(extra).map do |key,nullable,type|
         map = false
@@ -63,7 +65,7 @@ module PrestoModels
           base_type = m[1]
           map_value_base_type = m[2]
           map = true
-        elsif m = /Optional<([\w\[\]]+)>/.match(type)
+        elsif m = /Optional<([\w\[\]\<\>]+)>/.match(type)
           base_type = m[1]
           nullable = true
         elsif m = /OptionalInt/.match(type)
@@ -72,6 +74,9 @@ module PrestoModels
         elsif m = /OptionalLong/.match(type)
           base_type = 'Long'
           nullable = true
+        elsif m = /OptionalDouble/.match(type)
+          base_type = 'Double'
+          nullable = true
         elsif type =~ /\w+/
           base_type = type
         else
@@ -79,7 +84,16 @@ module PrestoModels
         end
         base_type = @name_mapping[[model_name, base_type]] || base_type
         map_value_base_type = @name_mapping[[model_name, map_value_base_type]] || map_value_base_type
-        Field.new(key, !!nullable, array, map, type, base_type, map_value_base_type)
+        
+        if generic
+          base_type = generic if base_type == 'T'
+          map_value_base_type = generic if map_value_base_type == 'T'  
+        end
+        if m = GENERIC_PATTERN.match(base_type)
+          base_type_alias = "#{m[1]}_#{m[2]}"
+        end
+
+        Field.new(key, !!nullable, array, map, type, base_type, map_value_base_type, base_type_alias)
       end
 
       @models[model_name] = Model.new(model_name, fields)
@@ -92,8 +106,14 @@ module PrestoModels
       return fields
     end
 
-    def analyze_model(model_name, parent_model = nil)
+    def analyze_model(model_name, parent_model=  nil, generic: nil)
       return if @models[model_name] || @ignore_types.include?(model_name)
+
+      if m = GENERIC_PATTERN.match(model_name)
+        analyze_model(m[1], generic: m[2])
+        analyze_model(m[2])
+        return
+      end
 
       path = find_class_file(model_name, parent_model)
       java = File.read(path)
@@ -114,7 +134,7 @@ module PrestoModels
         fields = analyze_fields(inner_model_name, m[0])
       end
 
-      fields = analyze_fields(model_name, body)
+      fields = analyze_fields(model_name, body, generic: generic)
 
     rescue => e
       puts "Skipping model #{parent_model}/#{model_name}: #{e}"
@@ -214,7 +234,7 @@ module PrestoModels
             elem_expr = convert_expression(field.base_type, field.base_type, "h")
             expr << "hash[\"#{field.key}\"].map {|h| #{elem_expr} }"
           else
-            expr << convert_expression(field.type, field.base_type, "hash[\"#{field.key}\"]")
+            expr << convert_expression(field.type, field.base_type_alias || field.base_type, "hash[\"#{field.key}\"]")
           end
         end
 
