@@ -30,7 +30,8 @@ module Presto::Client
   require 'presto/client/model_versions/0.178.rb'
   require 'presto/client/model_versions/0.205.rb'
   require 'presto/client/model_versions/303.rb'
+  require 'presto/client/model_versions/316.rb'
 
-  Models = ModelVersions::V303
+  Models = ModelVersions::V316
 
 end
