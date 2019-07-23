@@ -3,7 +3,7 @@ module PrestoModels
   require 'find'
   require 'stringio'
 
-  PRIMITIVE_TYPES = %w[String boolean long int short byte double float Integer Double]
+  PRIMITIVE_TYPES = %w[String boolean long int short byte double float Integer Double Boolean]
   ARRAY_PRIMITIVE_TYPES = PRIMITIVE_TYPES.map { |t| "#{t}[]" }
 
   class Model < Struct.new(:name, :fields)
