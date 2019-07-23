@@ -1,3 +1,8 @@
+2019-07-23 version 0.6.0
+
+* Support presto 316 model class
+
+
 2019-01-30 version 0.5.14
 
 * Added `Query#current_results_headers` that returns HTTP response headers
