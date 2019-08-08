@@ -198,9 +198,9 @@ module Presto::Client::ModelVersions
         end
         obj = allocate
         model_class = case hash["@type"]
-            when "CreateHandle"       then CreateHandle
-            when "InsertHandle"       then InsertHandle
-            when "DeleteHandle"       then DeleteHandle
+            when "CreateTarget"       then CreateTarget
+            when "InsertTarget"       then InsertTarget
+            when "DeleteTarget"       then DeleteTarget
         end
         if model_class
            model_class.decode(hash)
