@@ -1,3 +1,7 @@
+2019-08-09 version 0.6.1
+
+* Fix WriterTarget 316 model class name
+
 2019-07-23 version 0.6.0
 
 * Support presto 316 model class
