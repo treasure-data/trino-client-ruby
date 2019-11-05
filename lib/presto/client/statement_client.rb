@@ -31,8 +31,7 @@ module Presto::Client
 
       @options = options
       @query = query
-      @closed = false
-      @exception = nil
+      @state = :running
       @retry_timeout = options[:retry_timeout] || 120
       if model_version = @options[:model_version]
         @models = ModelVersions.const_get("V#{model_version.gsub(".", "_")}")
@@ -76,7 +75,7 @@ module Presto::Client
 
       # TODO error handling
       if response.status != 200
-        raise PrestoHttpError.new(response.status, "Failed to start query: #{response.body} (#{response.status})")
+        exception! PrestoHttpError.new(response.status, "Failed to start query: #{response.body} (#{response.status})")
       end
 
       @results_headers = response.headers
@@ -91,14 +90,20 @@ module Presto::Client
       !!@options[:debug]
     end
 
-    def closed?
-      @closed
+    def running?
+      @state == :running
     end
 
-    attr_reader :exception
+    def client_aborted?
+      @state == :client_aborted
+    end
 
-    def exception?
-      @exception
+    def client_error?
+      @state == :client_error
+    end
+
+    def finished?
+      @state == :finished
     end
 
     def query_failed?
@@ -106,7 +111,7 @@ module Presto::Client
     end
 
     def query_succeeded?
-      @results.error == nil && !@exception && !@closed
+      @results.error == nil && finished?
     end
 
     def current_results
@@ -125,12 +130,21 @@ module Presto::Client
       !!@results.next_uri
     end
 
+    def exception!(e)
+      @state = :client_error
+      raise e
+    end
+
     def advance
-      if closed? || !has_next?
+      return false unless running?
+
+      unless has_next?
+        @state = :finished
         return false
       end
 
       uri = @results.next_uri
+
       response = faraday_get_with_retry(uri)
       @results_headers = response.headers
       @results = decode_model(uri, parse_body(response), @models::QueryResults)
@@ -154,8 +168,7 @@ module Presto::Client
         if body.size > 1024 + 3
           body = "#{body[0, 1024]}..."
         end
-        @exception = PrestoHttpError.new(500, "Presto API returned unexpected structure at #{uri}. Expected #{body_class} but got #{body}: #{e}")
-        raise @exception
+        exception! PrestoHttpError.new(500, "Presto API returned unexpected structure at #{uri}. Expected #{body_class} but got #{body}: #{e}")
       end
     end
 
@@ -170,8 +183,7 @@ module Presto::Client
           JSON.parse(response.body, opts = JSON_OPTIONS)
         end
       rescue => e
-        @exception = PrestoHttpError.new(500, "Presto API returned unexpected data format. #{e}")
-        raise @exception
+        exception! PrestoHttpError.new(500, "Presto API returned unexpected data format. #{e}")
       end
     end
 
@@ -188,8 +200,7 @@ module Presto::Client
           # temporally error to retry
           response = nil
         rescue => e
-          @exception = e
-          raise @exception
+          exception! e
         end
 
         if response
@@ -199,8 +210,7 @@ module Presto::Client
 
           if response.status != 503  # retry only if 503 Service Unavailable
             # deterministic error
-            @exception = PrestoHttpError.new(response.status, "Presto API error at #{uri} returned #{response.status}: #{response.body}")
-            raise @exception
+            exception! PrestoHttpError.new(response.status, "Presto API error at #{uri} returned #{response.status}: #{response.body}")
           end
         end
 
@@ -208,18 +218,14 @@ module Presto::Client
 
         attempts += 1
         sleep attempts * 0.1
-      end while (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) < @retry_timeout && !@closed
+      end while (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) < @retry_timeout && !client_aborted?
 
-      @exception = PrestoHttpError.new(408, "Presto API error due to timeout")
-      raise @exception
+      exception! PrestoHttpError.new(408, "Presto API error due to timeout")
     end
 
     def raise_if_timeout!
       if @started_at
-        if @results && @results.next_uri == nil
-          # query is already done
-          return
-        end
+        return if finished?
 
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - @started_at
 
@@ -238,9 +244,9 @@ module Presto::Client
 
     def raise_timeout_error!
       if query_id = @results && @results.id
-        raise PrestoQueryTimeoutError, "Query #{query_id} timed out"
+        exception! PrestoQueryTimeoutError.new("Query #{query_id} timed out")
       else
-        raise PrestoQueryTimeoutError, "Query timed out"
+        exception! PrestoQueryTimeoutError.new("Query timed out")
       end
     end
 
@@ -253,7 +259,9 @@ module Presto::Client
     end
 
     def close
-      return if @closed
+      return unless running?
+
+      @state = :client_aborted
 
       begin
         if uri = @results.next_uri
@@ -264,7 +272,6 @@ module Presto::Client
       rescue => e
       end
 
-      @closed = true
       nil
     end
   end

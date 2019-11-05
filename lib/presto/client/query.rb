@@ -130,11 +130,8 @@ module Presto::Client
     end
 
     def raise_if_failed
-      if @api.closed?
+      if @api.client_aborted?
         raise PrestoClientError, "Query aborted by user"
-      elsif @api.exception?
-        # query is gone
-        raise @api.exception
       elsif @api.query_failed?
         results = @api.current_results
         error = results.error
