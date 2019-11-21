@@ -15,6 +15,8 @@
 #
 module Presto::Client
 
+  require 'cgi'
+
   module PrestoHeaders
     PRESTO_USER = "X-Presto-User"
     PRESTO_SOURCE = "X-Presto-Source"
@@ -155,6 +157,7 @@ module Presto::Client
       if field_value =~ HTTP11_CTL_CHARSET_REGEXP
         raise Faraday::ClientError, "Value of properties can't include HTTP/1.1 control characters"
       end
+      field_value = CGI.escape(field_value)
       "#{token}=#{field_value}"
     end
   end
