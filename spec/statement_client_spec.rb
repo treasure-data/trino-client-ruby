@@ -112,24 +112,32 @@ describe Presto::Client::StatementClient do
     retry_p.should be_true
   end
 
-  it "decodes DeleteHandle" do
-    dh = Models::DeleteHandle.decode({
-      "handle" => {
-        "connectorId" => "c1",
-        "connectorHandle" => {}
-      }
-    })
-    dh.handle.should be_a_kind_of Models::TableHandle
-    dh.handle.connector_id.should == "c1"
-    dh.handle.connector_handle.should == {}
-  end
+  # presto version could be "V0_ddd" or "Vddd"
+  /\APresto::Client::ModelVersions::V(\w+)/ =~ Presto::Client::Models.to_s
 
-  it "validates models" do
-    lambda do
-      Models::DeleteHandle.decode({
-        "handle" => "invalid"
+  # https://github.com/prestosql/presto/commit/80a2c5113d47e3390bf6dc041486a1c9dfc04592
+  # renamed DeleteHandle to DeleteTarget, then DeleteHandle exists when presto version
+  # is less than 313.
+  if $1[0, 2] == "0_" || $1.to_i < 314
+    it "decodes DeleteHandle" do
+      dh = Models::DeleteHandle.decode({
+        "handle" => {
+          "connectorId" => "c1",
+          "connectorHandle" => {}
+        }
       })
-    end.should raise_error(TypeError, /String to Hash/)
+      dh.handle.should be_a_kind_of Models::TableHandle
+      dh.handle.connector_id.should == "c1"
+      dh.handle.connector_handle.should == {}
+    end
+
+    it "validates models" do
+      lambda do
+        Models::DeleteHandle.decode({
+          "handle" => "invalid"
+        })
+      end.should raise_error(TypeError, /String to Hash/)
+    end
   end
 
   it "receives headers of POST" do
