@@ -117,6 +117,10 @@ module Presto::Client
       @results_headers
     end
 
+    def query_id
+      @results.id
+    end
+
     def has_next?
       !!@results.next_uri
     end
