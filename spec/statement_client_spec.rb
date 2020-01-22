@@ -156,6 +156,22 @@ describe Presto::Client::StatementClient do
     q.current_results_headers["X-Test-Header"].should == "123"
   end
 
+  describe "#query_id" do
+    it "returns query_id" do
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
+
+     stub_request(:get, "localhost/v1/next_uri").
+        to_return(body: response_json.to_json, headers: {"X-Test-Header" => "123"})
+
+      sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
+      sc.query_id.should == "queryid"
+      sc.has_next?.should be_true
+      sc.advance.should be_true
+      sc.query_id.should == "queryid"
+    end
+  end
+
   describe '#query_info' do
     let :headers do
       {
