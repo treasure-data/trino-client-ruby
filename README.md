@@ -1,6 +1,6 @@
 # Presto client library for Ruby
 
-[![Build Status](https://travis-ci.org/treasure-data/presto-client-ruby.svg?branch=master)](https://travis-ci.org/treasure-data/presto-client-ruby)
+[![Build Status](https://travis-ci.org/treasure-data/presto-client-ruby.svg?branch=master)](https://travis-ci.org/treasure-data/presto-client-ruby) [![Gem](https://img.shields.io/gem/v/presto-client)](https://rubygems.org/gems/presto-client) [![Gem](https://img.shields.io/gem/dt/presto-client)](https://rubygems.org/gems/presto-client)
 
 Presto is a distributed SQL query engine for big data:
 https://prestosql.io/
