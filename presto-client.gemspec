@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Presto client library}
   gem.summary       = %q{Presto client library}
   gem.homepage      = "https://github.com/treasure-data/presto-client-ruby"
-  gem.license       = "Apache 2.0"
+  gem.license       = "Apache-2.0"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
