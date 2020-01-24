@@ -1,6 +1,6 @@
 # Presto client library for Ruby
 
-[![Build Status](https://travis-ci.org/treasure-data/presto-client-ruby.svg?branch=master)](https://travis-ci.org/treasure-data/presto-client-ruby) [![Gem](https://img.shields.io/gem/v/presto-client)](https://rubygems.org/gems/presto-client) [![Gem](https://img.shields.io/gem/dt/presto-client)](https://rubygems.org/gems/presto-client)
+[![Build Status](https://travis-ci.org/treasure-data/presto-client-ruby.svg?branch=master)](https://travis-ci.org/treasure-data/presto-client-ruby) [![Gem](https://img.shields.io/gem/v/presto-client)](https://rubygems.org/gems/presto-client) [![Gem](https://img.shields.io/gem/dt/presto-client)](https://rubygems.org/gems/presto-client) [![GitHub](https://img.shields.io/github/license/treasure-data/presto-client-ruby)]()
 
 Presto is a distributed SQL query engine for big data:
 https://prestosql.io/
@@ -109,8 +109,21 @@ See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentati
 
 ### Releasing a new version
 
-1. Update lib/presto/client/version.rb
-2. Update ChangeLog
-3. git commit -am "vX.Y.Z"
-4. git tag "vX.Y.Z"
-5. git push --tags
+1. First update `lib/presto/client/version.rb` to the next version.
+2. Run the following command which will update `ChangeLog.md` file automatically.
+```
+$ ruby release.rb
+```
+
+3. Create tag
+```
+$ git commit -am "vX.Y.Z"
+$ git tag "vX.Y.Z"
+% git push --tags
+```
+
+4. Push package
+```
+$ gem build presto-client.gemspec
+$ gem push presto-client-X.Y.Z.gem
+```
