@@ -138,6 +138,27 @@ describe Presto::Client::StatementClient do
         })
       end.should raise_error(TypeError, /String to Hash/)
     end
+  else
+    it "decodes DeleteTarget" do
+      dh = Models::DeleteTarget.decode({
+        "handle" => {
+          "catalogName" => "c1",
+          "connectorHandle" => {}
+        }
+      })
+      dh.handle.should be_a_kind_of Models::TableHandle
+      dh.handle.catalog_name.should == "c1"
+      dh.handle.connector_handle.should == {}
+    end
+
+    it "validates models" do
+      lambda do
+        Models::DeleteTarget.decode({
+          "catalogName" => "c1",
+          "handle" => "invalid"
+        })
+      end.should raise_error(TypeError, /String to Hash/)
+    end
   end
 
   it "receives headers of POST" do
@@ -588,11 +609,13 @@ describe Presto::Client::StatementClient do
         to_return(body: early_running_response.to_json)
       client.advance
 
-      sleep 1
       stub_request(:get, "localhost/v1/next_uri").
         with(headers: headers).
         to_return(body: done_response.to_json)
-      client.advance
+      client.advance # set finished
+
+      sleep 1
+      client.advance # set finished
     end
 
   end
