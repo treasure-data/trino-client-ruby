@@ -1,5 +1,11 @@
 presto-client-ruby
 ====
+## 0.6.3
+- Merge pull request [#56](https://github.com/treasure-data/presto-client-ruby/issues/56) from miniway/more_recent_statementclient [[423ff42](https://github.com/treasure-data/presto-client-ruby/commit/423ff42)]
+- Make more similar to recent java StatementClient [[94f5193](https://github.com/treasure-data/presto-client-ruby/commit/94f5193)]
+- Test with presto docker container ([#62](https://github.com/treasure-data/presto-client-ruby/issues/62)) [[fe8af11](https://github.com/treasure-data/presto-client-ruby/commit/fe8af11)]
+- Add pull request template [[7b286cc](https://github.com/treasure-data/presto-client-ruby/commit/7b286cc)]
+
 ## 0.6.2
 - Release 0.6.2 [[68f5b27](https://github.com/treasure-data/presto-client-ruby/commit/68f5b27)]
 - Merge pull request [#61](https://github.com/treasure-data/presto-client-ruby/issues/61) from treasure-data/implement_query_id [[6f3f236](https://github.com/treasure-data/presto-client-ruby/commit/6f3f236)]
