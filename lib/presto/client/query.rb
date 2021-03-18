@@ -16,6 +16,7 @@
 module Presto::Client
 
   require 'faraday'
+  require 'faraday_middleware'
   require 'presto/client/models'
   require 'presto/client/errors'
   require 'presto/client/faraday_client'

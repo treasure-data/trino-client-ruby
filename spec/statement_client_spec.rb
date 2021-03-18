@@ -10,6 +10,7 @@ describe Presto::Client::StatementClient do
       time_zone: "US/Pacific",
       language: "ja_JP",
       debug: true,
+      follow_redirect: true
     }
   end
 
@@ -228,6 +229,19 @@ describe Presto::Client::StatementClient do
           to_return(body: "unexpected data structure (not JSON)")
         statement_client.query_info
       end.should raise_error(PrestoHttpError, /Presto API returned unexpected data format./)
+    end
+
+    it "is redirected if server returned 301" do
+      stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
+        with(headers: headers).
+        to_return(status: 301, headers: {"Location" => "http://localhost/v1/query/redirected"})
+      
+      stub_request(:get, "http://localhost/v1/query/redirected").
+        with(headers: headers).
+        to_return(body: {"queryId" => "queryid"}.to_json)
+
+      query_info = statement_client.query_info
+      query_info.query_id.should == "queryid"
     end
   end
 
