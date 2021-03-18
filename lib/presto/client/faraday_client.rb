@@ -60,7 +60,7 @@ module Presto::Client
       if options[:user] && options[:password]
         faraday.basic_auth(options[:user], options[:password])
       end
-      if options[:follow_redirect] == true
+      if options[:follow_redirect]
         faraday.use FaradayMiddleware::FollowRedirects
       end
       faraday.response :logger if options[:http_debug]
