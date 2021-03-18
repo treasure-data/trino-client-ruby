@@ -1,5 +1,13 @@
 presto-client-ruby
 ====
+## 0.6.4
+- Merge pull request [#67](https://github.com/treasure-data/presto-client-ruby/issues/67) from takezoe/update-readme-follow-redirect-option [[6da5025](https://github.com/treasure-data/presto-client-ruby/commit/6da5025)]
+- Update README.md to describe follow_redirect option [[83f8a05](https://github.com/treasure-data/presto-client-ruby/commit/83f8a05)]
+- Merge pull request [#66](https://github.com/treasure-data/presto-client-ruby/issues/66) from takezoe/follow-redirect-option [[9f1b297](https://github.com/treasure-data/presto-client-ruby/commit/9f1b297)]
+- Update lib/presto/client/faraday_client.rb [[64c0b81](https://github.com/treasure-data/presto-client-ruby/commit/64c0b81)]
+- Add follow_redirect option [[a103660](https://github.com/treasure-data/presto-client-ruby/commit/a103660)]
+- Create CODEOWNERS [[c8c3251](https://github.com/treasure-data/presto-client-ruby/commit/c8c3251)]
+
 ## 0.6.3
 - Merge pull request [#56](https://github.com/treasure-data/presto-client-ruby/issues/56) from miniway/more_recent_statementclient [[423ff42](https://github.com/treasure-data/presto-client-ruby/commit/423ff42)]
 - Make more similar to recent java StatementClient [[94f5193](https://github.com/treasure-data/presto-client-ruby/commit/94f5193)]
