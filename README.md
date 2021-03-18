@@ -27,8 +27,7 @@ client = Presto::Client.new(
     "raptor.reader_stream_buffer_size": "32MB"
   },
   http_proxy: "proxy.example.com:8080",
-  http_debug: true,
-  follow_redirect: true
+  http_debug: true
 )
 
 # run a query and get results as an array of arrays:
@@ -102,6 +101,7 @@ $ bundle exec rake modelgen:latest
 * **http_debug** enables debug message to STDOUT for each HTTP requests.
 * **http_open_timeout** sets timeout in seconds to open new HTTP connection.
 * **http_timeout** sets timeout in seconds to read data from a server.
+* **follow_redirect** enables HTTP redirection support.
 * **model_version** set the presto version to which a job is submitted. Supported versions are 316, 303, 0.205, 0.178, 0.173, 0.153 and 0.149. Default is 316.
 
 See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentation.
