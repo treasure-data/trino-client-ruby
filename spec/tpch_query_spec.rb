@@ -4,7 +4,7 @@ describe Presto::Client::Client do
   before(:all) do
     @spec_path = File.dirname(__FILE__)
     WebMock.disable!
-    @cluster = TinyPresto::Cluster.new('316')
+    @cluster = TinyPresto::Cluster.new('ghcr.io/trinodb/presto', '316')
     @container = @cluster.run
     @client = Presto::Client.new(server: 'localhost:8080', catalog: 'tpch', user: 'test-user', schema: 'tiny')
     loop do
