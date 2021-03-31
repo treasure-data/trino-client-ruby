@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Presto::Client::Client do
   before(:all) do
     WebMock.disable!
-    @cluster = TinyPresto::Cluster.new('316')
+    @cluster = TinyPresto::Cluster.new('ghcr.io/trinodb/presto', '316')
     @container = @cluster.run
     @client = Presto::Client.new(server: 'localhost:8080', catalog: 'memory', user: 'test-user', schema: 'default')
     loop do
