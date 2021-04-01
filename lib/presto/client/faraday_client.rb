@@ -63,6 +63,9 @@ module Presto::Client
       if options[:follow_redirect]
         faraday.use FaradayMiddleware::FollowRedirects
       end
+      if options[:gzip]
+        faraday.use FaradayMiddleware::Gzip
+      end
       faraday.response :logger if options[:http_debug]
       faraday.adapter Faraday.default_adapter
     end
