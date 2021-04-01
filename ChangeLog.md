@@ -1,5 +1,9 @@
 presto-client-ruby
 ====
+## 0.6.5
+- Add gzip option ([#68](https://github.com/treasure-data/presto-client-ruby/issues/68)) [[1f43629](https://github.com/treasure-data/presto-client-ruby/commit/1f43629)]
+- Bump tiny-presto to 0.0.7 to use docker image in GitHub Container Registry ([#69](https://github.com/treasure-data/presto-client-ruby/issues/69)) [[57b5045](https://github.com/treasure-data/presto-client-ruby/commit/57b5045)]
+
 ## 0.6.4
 - Merge pull request [#67](https://github.com/treasure-data/presto-client-ruby/issues/67) from takezoe/update-readme-follow-redirect-option [[6da5025](https://github.com/treasure-data/presto-client-ruby/commit/6da5025)]
 - Update README.md to describe follow_redirect option [[83f8a05](https://github.com/treasure-data/presto-client-ruby/commit/83f8a05)]
