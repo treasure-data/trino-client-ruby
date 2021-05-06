@@ -1,12 +1,12 @@
 
 if ARGV.length != 4
-  puts "usage: <model-version> <presto-source-dir> <template.erb> <output.rb>"
+  puts "usage: <model-version> <trino-source-dir> <template.erb> <output.rb>"
   exit 1
 end
 
 model_version, source_dir, template_path, output_path = *ARGV
 
-require_relative 'presto_models'
+require_relative 'trino_models'
 
 require 'erb'
 erb = ERB.new(File.read(template_path))
@@ -87,7 +87,7 @@ extra_fields = {
     'QueryInfo' => [['finalQueryInfo', nil, 'boolean']]
 }
 
-analyzer = PrestoModels::ModelAnalyzer.new(
+analyzer = TrinoModels::ModelAnalyzer.new(
   source_path,
   skip_models: predefined_models + predefined_simple_classes + assume_primitive + enum_types,
   path_mapping: path_mapping,
@@ -98,7 +98,7 @@ analyzer.analyze(root_models)
 models = analyzer.models
 skipped_models = analyzer.skipped_models
 
-formatter = PrestoModels::ModelFormatter.new(
+formatter = TrinoModels::ModelFormatter.new(
   base_indent_count: 2,
   struct_class: "Base",
   special_struct_initialize_method: "initialize_struct",

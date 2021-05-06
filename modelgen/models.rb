@@ -1,5 +1,5 @@
 #
-# Presto client for Ruby
+# Trino client for Ruby
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-module Presto::Client
+module Trino::Client
 
   ####
-  ## lib/presto/client/models.rb is automatically generated using "rake modelgen:latest" command.
+  ## lib/trino/client/models.rb is automatically generated using "rake modelgen:latest" command.
   ## You should not edit this file directly. To modify the class definitions, edit
   ## modelgen/models.rb file and run "rake modelgen:latest".
   ##
@@ -24,7 +24,7 @@ module Presto::Client
   module ModelVersions
   end
 <% @versions.each do |ver| %>
-  require 'presto/client/model_versions/<%= ver %>.rb'<% end %>
+  require 'trino/client/model_versions/<%= ver %>.rb'<% end %>
 
   Models = ModelVersions::V<%= @latest_version.gsub(".", "_") %>
 

@@ -1,5 +1,5 @@
 #
-# Presto client for Ruby
+# Trino client for Ruby
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-module Presto::Client
-  class PrestoError < StandardError
+module Trino::Client
+  class TrinoError < StandardError
   end
 
-  class PrestoHttpError < PrestoError
+  class TrinoHttpError < TrinoError
     def initialize(status, message)
       super(message)
       @status = status
@@ -26,10 +26,10 @@ module Presto::Client
     attr_reader :status
   end
 
-  class PrestoClientError < PrestoError
+  class TrinoClientError < TrinoError
   end
 
-  class PrestoQueryError < PrestoError
+  class TrinoQueryError < TrinoError
     def initialize(message, query_id, error_code, error_name, failure_info)
       super(message)
       @query_id = query_id
@@ -41,6 +41,6 @@ module Presto::Client
     attr_reader :error_code, :error_name, :failure_info
   end
 
-  class PrestoQueryTimeoutError < PrestoError
+  class TrinoQueryTimeoutError < TrinoError
   end
 end

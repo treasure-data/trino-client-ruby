@@ -1,5 +1,5 @@
 
-module PrestoModels
+module TrinoModels
   require 'find'
   require 'stringio'
 

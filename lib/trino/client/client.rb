@@ -1,5 +1,5 @@
 #
-# Presto client for Ruby
+# Trino client for Ruby
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-module Presto::Client
+module Trino::Client
 
-  require 'presto/client/models'
-  require 'presto/client/query'
+  require 'trino/client/models'
+  require 'trino/client/query'
 
   class Client
     def initialize(options)
@@ -57,7 +57,7 @@ module Presto::Client
       end
     end
 
-    # Accepts the raw response from the Presto Client and returns an
+    # Accepts the raw response from the Trino Client and returns an
     # array of hashes where you can access the data in each row using the
     # output name specified in the query with AS:
     #   SELECT expression AS output_name

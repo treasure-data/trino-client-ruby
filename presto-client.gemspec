@@ -1,13 +1,13 @@
-require File.expand_path 'lib/presto/client/version', File.dirname(__FILE__)
+require File.expand_path 'lib/trino/client/version', File.dirname(__FILE__)
 
 Gem::Specification.new do |gem|
-  gem.name          = "presto-client"
-  gem.version       = Presto::Client::VERSION
+  gem.name          = "trino-client"
+  gem.version       = Trino::Client::VERSION
 
   gem.authors       = ["Sadayuki Furuhashi"]
   gem.email         = ["sf@treasure-data.com"]
-  gem.description   = %q{Presto client library}
-  gem.summary       = %q{Presto client library}
+  gem.description   = %q{Trino client library}
+  gem.summary       = %q{Trino client library}
   gem.homepage      = "https://github.com/treasure-data/presto-client-ruby"
   gem.license       = "Apache-2.0"
 
