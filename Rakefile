@@ -11,13 +11,7 @@ RSpec::Core::RakeTask.new(:spec)
 task :default => [:spec, :build]
 
 GEN_MODEL_VERSIONS = %w[
-  0.149
-  0.153
-  0.173
-  0.178
-  0.205
-  303
-  316
+  351
 ]
 
 namespace "modelgen" do

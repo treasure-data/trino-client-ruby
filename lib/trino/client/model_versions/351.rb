@@ -21,7 +21,7 @@ module Trino::Client::ModelVersions
   ## modelgen/model_versions.rb file and run "rake modelgen:all".
   ##
 
-  module V303
+  module V351
     class Base < Struct
       class << self
         alias_method :new_struct, :new
@@ -198,9 +198,9 @@ module Trino::Client::ModelVersions
         end
         obj = allocate
         model_class = case hash["@type"]
-            when "CreateHandle"       then CreateHandle
-            when "InsertHandle"       then InsertHandle
-            when "DeleteHandle"       then DeleteHandle
+            when "CreateTarget"       then CreateTarget
+            when "InsertTarget"       then InsertTarget
+            when "DeleteTarget"       then DeleteTarget
         end
         if model_class
            model_class.decode(hash)
@@ -275,15 +275,18 @@ module Trino::Client::ModelVersions
     #
 
     class << Aggregation =
-        Base.new(:call, :signature, :mask)
+        Base.new(:resolved_function, :arguments, :distinct, :filter, :ordering_scheme, :mask)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["call"],
-          hash["signature"] && Signature.decode(hash["signature"]),
+          hash["resolvedFunction"] && ResolvedFunction.decode(hash["resolvedFunction"]),
+          hash["arguments"],
+          hash["distinct"],
+          hash["filter"],
+          hash["orderingScheme"] && OrderingScheme.decode(hash["orderingScheme"]),
           hash["mask"],
         )
         obj
@@ -312,14 +315,14 @@ module Trino::Client::ModelVersions
     end
 
     class << AnalyzeTableHandle =
-        Base.new(:connector_id, :transaction_handle, :connector_handle)
+        Base.new(:catalog_name, :transaction_handle, :connector_handle)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
+          hash["catalogName"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -392,7 +395,7 @@ module Trino::Client::ModelVersions
     end
 
     class << BasicQueryInfo =
-        Base.new(:query_id, :session, :resource_group_id, :state, :memory_pool, :scheduled, :self, :query, :query_stats, :error_type, :error_code)
+        Base.new(:query_id, :session, :resource_group_id, :state, :memory_pool, :scheduled, :self, :query, :update_type, :prepared_query, :query_stats, :error_type, :error_code, :query_type)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -407,16 +410,19 @@ module Trino::Client::ModelVersions
           hash["scheduled"],
           hash["self"],
           hash["query"],
+          hash["updateType"],
+          hash["preparedQuery"],
           hash["queryStats"] && BasicQueryStats.decode(hash["queryStats"]),
           hash["errorType"] && hash["errorType"].downcase.to_sym,
           hash["errorCode"] && ErrorCode.decode(hash["errorCode"]),
+          hash["queryType"] && hash["queryType"].downcase.to_sym,
         )
         obj
       end
     end
 
     class << BasicQueryStats =
-        Base.new(:create_time, :end_time, :queued_time, :elapsed_time, :execution_time, :total_drivers, :queued_drivers, :running_drivers, :completed_drivers, :physical_input_data_size, :physical_input_positions, :internal_network_input_data_size, :internal_network_input_positions, :raw_input_data_size, :raw_input_positions, :cumulative_user_memory, :user_memory_reservation, :total_memory_reservation, :peak_user_memory_reservation, :total_cpu_time, :total_scheduled_time, :fully_blocked, :blocked_reasons, :progress_percentage)
+        Base.new(:create_time, :end_time, :queued_time, :elapsed_time, :execution_time, :total_drivers, :queued_drivers, :running_drivers, :completed_drivers, :raw_input_data_size, :raw_input_positions, :physical_input_data_size, :cumulative_user_memory, :user_memory_reservation, :total_memory_reservation, :peak_user_memory_reservation, :peak_total_memory_reservation, :total_cpu_time, :total_scheduled_time, :fully_blocked, :blocked_reasons, :progress_percentage)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -432,21 +438,35 @@ module Trino::Client::ModelVersions
           hash["queuedDrivers"],
           hash["runningDrivers"],
           hash["completedDrivers"],
-          hash["physicalInputDataSize"],
-          hash["physicalInputPositions"],
-          hash["internalNetworkInputDataSize"],
-          hash["internalNetworkInputPositions"],
           hash["rawInputDataSize"],
           hash["rawInputPositions"],
+          hash["physicalInputDataSize"],
           hash["cumulativeUserMemory"],
           hash["userMemoryReservation"],
           hash["totalMemoryReservation"],
           hash["peakUserMemoryReservation"],
+          hash["peakTotalMemoryReservation"],
           hash["totalCpuTime"],
           hash["totalScheduledTime"],
           hash["fullyBlocked"],
           hash["blockedReasons"] && hash["blockedReasons"].map {|h| h.downcase.to_sym },
           hash["progressPercentage"],
+        )
+        obj
+      end
+    end
+
+    class << BoundSignature =
+        Base.new(:name, :return_type, :argument_types)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["name"],
+          hash["returnType"],
+          hash["argumentTypes"],
         )
         obj
       end
@@ -487,7 +507,7 @@ module Trino::Client::ModelVersions
     end
 
     class << ClientStageStats =
-        Base.new(:stage_id, :state, :done, :nodes, :total_splits, :queued_splits, :running_splits, :completed_splits, :cpu_time_millis, :wall_time_millis, :processed_rows, :processed_bytes, :sub_stages)
+        Base.new(:stage_id, :state, :done, :nodes, :total_splits, :queued_splits, :running_splits, :completed_splits, :cpu_time_millis, :wall_time_millis, :processed_rows, :processed_bytes, :physical_input_bytes, :sub_stages)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -506,6 +526,7 @@ module Trino::Client::ModelVersions
           hash["wallTimeMillis"],
           hash["processedRows"],
           hash["processedBytes"],
+          hash["physicalInputBytes"],
           hash["subStages"] && hash["subStages"].map {|h| ClientStageStats.decode(h) },
         )
         obj
@@ -513,7 +534,7 @@ module Trino::Client::ModelVersions
     end
 
     class << ClientTypeSignature =
-        Base.new(:raw_type, :type_arguments, :literal_arguments, :arguments)
+        Base.new(:raw_type, :arguments)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -521,8 +542,6 @@ module Trino::Client::ModelVersions
         obj = allocate
         obj.send(:initialize_struct,
           hash["rawType"],
-          hash["typeArguments"] && hash["typeArguments"].map {|h| ClientTypeSignature.decode(h) },
-          hash["literalArguments"],
           hash["arguments"] && hash["arguments"].map {|h| ClientTypeSignatureParameter.decode(h) },
         )
         obj
@@ -589,7 +608,27 @@ module Trino::Client::ModelVersions
       end
     end
 
-    class << CreateHandle =
+    class << CorrelatedJoinNode =
+        Base.new(:id, :input, :subquery, :correlation, :type, :filter, :origin_subquery)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["id"],
+          hash["input"] && PlanNode.decode(hash["input"]),
+          hash["subquery"] && PlanNode.decode(hash["subquery"]),
+          hash["correlation"],
+          hash["type"],
+          hash["filter"],
+          hash["originSubquery"],
+        )
+        obj
+      end
+    end
+
+    class << CreateTarget =
         Base.new(:handle, :schema_table_name)
       def decode(hash)
         unless hash.is_a?(Hash)
@@ -598,21 +637,6 @@ module Trino::Client::ModelVersions
         obj = allocate
         obj.send(:initialize_struct,
           hash["handle"] && OutputTableHandle.decode(hash["handle"]),
-          hash["schemaTableName"] && SchemaTableName.decode(hash["schemaTableName"]),
-        )
-        obj
-      end
-    end
-
-    class << DeleteHandle =
-        Base.new(:handle, :schema_table_name)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["handle"] && TableHandle.decode(hash["handle"]),
           hash["schemaTableName"] && SchemaTableName.decode(hash["schemaTableName"]),
         )
         obj
@@ -629,9 +653,24 @@ module Trino::Client::ModelVersions
         obj.send(:initialize_struct,
           hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
-          hash["target"] && DeleteHandle.decode(hash["target"]),
+          hash["target"] && DeleteTarget.decode(hash["target"]),
           hash["rowId"],
           hash["outputs"],
+        )
+        obj
+      end
+    end
+
+    class << DeleteTarget =
+        Base.new(:handle, :schema_table_name)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["handle"] && TableHandle.decode(hash["handle"]),
+          hash["schemaTableName"] && SchemaTableName.decode(hash["schemaTableName"]),
         )
         obj
       end
@@ -712,6 +751,42 @@ module Trino::Client::ModelVersions
           hash["totalPartitionsCount"],
           hash["totalRowsCount"],
           hash["numberOfIndexes"],
+        )
+        obj
+      end
+    end
+
+    class << DynamicFilterDomainStats =
+        Base.new(:dynamic_filter_id, :simplified_domain, :range_count, :discrete_values_count, :collection_duration)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["dynamicFilterId"],
+          hash["simplifiedDomain"],
+          hash["rangeCount"],
+          hash["discreteValuesCount"],
+          hash["collectionDuration"],
+        )
+        obj
+      end
+    end
+
+    class << DynamicFiltersStats =
+        Base.new(:dynamic_filter_domain_stats, :lazy_dynamic_filters, :replicated_dynamic_filters, :total_dynamic_filters, :dynamic_filters_completed)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["dynamicFilterDomainStats"] && hash["dynamicFilterDomainStats"].map {|h| DynamicFilterDomainStats.decode(h) },
+          hash["lazyDynamicFilters"],
+          hash["replicatedDynamicFilters"],
+          hash["totalDynamicFilters"],
+          hash["dynamicFiltersCompleted"],
         )
         obj
       end
@@ -825,7 +900,7 @@ module Trino::Client::ModelVersions
     end
 
     class << ExplainAnalyzeNode =
-        Base.new(:id, :source, :output_symbol, :verbose)
+        Base.new(:id, :source, :output_symbol, :actual_outputs, :verbose)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -835,6 +910,7 @@ module Trino::Client::ModelVersions
           hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["outputSymbol"],
+          hash["actualOutputs"],
           hash["verbose"],
         )
         obj
@@ -877,16 +953,17 @@ module Trino::Client::ModelVersions
     end
 
     class << Function =
-        Base.new(:function_call, :signature, :frame)
+        Base.new(:resolved_function, :arguments, :frame, :ignore_nulls)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["functionCall"],
-          hash["signature"] && Signature.decode(hash["signature"]),
+          hash["resolvedFunction"] && ResolvedFunction.decode(hash["resolvedFunction"]),
+          hash["arguments"],
           hash["frame"],
+          hash["ignoreNulls"],
         )
         obj
       end
@@ -928,14 +1005,14 @@ module Trino::Client::ModelVersions
     end
 
     class << IndexHandle =
-        Base.new(:connector_id, :transaction_handle, :connector_handle)
+        Base.new(:catalog_name, :transaction_handle, :connector_handle)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
+          hash["catalogName"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -964,7 +1041,7 @@ module Trino::Client::ModelVersions
     end
 
     class << IndexSourceNode =
-        Base.new(:id, :index_handle, :table_handle, :table_layout, :lookup_symbols, :output_symbols, :assignments, :current_constraint)
+        Base.new(:id, :index_handle, :table_handle, :lookup_symbols, :output_symbols, :assignments)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -974,35 +1051,51 @@ module Trino::Client::ModelVersions
           hash["id"],
           hash["indexHandle"] && IndexHandle.decode(hash["indexHandle"]),
           hash["tableHandle"] && TableHandle.decode(hash["tableHandle"]),
-          hash["tableLayout"] && TableLayoutHandle.decode(hash["tableLayout"]),
           hash["lookupSymbols"],
           hash["outputSymbols"],
           hash["assignments"],
-          hash["currentConstraint"],
         )
         obj
       end
     end
 
     class << Input =
-        Base.new(:connector_id, :schema, :table, :connector_info, :columns)
+        Base.new(:catalog_name, :schema, :table, :connector_info, :columns, :fragment_id, :plan_node_id)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
+          hash["catalogName"],
           hash["schema"],
           hash["table"],
           hash["connectorInfo"],
           hash["columns"] && hash["columns"].map {|h| Column.decode(h) },
+          hash["fragmentId"],
+          hash["planNodeId"],
         )
         obj
       end
     end
 
-    class << InsertHandle =
+    class << InsertTableHandle =
+        Base.new(:catalog_name, :transaction_handle, :connector_handle)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["catalogName"],
+          hash["transactionHandle"],
+          hash["connectorHandle"],
+        )
+        obj
+      end
+    end
+
+    class << InsertTarget =
         Base.new(:handle, :schema_table_name)
       def decode(hash)
         unless hash.is_a?(Hash)
@@ -1017,24 +1110,8 @@ module Trino::Client::ModelVersions
       end
     end
 
-    class << InsertTableHandle =
-        Base.new(:connector_id, :transaction_handle, :connector_handle)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["connectorId"],
-          hash["transactionHandle"],
-          hash["connectorHandle"],
-        )
-        obj
-      end
-    end
-
     class << IntersectNode =
-        Base.new(:id, :sources, :output_to_inputs, :outputs)
+        Base.new(:id, :sources, :output_to_inputs, :outputs, :distinct)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1045,13 +1122,14 @@ module Trino::Client::ModelVersions
           hash["sources"] && hash["sources"].map {|h| PlanNode.decode(h) },
           hash["outputToInputs"],
           hash["outputs"],
+          hash["distinct"],
         )
         obj
       end
     end
 
     class << JoinNode =
-        Base.new(:id, :type, :left, :right, :criteria, :output_symbols, :filter, :left_hash_symbol, :right_hash_symbol, :distribution_type)
+        Base.new(:id, :type, :left, :right, :criteria, :left_output_symbols, :right_output_symbols, :filter, :left_hash_symbol, :right_hash_symbol, :distribution_type, :spillable, :dynamic_filters, :reorder_join_stats_and_cost)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1063,11 +1141,15 @@ module Trino::Client::ModelVersions
           hash["left"] && PlanNode.decode(hash["left"]),
           hash["right"] && PlanNode.decode(hash["right"]),
           hash["criteria"] && hash["criteria"].map {|h| EquiJoinClause.decode(h) },
-          hash["outputSymbols"],
+          hash["leftOutputSymbols"],
+          hash["rightOutputSymbols"],
           hash["filter"],
           hash["leftHashSymbol"],
           hash["rightHashSymbol"],
           hash["distributionType"] && hash["distributionType"].downcase.to_sym,
+          hash["spillable"],
+          hash["dynamicFilters"],
+          hash["reorderJoinStatsAndCost"] && PlanNodeStatsAndCostSummary.decode(hash["reorderJoinStatsAndCost"]),
         )
         obj
       end
@@ -1090,27 +1172,8 @@ module Trino::Client::ModelVersions
       end
     end
 
-    class << LateralJoinNode =
-        Base.new(:id, :input, :subquery, :correlation, :type, :origin_subquery)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["id"],
-          hash["input"] && PlanNode.decode(hash["input"]),
-          hash["subquery"] && PlanNode.decode(hash["subquery"]),
-          hash["correlation"],
-          hash["type"],
-          hash["originSubquery"],
-        )
-        obj
-      end
-    end
-
     class << LimitNode =
-        Base.new(:id, :source, :count, :partial)
+        Base.new(:id, :source, :count, :ties_resolving_scheme, :partial)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1120,7 +1183,24 @@ module Trino::Client::ModelVersions
           hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["count"],
+          hash["tiesResolvingScheme"] && OrderingScheme.decode(hash["tiesResolvingScheme"]),
           hash["partial"],
+        )
+        obj
+      end
+    end
+
+    class << LocalCostEstimate =
+        Base.new(:cpu_cost, :max_memory, :network_cost)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["cpuCost"],
+          hash["maxMemory"],
+          hash["networkCost"],
         )
         obj
       end
@@ -1141,16 +1221,16 @@ module Trino::Client::ModelVersions
       end
     end
 
-    class << LongVariableConstraint =
-        Base.new(:name, :expression)
+    class << Mapping =
+        Base.new(:input, :outputs)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["name"],
-          hash["expression"],
+          hash["input"],
+          hash["outputs"],
         )
         obj
       end
@@ -1174,25 +1254,8 @@ module Trino::Client::ModelVersions
       end
     end
 
-    class << MetadataDeleteNode =
-        Base.new(:id, :target, :output, :table_layout)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["id"],
-          hash["target"] && DeleteHandle.decode(hash["target"]),
-          hash["output"],
-          hash["tableLayout"] && TableLayoutHandle.decode(hash["tableLayout"]),
-        )
-        obj
-      end
-    end
-
     class << OperatorStats =
-        Base.new(:stage_id, :pipeline_id, :operator_id, :plan_node_id, :operator_type, :total_drivers, :add_input_calls, :add_input_wall, :add_input_cpu, :physical_input_data_size, :internal_network_input_data_size, :raw_input_data_size, :input_data_size, :input_positions, :sum_squared_input_positions, :get_output_calls, :get_output_wall, :get_output_cpu, :output_data_size, :output_positions, :physical_written_data_size, :blocked_wall, :finish_calls, :finish_wall, :finish_cpu, :user_memory_reservation, :revocable_memory_reservation, :system_memory_reservation, :peak_user_memory_reservation, :peak_system_memory_reservation, :peak_total_memory_reservation, :spilled_data_size, :blocked_reason, :info)
+        Base.new(:stage_id, :pipeline_id, :operator_id, :plan_node_id, :operator_type, :total_drivers, :add_input_calls, :add_input_wall, :add_input_cpu, :physical_input_data_size, :physical_input_positions, :internal_network_input_data_size, :internal_network_input_positions, :raw_input_data_size, :input_data_size, :input_positions, :sum_squared_input_positions, :get_output_calls, :get_output_wall, :get_output_cpu, :output_data_size, :output_positions, :dynamic_filter_splits_processed, :physical_written_data_size, :blocked_wall, :finish_calls, :finish_wall, :finish_cpu, :user_memory_reservation, :revocable_memory_reservation, :system_memory_reservation, :peak_user_memory_reservation, :peak_system_memory_reservation, :peak_revocable_memory_reservation, :peak_total_memory_reservation, :spilled_data_size, :blocked_reason, :info)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1209,7 +1272,9 @@ module Trino::Client::ModelVersions
           hash["addInputWall"],
           hash["addInputCpu"],
           hash["physicalInputDataSize"],
+          hash["physicalInputPositions"],
           hash["internalNetworkInputDataSize"],
+          hash["internalNetworkInputPositions"],
           hash["rawInputDataSize"],
           hash["inputDataSize"],
           hash["inputPositions"],
@@ -1219,6 +1284,7 @@ module Trino::Client::ModelVersions
           hash["getOutputCpu"],
           hash["outputDataSize"],
           hash["outputPositions"],
+          hash["dynamicFilterSplitsProcessed"],
           hash["physicalWrittenDataSize"],
           hash["blockedWall"],
           hash["finishCalls"],
@@ -1229,6 +1295,7 @@ module Trino::Client::ModelVersions
           hash["systemMemoryReservation"],
           hash["peakUserMemoryReservation"],
           hash["peakSystemMemoryReservation"],
+          hash["peakRevocableMemoryReservation"],
           hash["peakTotalMemoryReservation"],
           hash["spilledDataSize"],
           hash["blockedReason"] && hash["blockedReason"].downcase.to_sym,
@@ -1254,14 +1321,14 @@ module Trino::Client::ModelVersions
     end
 
     class << Output =
-        Base.new(:connector_id, :schema, :table)
+        Base.new(:catalog_name, :schema, :table)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
+          hash["catalogName"],
           hash["schema"],
           hash["table"],
         )
@@ -1309,14 +1376,14 @@ module Trino::Client::ModelVersions
     end
 
     class << OutputTableHandle =
-        Base.new(:connector_id, :transaction_handle, :connector_handle)
+        Base.new(:catalog_name, :transaction_handle, :connector_handle)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
+          hash["catalogName"],
           hash["transactionHandle"],
           hash["connectorHandle"],
         )
@@ -1432,7 +1499,7 @@ module Trino::Client::ModelVersions
     end
 
     class << PipelineStats =
-        Base.new(:pipeline_id, :first_start_time, :last_start_time, :last_end_time, :input_pipeline, :output_pipeline, :total_drivers, :queued_drivers, :queued_partitioned_drivers, :running_drivers, :running_partitioned_drivers, :blocked_drivers, :completed_drivers, :user_memory_reservation, :revocable_memory_reservation, :system_memory_reservation, :queued_time, :elapsed_time, :total_scheduled_time, :total_cpu_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :physical_input_data_size, :physical_input_positions, :internal_network_input_data_size, :internal_network_input_positions, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :physical_written_data_size, :operator_summaries, :drivers)
+        Base.new(:pipeline_id, :first_start_time, :last_start_time, :last_end_time, :input_pipeline, :output_pipeline, :total_drivers, :queued_drivers, :queued_partitioned_drivers, :running_drivers, :running_partitioned_drivers, :blocked_drivers, :completed_drivers, :user_memory_reservation, :revocable_memory_reservation, :system_memory_reservation, :queued_time, :elapsed_time, :total_scheduled_time, :total_cpu_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :physical_input_data_size, :physical_input_positions, :physical_input_read_time, :internal_network_input_data_size, :internal_network_input_positions, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :physical_written_data_size, :operator_summaries, :drivers)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1464,6 +1531,7 @@ module Trino::Client::ModelVersions
           hash["blockedReasons"] && hash["blockedReasons"].map {|h| h.downcase.to_sym },
           hash["physicalInputDataSize"],
           hash["physicalInputPositions"],
+          hash["physicalInputReadTime"],
           hash["internalNetworkInputDataSize"],
           hash["internalNetworkInputPositions"],
           hash["rawInputDataSize"],
@@ -1475,6 +1543,24 @@ module Trino::Client::ModelVersions
           hash["physicalWrittenDataSize"],
           hash["operatorSummaries"] && hash["operatorSummaries"].map {|h| OperatorStats.decode(h) },
           hash["drivers"] && hash["drivers"].map {|h| DriverStats.decode(h) },
+        )
+        obj
+      end
+    end
+
+    class << PlanCostEstimate =
+        Base.new(:cpu_cost, :max_memory, :max_memory_when_outputting, :network_cost, :root_node_local_cost_estimate)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["cpuCost"],
+          hash["maxMemory"],
+          hash["maxMemoryWhenOutputting"],
+          hash["networkCost"],
+          hash["rootNodeLocalCostEstimate"] && LocalCostEstimate.decode(hash["rootNodeLocalCostEstimate"]),
         )
         obj
       end
@@ -1502,14 +1588,16 @@ module Trino::Client::ModelVersions
       end
     end
 
-    class << PlanNodeCostEstimate =
-        Base.new(:cpu_cost, :memory_cost, :network_cost)
+    class << PlanNodeStatsAndCostSummary =
+        Base.new(:output_row_count, :output_size_in_bytes, :cpu_cost, :memory_cost, :network_cost)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["outputRowCount"],
+          hash["outputSizeInBytes"],
           hash["cpuCost"],
           hash["memoryCost"],
           hash["networkCost"],
@@ -1528,21 +1616,6 @@ module Trino::Client::ModelVersions
         obj.send(:initialize_struct,
           hash["outputRowCount"],
           hash["symbolStatistics"] && Hash[hash["symbolStatistics"].to_a.map! {|k,v| [k, SymbolStatsEstimate.decode(v)] }],
-        )
-        obj
-      end
-    end
-
-    class << TrinoWarning =
-        Base.new(:warning_code, :message)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["warningCode"] && WarningCode.decode(hash["warningCode"]),
-          hash["message"],
         )
         obj
       end
@@ -1585,7 +1658,7 @@ module Trino::Client::ModelVersions
     end
 
     class << QueryInfo =
-        Base.new(:query_id, :session, :state, :memory_pool, :scheduled, :self, :field_names, :query, :query_stats, :set_catalog, :set_schema, :set_path, :set_session_properties, :reset_session_properties, :set_roles, :added_prepared_statements, :deallocated_prepared_statements, :started_transaction_id, :clear_transaction_id, :update_type, :output_stage, :failure_info, :error_code, :warnings, :inputs, :output, :complete_info, :resource_group_id, :final_query_info)
+        Base.new(:query_id, :session, :state, :memory_pool, :scheduled, :self, :field_names, :query, :prepared_query, :query_stats, :set_catalog, :set_schema, :set_path, :set_session_properties, :reset_session_properties, :set_roles, :added_prepared_statements, :deallocated_prepared_statements, :started_transaction_id, :clear_transaction_id, :update_type, :output_stage, :failure_info, :error_code, :warnings, :inputs, :output, :referenced_tables, :routines, :complete_info, :resource_group_id, :query_type, :final_query_info)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1600,6 +1673,7 @@ module Trino::Client::ModelVersions
           hash["self"],
           hash["fieldNames"],
           hash["query"],
+          hash["preparedQuery"],
           hash["queryStats"] && QueryStats.decode(hash["queryStats"]),
           hash["setCatalog"],
           hash["setSchema"],
@@ -1618,8 +1692,11 @@ module Trino::Client::ModelVersions
           hash["warnings"] && hash["warnings"].map {|h| TrinoWarning.decode(h) },
           hash["inputs"] && hash["inputs"].map {|h| Input.decode(h) },
           hash["output"] && Output.decode(hash["output"]),
+          hash["referencedTables"] && hash["referencedTables"].map {|h| TableInfo.decode(h) },
+          hash["routines"] && hash["routines"].map {|h| RoutineInfo.decode(h) },
           hash["completeInfo"],
           hash["resourceGroupId"] && ResourceGroupId.new(hash["resourceGroupId"]),
+          hash["queryType"] && hash["queryType"].downcase.to_sym,
           hash["finalQueryInfo"],
         )
         obj
@@ -1651,7 +1728,7 @@ module Trino::Client::ModelVersions
     end
 
     class << QueryStats =
-        Base.new(:create_time, :execution_start_time, :last_heartbeat, :end_time, :elapsed_time, :queued_time, :resource_waiting_time, :execution_time, :analysis_time, :distributed_planning_time, :total_planning_time, :finishing_time, :total_tasks, :running_tasks, :completed_tasks, :total_drivers, :queued_drivers, :running_drivers, :blocked_drivers, :completed_drivers, :cumulative_user_memory, :user_memory_reservation, :total_memory_reservation, :peak_user_memory_reservation, :peak_total_memory_reservation, :peak_task_user_memory, :peak_task_total_memory, :scheduled, :total_scheduled_time, :total_cpu_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :physical_input_data_size, :physical_input_positions, :internal_network_input_data_size, :internal_network_input_positions, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :physical_written_data_size, :stage_gc_statistics, :operator_summaries)
+        Base.new(:create_time, :execution_start_time, :last_heartbeat, :end_time, :elapsed_time, :queued_time, :resource_waiting_time, :dispatching_time, :execution_time, :analysis_time, :planning_time, :finishing_time, :total_tasks, :running_tasks, :completed_tasks, :total_drivers, :queued_drivers, :running_drivers, :blocked_drivers, :completed_drivers, :cumulative_user_memory, :user_memory_reservation, :revocable_memory_reservation, :total_memory_reservation, :peak_user_memory_reservation, :peak_revocable_memory_reservation, :peak_non_revocable_memory_reservation, :peak_total_memory_reservation, :peak_task_user_memory, :peak_task_revocable_memory, :peak_task_total_memory, :scheduled, :total_scheduled_time, :total_cpu_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :physical_input_data_size, :physical_input_positions, :physical_input_read_time, :internal_network_input_data_size, :internal_network_input_positions, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :physical_written_data_size, :stage_gc_statistics, :dynamic_filters_stats, :operator_summaries)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1665,10 +1742,10 @@ module Trino::Client::ModelVersions
           hash["elapsedTime"],
           hash["queuedTime"],
           hash["resourceWaitingTime"],
+          hash["dispatchingTime"],
           hash["executionTime"],
           hash["analysisTime"],
-          hash["distributedPlanningTime"],
-          hash["totalPlanningTime"],
+          hash["planningTime"],
           hash["finishingTime"],
           hash["totalTasks"],
           hash["runningTasks"],
@@ -1680,10 +1757,14 @@ module Trino::Client::ModelVersions
           hash["completedDrivers"],
           hash["cumulativeUserMemory"],
           hash["userMemoryReservation"],
+          hash["revocableMemoryReservation"],
           hash["totalMemoryReservation"],
           hash["peakUserMemoryReservation"],
+          hash["peakRevocableMemoryReservation"],
+          hash["peakNonRevocableMemoryReservation"],
           hash["peakTotalMemoryReservation"],
           hash["peakTaskUserMemory"],
+          hash["peakTaskRevocableMemory"],
           hash["peakTaskTotalMemory"],
           hash["scheduled"],
           hash["totalScheduledTime"],
@@ -1693,6 +1774,7 @@ module Trino::Client::ModelVersions
           hash["blockedReasons"] && hash["blockedReasons"].map {|h| h.downcase.to_sym },
           hash["physicalInputDataSize"],
           hash["physicalInputPositions"],
+          hash["physicalInputReadTime"],
           hash["internalNetworkInputDataSize"],
           hash["internalNetworkInputPositions"],
           hash["rawInputDataSize"],
@@ -1703,7 +1785,25 @@ module Trino::Client::ModelVersions
           hash["outputPositions"],
           hash["physicalWrittenDataSize"],
           hash["stageGcStatistics"] && hash["stageGcStatistics"].map {|h| StageGcStatistics.decode(h) },
+          hash["dynamicFiltersStats"] && DynamicFiltersStats.decode(hash["dynamicFiltersStats"]),
           hash["operatorSummaries"] && hash["operatorSummaries"].map {|h| OperatorStats.decode(h) },
+        )
+        obj
+      end
+    end
+
+    class << RefreshMaterializedViewTarget =
+        Base.new(:table_handle, :insert_handle, :schema_table_name, :source_table_handles)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["tableHandle"] && TableHandle.decode(hash["tableHandle"]),
+          hash["insertHandle"] && InsertTableHandle.decode(hash["insertHandle"]),
+          hash["schemaTableName"] && SchemaTableName.decode(hash["schemaTableName"]),
+          hash["sourceTableHandles"] && hash["sourceTableHandles"].map {|h| TableHandle.decode(h) },
         )
         obj
       end
@@ -1727,8 +1827,25 @@ module Trino::Client::ModelVersions
       end
     end
 
+    class << ResolvedFunction =
+        Base.new(:signature, :id, :type_dependencies, :function_dependencies)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["signature"] && BoundSignature.decode(hash["signature"]),
+          hash["id"],
+          hash["typeDependencies"],
+          hash["functionDependencies"] && hash["functionDependencies"].map {|h| ResolvedFunction.decode(h) },
+        )
+        obj
+      end
+    end
+
     class << ResourceEstimates =
-        Base.new(:execution_time, :cpu_time, :peak_memory)
+        Base.new(:execution_time, :cpu_time, :peak_memory_bytes)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1737,14 +1854,29 @@ module Trino::Client::ModelVersions
         obj.send(:initialize_struct,
           hash["executionTime"],
           hash["cpuTime"],
-          hash["peakMemory"],
+          hash["peakMemoryBytes"],
+        )
+        obj
+      end
+    end
+
+    class << RoutineInfo =
+        Base.new(:routine, :authorization)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["routine"],
+          hash["authorization"],
         )
         obj
       end
     end
 
     class << RowNumberNode =
-        Base.new(:id, :source, :partition_by, :row_number_symbol, :max_row_count_per_partition, :hash_symbol)
+        Base.new(:id, :source, :partition_by, :order_sensitive, :row_number_symbol, :max_row_count_per_partition, :hash_symbol)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1754,6 +1886,7 @@ module Trino::Client::ModelVersions
           hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["partitionBy"],
+          hash["orderSensitive"],
           hash["rowNumberSymbol"],
           hash["maxRowCountPerPartition"],
           hash["hashSymbol"],
@@ -1810,7 +1943,7 @@ module Trino::Client::ModelVersions
     end
 
     class << SemiJoinNode =
-        Base.new(:id, :source, :filtering_source, :source_join_symbol, :filtering_source_join_symbol, :semi_join_output, :source_hash_symbol, :filtering_source_hash_symbol, :distribution_type)
+        Base.new(:id, :source, :filtering_source, :source_join_symbol, :filtering_source_join_symbol, :semi_join_output, :source_hash_symbol, :filtering_source_hash_symbol, :distribution_type, :dynamic_filter_id)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1826,13 +1959,14 @@ module Trino::Client::ModelVersions
           hash["sourceHashSymbol"],
           hash["filteringSourceHashSymbol"],
           hash["distributionType"] && hash["distributionType"].downcase.to_sym,
+          hash["dynamicFilterId"],
         )
         obj
       end
     end
 
     class << SessionRepresentation =
-        Base.new(:query_id, :transaction_id, :client_transaction_support, :user, :principal, :source, :catalog, :schema, :path, :trace_token, :time_zone_key, :locale, :remote_user_address, :user_agent, :client_info, :client_tags, :client_capabilities, :resource_estimates, :start_time, :system_properties, :catalog_properties, :unprocessed_catalog_properties, :roles, :prepared_statements)
+        Base.new(:query_id, :transaction_id, :client_transaction_support, :user, :groups, :principal, :source, :catalog, :schema, :path, :trace_token, :time_zone_key, :locale, :remote_user_address, :user_agent, :client_info, :client_tags, :client_capabilities, :resource_estimates, :start, :system_properties, :catalog_properties, :unprocessed_catalog_properties, :roles, :prepared_statements, :protocol_name)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1843,6 +1977,7 @@ module Trino::Client::ModelVersions
           hash["transactionId"],
           hash["clientTransactionSupport"],
           hash["user"],
+          hash["groups"],
           hash["principal"],
           hash["source"],
           hash["catalog"],
@@ -1857,39 +1992,20 @@ module Trino::Client::ModelVersions
           hash["clientTags"],
           hash["clientCapabilities"],
           hash["resourceEstimates"] && ResourceEstimates.decode(hash["resourceEstimates"]),
-          hash["startTime"],
+          hash["start"],
           hash["systemProperties"],
           hash["catalogProperties"],
           hash["unprocessedCatalogProperties"],
           hash["roles"] && Hash[hash["roles"].to_a.map! {|k,v| [k, SelectedRole.decode(v)] }],
           hash["preparedStatements"],
-        )
-        obj
-      end
-    end
-
-    class << Signature =
-        Base.new(:name, :kind, :type_variable_constraints, :long_variable_constraints, :return_type, :argument_types, :variable_arity)
-      def decode(hash)
-        unless hash.is_a?(Hash)
-          raise TypeError, "Can't convert #{hash.class} to Hash"
-        end
-        obj = allocate
-        obj.send(:initialize_struct,
-          hash["name"],
-          hash["kind"] && hash["kind"].downcase.to_sym,
-          hash["typeVariableConstraints"] && hash["typeVariableConstraints"].map {|h| TypeVariableConstraint.decode(h) },
-          hash["longVariableConstraints"] && hash["longVariableConstraints"].map {|h| LongVariableConstraint.decode(h) },
-          hash["returnType"],
-          hash["argumentTypes"],
-          hash["variableArity"],
+          hash["protocolName"],
         )
         obj
       end
     end
 
     class << SortNode =
-        Base.new(:id, :source, :ordering_scheme)
+        Base.new(:id, :source, :ordering_scheme, :partial)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1899,6 +2015,7 @@ module Trino::Client::ModelVersions
           hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["orderingScheme"] && OrderingScheme.decode(hash["orderingScheme"]),
+          hash["partial"],
         )
         obj
       end
@@ -1920,13 +2037,14 @@ module Trino::Client::ModelVersions
     end
 
     class << SplitOperatorInfo =
-        Base.new(:split_info)
+        Base.new(:catalog_name, :split_info)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["catalogName"],
           hash["splitInfo"],
         )
         obj
@@ -1948,13 +2066,14 @@ module Trino::Client::ModelVersions
     end
 
     class << StageExecutionDescriptor =
-        Base.new(:grouped_execution_scan_nodes)
+        Base.new(:strategy, :grouped_execution_scan_nodes)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
+          hash["strategy"] && hash["strategy"].downcase.to_sym,
           hash["groupedExecutionScanNodes"],
         )
         obj
@@ -1982,7 +2101,7 @@ module Trino::Client::ModelVersions
     end
 
     class << StageInfo =
-        Base.new(:stage_id, :state, :self, :plan, :types, :stage_stats, :tasks, :sub_stages, :failure_cause)
+        Base.new(:stage_id, :state, :plan, :types, :stage_stats, :tasks, :sub_stages, :tables, :failure_cause)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -1991,12 +2110,12 @@ module Trino::Client::ModelVersions
         obj.send(:initialize_struct,
           hash["stageId"] && StageId.new(hash["stageId"]),
           hash["state"] && hash["state"].downcase.to_sym,
-          hash["self"],
           hash["plan"] && PlanFragment.decode(hash["plan"]),
           hash["types"],
           hash["stageStats"] && StageStats.decode(hash["stageStats"]),
           hash["tasks"] && hash["tasks"].map {|h| TaskInfo.decode(h) },
           hash["subStages"] && hash["subStages"].map {|h| StageInfo.decode(h) },
+          hash["tables"] && Hash[hash["tables"].to_a.map! {|k,v| [k, TableInfo.decode(v)] }],
           hash["failureCause"] && ExecutionFailureInfo.decode(hash["failureCause"]),
         )
         obj
@@ -2004,7 +2123,7 @@ module Trino::Client::ModelVersions
     end
 
     class << StageStats =
-        Base.new(:scheduling_complete, :get_split_distribution, :total_tasks, :running_tasks, :completed_tasks, :total_drivers, :queued_drivers, :running_drivers, :blocked_drivers, :completed_drivers, :cumulative_user_memory, :user_memory_reservation, :total_memory_reservation, :peak_user_memory_reservation, :total_scheduled_time, :total_cpu_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :physical_input_data_size, :physical_input_positions, :internal_network_input_data_size, :internal_network_input_positions, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :buffered_data_size, :output_data_size, :output_positions, :physical_written_data_size, :gc_info, :operator_summaries)
+        Base.new(:scheduling_complete, :get_split_distribution, :total_tasks, :running_tasks, :completed_tasks, :total_drivers, :queued_drivers, :running_drivers, :blocked_drivers, :completed_drivers, :cumulative_user_memory, :user_memory_reservation, :revocable_memory_reservation, :total_memory_reservation, :peak_user_memory_reservation, :peak_revocable_memory_reservation, :total_scheduled_time, :total_cpu_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :physical_input_data_size, :physical_input_positions, :physical_input_read_time, :internal_network_input_data_size, :internal_network_input_positions, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :buffered_data_size, :output_data_size, :output_positions, :physical_written_data_size, :gc_info, :operator_summaries)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -2023,8 +2142,10 @@ module Trino::Client::ModelVersions
           hash["completedDrivers"],
           hash["cumulativeUserMemory"],
           hash["userMemoryReservation"],
+          hash["revocableMemoryReservation"],
           hash["totalMemoryReservation"],
           hash["peakUserMemoryReservation"],
+          hash["peakRevocableMemoryReservation"],
           hash["totalScheduledTime"],
           hash["totalCpuTime"],
           hash["totalBlockedTime"],
@@ -2032,6 +2153,7 @@ module Trino::Client::ModelVersions
           hash["blockedReasons"] && hash["blockedReasons"].map {|h| h.downcase.to_sym },
           hash["physicalInputDataSize"],
           hash["physicalInputPositions"],
+          hash["physicalInputReadTime"],
           hash["internalNetworkInputDataSize"],
           hash["internalNetworkInputPositions"],
           hash["rawInputDataSize"],
@@ -2050,7 +2172,7 @@ module Trino::Client::ModelVersions
     end
 
     class << StatementStats =
-        Base.new(:state, :queued, :scheduled, :nodes, :total_splits, :queued_splits, :running_splits, :completed_splits, :cpu_time_millis, :wall_time_millis, :queued_time_millis, :elapsed_time_millis, :processed_rows, :processed_bytes, :peak_memory_bytes, :spilled_bytes, :root_stage)
+        Base.new(:state, :queued, :scheduled, :nodes, :total_splits, :queued_splits, :running_splits, :completed_splits, :cpu_time_millis, :wall_time_millis, :queued_time_millis, :elapsed_time_millis, :processed_rows, :processed_bytes, :physical_input_bytes, :peak_memory_bytes, :spilled_bytes, :root_stage)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -2071,6 +2193,7 @@ module Trino::Client::ModelVersions
           hash["elapsedTimeMillis"],
           hash["processedRows"],
           hash["processedBytes"],
+          hash["physicalInputBytes"],
           hash["peakMemoryBytes"],
           hash["spilledBytes"],
           hash["rootStage"] && ClientStageStats.decode(hash["rootStage"]),
@@ -2138,7 +2261,7 @@ module Trino::Client::ModelVersions
         obj = allocate
         obj.send(:initialize_struct,
           hash["stats"] && Hash[hash["stats"].to_a.map! {|k,v| [k, PlanNodeStatsEstimate.decode(v)] }],
-          hash["costs"] && Hash[hash["costs"].to_a.map! {|k,v| [k, PlanNodeCostEstimate.decode(v)] }],
+          hash["costs"] && Hash[hash["costs"].to_a.map! {|k,v| [k, PlanCostEstimate.decode(v)] }],
         )
         obj
       end
@@ -2199,38 +2322,39 @@ module Trino::Client::ModelVersions
     end
 
     class << TableHandle =
-        Base.new(:connector_id, :connector_handle)
+        Base.new(:catalog_name, :connector_handle, :transaction, :layout)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
+          hash["catalogName"],
           hash["connectorHandle"],
+          hash["transaction"],
+          hash["layout"],
         )
         obj
       end
     end
 
-    class << TableLayoutHandle =
-        Base.new(:connector_id, :transaction_handle, :connector_handle)
+    class << TableInfo =
+        Base.new(:table_name, :predicate)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["connectorId"],
-          hash["transactionHandle"],
-          hash["connectorHandle"],
+          hash["tableName"],
+          hash["predicate"],
         )
         obj
       end
     end
 
     class << TableScanNode =
-        Base.new(:id, :table, :output_symbols, :assignments, :layout)
+        Base.new(:id, :table, :output_symbols, :assignments, :for_delete)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -2241,7 +2365,7 @@ module Trino::Client::ModelVersions
           hash["table"] && TableHandle.decode(hash["table"]),
           hash["outputSymbols"],
           hash["assignments"],
-          hash["layout"] && TableLayoutHandle.decode(hash["layout"]),
+          hash["forDelete"],
         )
         obj
       end
@@ -2265,7 +2389,7 @@ module Trino::Client::ModelVersions
     end
 
     class << TableWriterNode =
-        Base.new(:id, :source, :target, :row_count_symbol, :fragment_symbol, :columns, :column_names, :partitioning_scheme, :statistics_aggregation, :statistics_aggregation_descriptor)
+        Base.new(:id, :source, :target, :row_count_symbol, :fragment_symbol, :columns, :column_names, :not_null_column_symbols, :partitioning_scheme, :statistics_aggregation, :statistics_aggregation_descriptor)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -2279,6 +2403,7 @@ module Trino::Client::ModelVersions
           hash["fragmentSymbol"],
           hash["columns"],
           hash["columnNames"],
+          hash["notNullColumnSymbols"],
           hash["partitioningScheme"] && PartitioningScheme.decode(hash["partitioningScheme"]),
           hash["statisticsAggregation"] && StatisticAggregations.decode(hash["statisticsAggregation"]),
           hash["statisticsAggregationDescriptor"] && StatisticAggregationsDescriptor_Symbol.decode(hash["statisticsAggregationDescriptor"]),
@@ -2307,7 +2432,7 @@ module Trino::Client::ModelVersions
     end
 
     class << TaskStats =
-        Base.new(:create_time, :first_start_time, :last_start_time, :last_end_time, :end_time, :elapsed_time, :queued_time, :total_drivers, :queued_drivers, :queued_partitioned_drivers, :running_drivers, :running_partitioned_drivers, :blocked_drivers, :completed_drivers, :cumulative_user_memory, :user_memory_reservation, :revocable_memory_reservation, :system_memory_reservation, :total_scheduled_time, :total_cpu_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :physical_input_data_size, :physical_input_positions, :internal_network_input_data_size, :internal_network_input_positions, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :physical_written_data_size, :full_gc_count, :full_gc_time, :pipelines)
+        Base.new(:create_time, :first_start_time, :last_start_time, :last_end_time, :end_time, :elapsed_time, :queued_time, :total_drivers, :queued_drivers, :queued_partitioned_drivers, :running_drivers, :running_partitioned_drivers, :blocked_drivers, :completed_drivers, :cumulative_user_memory, :user_memory_reservation, :revocable_memory_reservation, :system_memory_reservation, :total_scheduled_time, :total_cpu_time, :total_blocked_time, :fully_blocked, :blocked_reasons, :physical_input_data_size, :physical_input_positions, :physical_input_read_time, :internal_network_input_data_size, :internal_network_input_positions, :raw_input_data_size, :raw_input_positions, :processed_input_data_size, :processed_input_positions, :output_data_size, :output_positions, :physical_written_data_size, :full_gc_count, :full_gc_time, :pipelines)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -2339,6 +2464,7 @@ module Trino::Client::ModelVersions
           hash["blockedReasons"] && hash["blockedReasons"].map {|h| h.downcase.to_sym },
           hash["physicalInputDataSize"],
           hash["physicalInputPositions"],
+          hash["physicalInputReadTime"],
           hash["internalNetworkInputDataSize"],
           hash["internalNetworkInputPositions"],
           hash["rawInputDataSize"],
@@ -2357,7 +2483,7 @@ module Trino::Client::ModelVersions
     end
 
     class << TaskStatus =
-        Base.new(:task_id, :task_instance_id, :version, :state, :self, :node_id, :completed_driver_groups, :failures, :queued_partitioned_drivers, :running_partitioned_drivers, :output_buffer_overutilized, :physical_written_data_size, :memory_reservation, :system_memory_reservation, :full_gc_count, :full_gc_time)
+        Base.new(:task_id, :task_instance_id, :version, :state, :self, :node_id, :completed_driver_groups, :failures, :queued_partitioned_drivers, :running_partitioned_drivers, :output_buffer_overutilized, :physical_written_data_size, :memory_reservation, :system_memory_reservation, :revocable_memory_reservation, :full_gc_count, :full_gc_time, :dynamic_filters_version)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -2378,8 +2504,10 @@ module Trino::Client::ModelVersions
           hash["physicalWrittenDataSize"],
           hash["memoryReservation"],
           hash["systemMemoryReservation"],
+          hash["revocableMemoryReservation"],
           hash["fullGcCount"],
           hash["fullGcTime"],
+          hash["dynamicFiltersVersion"],
         )
         obj
       end
@@ -2423,18 +2551,16 @@ module Trino::Client::ModelVersions
       end
     end
 
-    class << TypeVariableConstraint =
-        Base.new(:name, :comparable_required, :orderable_required, :variadic_bound)
+    class << TrinoWarning =
+        Base.new(:warning_code, :message)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
         end
         obj = allocate
         obj.send(:initialize_struct,
-          hash["name"],
-          hash["comparableRequired"],
-          hash["orderableRequired"],
-          hash["variadicBound"],
+          hash["warningCode"] && WarningCode.decode(hash["warningCode"]),
+          hash["message"],
         )
         obj
       end
@@ -2458,7 +2584,7 @@ module Trino::Client::ModelVersions
     end
 
     class << UnnestNode =
-        Base.new(:id, :source, :replicate_symbols, :unnest_symbols, :ordinality_symbol)
+        Base.new(:id, :source, :replicate_symbols, :mappings, :ordinality_symbol, :join_type, :filter)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -2468,15 +2594,17 @@ module Trino::Client::ModelVersions
           hash["id"],
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["replicateSymbols"],
-          hash["unnestSymbols"],
+          hash["mappings"] && hash["mappings"].map {|h| Mapping.decode(h) },
           hash["ordinalitySymbol"],
+          hash["joinType"],
+          hash["filter"],
         )
         obj
       end
     end
 
     class << ValuesNode =
-        Base.new(:id, :output_symbols, :rows)
+        Base.new(:id, :output_symbols, :row_count, :rows)
       def decode(hash)
         unless hash.is_a?(Hash)
           raise TypeError, "Can't convert #{hash.class} to Hash"
@@ -2485,6 +2613,7 @@ module Trino::Client::ModelVersions
         obj.send(:initialize_struct,
           hash["id"],
           hash["outputSymbols"],
+          hash["rowCount"],
           hash["rows"],
         )
         obj

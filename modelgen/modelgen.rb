@@ -16,8 +16,8 @@ source_path = source_dir
 predefined_simple_classes = %w[StageId TaskId Lifespan ConnectorSession ResourceGroupId]
 predefined_models = %w[DistributionSnapshot PlanNode EquiJoinClause WriterTarget WriteStatisticsTarget OperatorInfo HashCollisionsInfo]
 
-assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle OutputBufferId ConnectorPartitioningHandle NullableValue ConnectorId HostAddress JsonNode Node CatalogName QualifiedObjectName]
-enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState NullPartitioning BlockedReason ParameterKind FunctionKind PartitionFunctionHandle Scope ErrorType DistributionType PipelineExecutionStrategy JoinType ExchangeNode.Type ColumnStatisticType TableStatisticType StageExecutionStrategy SemanticErrorCode]
+assume_primitive = %w[Object Type Long Symbol QueryId PlanNodeId PlanFragmentId MemoryPoolId TransactionId URI Duration DataSize DateTime ColumnHandle ConnectorTableHandle ConnectorOutputTableHandle ConnectorIndexHandle ConnectorColumnHandle ConnectorInsertTableHandle ConnectorTableLayoutHandle Expression FunctionCall TimeZoneKey Locale TypeSignature Frame TupleDomain<ColumnHandle> SerializableNativeValue ConnectorTransactionHandle OutputBufferId ConnectorPartitioningHandle NullableValue ConnectorId HostAddress JsonNode Node CatalogName QualifiedObjectName FunctionId DynamicFilterId Instant]
+enum_types = %w[QueryState StageState TaskState QueueState PlanDistribution OutputPartitioning Step SortOrder BufferState NullPartitioning BlockedReason ParameterKind FunctionKind PartitionFunctionHandle Scope ErrorType DistributionType PipelineExecutionStrategy JoinType ExchangeNode.Type ColumnStatisticType TableStatisticType StageExecutionStrategy SemanticErrorCode QueryType]
 
 root_models = %w[QueryResults QueryInfo BasicQueryInfo] + %w[
 OutputNode
@@ -52,7 +52,7 @@ GroupIdNode
 ExplainAnalyzeNode
 ApplyNode
 AssignUniqueId
-LateralJoinNode
+CorrelatedJoinNode
 StatisticsWriterNode
 ] + %w[
 ExchangeClientStatus
@@ -80,6 +80,7 @@ StageStats core/trino-main/src/main/java/io/trino/execution/StageStats.java
 PartitionedOutputInfo core/trino-main/src/main/java/io/trino/operator/PartitionedOutputOperator.java
 TableWriterInfo core/trino-main/src/main/java/io/trino/operator/TableWriterOperator.java
 TableInfo core/trino-main/src/main/java/io/trino/execution/TableInfo.java
+DynamicFiltersStats core/trino-main/src/main/java/io/trino/server/DynamicFilterService.java
 ].map.with_index { |v,i| i % 2 == 0 ? v : (source_path + "/" + v) }]
 
 # model => [ [key,nullable,type], ... ]

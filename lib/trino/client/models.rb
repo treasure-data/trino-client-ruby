@@ -24,14 +24,8 @@ module Trino::Client
   module ModelVersions
   end
 
-  require 'trino/client/model_versions/0.149.rb'
-  require 'trino/client/model_versions/0.153.rb'
-  require 'trino/client/model_versions/0.173.rb'
-  require 'trino/client/model_versions/0.178.rb'
-  require 'trino/client/model_versions/0.205.rb'
-  require 'trino/client/model_versions/303.rb'
-  require 'trino/client/model_versions/316.rb'
+  require 'trino/client/model_versions/351.rb'
 
-  Models = ModelVersions::V316
+  Models = ModelVersions::V351
 
 end

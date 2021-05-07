@@ -433,15 +433,15 @@ describe Trino::Client::StatementClient do
     end
   end
 
-  it "supports multiple model versions" do
-    stub_request(:post, "localhost/v1/statement").
-      with({body: query}).
-      to_return(body: response_json.to_json)
+  # it "supports multiple model versions" do
+  #   stub_request(:post, "localhost/v1/statement").
+  #     with({body: query}).
+  #     to_return(body: response_json.to_json)
 
-    faraday = Faraday.new(url: "http://localhost")
-    client = StatementClient.new(faraday, query, options.merge(model_version: "0.149"))
-    client.current_results.should be_a_kind_of(ModelVersions::V0_149::QueryResults)
-  end
+  #   faraday = Faraday.new(url: "http://localhost")
+  #   client = StatementClient.new(faraday, query, options.merge(model_version: "0.149"))
+  #   client.current_results.should be_a_kind_of(ModelVersions::V0_149::QueryResults)
+  # end
 
   it "rejects unsupported model version" do
     lambda do
