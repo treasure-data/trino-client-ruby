@@ -115,6 +115,7 @@ module Trino::Client::ModelVersions
           when "remoteSource"       then RemoteSourceNode
           when "join"               then JoinNode
           when "semijoin"           then SemiJoinNode
+          when "spatialjoin"        then SpatialJoinNode
           when "indexjoin"          then IndexJoinNode
           when "indexsource"        then IndexSourceNode
           when "tablewriter"        then TableWriterNode
@@ -130,7 +131,7 @@ module Trino::Client::ModelVersions
           when "explainAnalyze"     then ExplainAnalyzeNode
           when "apply"              then ApplyNode
           when "assignUniqueId"     then AssignUniqueId
-          when "lateralJoin"        then LateralJoinNode
+          when "correlatedJoin"     then CorrelatedJoinNode
           when "statisticsWriterNode" then StatisticsWriterNode
         end
         if model_class

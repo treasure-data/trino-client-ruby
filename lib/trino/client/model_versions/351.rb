@@ -115,6 +115,7 @@ module Trino::Client::ModelVersions
           when "remoteSource"       then RemoteSourceNode
           when "join"               then JoinNode
           when "semijoin"           then SemiJoinNode
+          when "spatialjoin"        then SpatialJoinNode
           when "indexjoin"          then IndexJoinNode
           when "indexsource"        then IndexSourceNode
           when "tablewriter"        then TableWriterNode
@@ -130,7 +131,7 @@ module Trino::Client::ModelVersions
           when "explainAnalyze"     then ExplainAnalyzeNode
           when "apply"              then ApplyNode
           when "assignUniqueId"     then AssignUniqueId
-          when "lateralJoin"        then LateralJoinNode
+          when "correlatedJoin"     then CorrelatedJoinNode
           when "statisticsWriterNode" then StatisticsWriterNode
         end
         if model_class
@@ -2016,6 +2017,28 @@ module Trino::Client::ModelVersions
           hash["source"] && PlanNode.decode(hash["source"]),
           hash["orderingScheme"] && OrderingScheme.decode(hash["orderingScheme"]),
           hash["partial"],
+        )
+        obj
+      end
+    end
+
+    class << SpatialJoinNode =
+        Base.new(:id, :type, :left, :right, :output_symbols, :filter, :left_partition_symbol, :right_partition_symbol, :kdb_tree)
+      def decode(hash)
+        unless hash.is_a?(Hash)
+          raise TypeError, "Can't convert #{hash.class} to Hash"
+        end
+        obj = allocate
+        obj.send(:initialize_struct,
+          hash["id"],
+          hash["type"],
+          hash["left"] && PlanNode.decode(hash["left"]),
+          hash["right"] && PlanNode.decode(hash["right"]),
+          hash["outputSymbols"],
+          hash["filter"],
+          hash["leftPartitionSymbol"],
+          hash["rightPartitionSymbol"],
+          hash["kdbTree"],
         )
         obj
       end

@@ -38,6 +38,7 @@ SortNode
 RemoteSourceNode
 JoinNode
 SemiJoinNode
+SpatialJoinNode
 IndexJoinNode
 IndexSourceNode
 TableWriterNode
