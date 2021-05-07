@@ -72,14 +72,14 @@ QueryResults Column ClientColumn
 ].each_slice(3).map { |x, y, z| [[x,y], z] }.flatten(1)]
 
 path_mapping = Hash[*%w[
-ClientColumn presto-client/src/main/java/io/prestosql/client/Column.java
-ClientStageStats presto-client/src/main/java/io/prestosql/client/StageStats.java
-Column presto-main/src/main/java/io/prestosql/execution/Column.java
-QueryStats presto-main/src/main/java/io/prestosql/execution/QueryStats.java
-StageStats presto-main/src/main/java/io/prestosql/execution/StageStats.java
-PartitionedOutputInfo presto-main/src/main/java/io/prestosql/operator/PartitionedOutputOperator.java
-TableWriterInfo presto-main/src/main/java/io/prestosql/operator/TableWriterOperator.java
-TableInfo presto-main/src/main/java/io/prestosql/execution/TableInfo.java
+ClientColumn client/trino-client/src/main/java/io/trino/client/Column.java
+ClientStageStats client/trino-client/src/main/java/io/trino/client/StageStats.java
+Column core/trino-main/src/main/java/io/trino/execution/Column.java
+QueryStats core/trino-main/src/main/java/io/trino/execution/QueryStats.java
+StageStats core/trino-main/src/main/java/io/trino/execution/StageStats.java
+PartitionedOutputInfo core/trino-main/src/main/java/io/trino/operator/PartitionedOutputOperator.java
+TableWriterInfo core/trino-main/src/main/java/io/trino/operator/TableWriterOperator.java
+TableInfo core/trino-main/src/main/java/io/trino/execution/TableInfo.java
 ].map.with_index { |v,i| i % 2 == 0 ? v : (source_path + "/" + v) }]
 
 # model => [ [key,nullable,type], ... ]
