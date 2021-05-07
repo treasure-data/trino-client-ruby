@@ -8,7 +8,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["sf@treasure-data.com"]
   gem.description   = %q{Trino client library}
   gem.summary       = %q{Trino client library}
-  gem.homepage      = "https://github.com/treasure-data/presto-client-ruby"
+  gem.homepage      = "https://github.com/treasure-data/trino-client-ruby"
   gem.license       = "Apache-2.0"
 
   gem.files         = `git ls-files`.split($\)

@@ -2,7 +2,7 @@
 
 require 'fileutils'
 
-PREFIX = 'https://github.com/treasure-data/presto-client-ruby'
+PREFIX = 'https://github.com/treasure-data/trino-client-ruby'
 RELEASE_NOTES_FILE = "ChangeLog.md"
 
 last_tag = `git describe --tags --abbrev=0`.chomp

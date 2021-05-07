@@ -1,19 +1,19 @@
-# Presto client library for Ruby
+# Trino client library for Ruby
 
-[![Build Status](https://travis-ci.org/treasure-data/presto-client-ruby.svg?branch=master)](https://travis-ci.org/treasure-data/presto-client-ruby) [![Gem](https://img.shields.io/gem/v/presto-client)](https://rubygems.org/gems/presto-client) [![Gem](https://img.shields.io/gem/dt/presto-client)](https://rubygems.org/gems/presto-client) [![GitHub](https://img.shields.io/github/license/treasure-data/presto-client-ruby)]()
+[![Build Status](https://travis-ci.org/treasure-data/trino-client-ruby.svg?branch=master)](https://travis-ci.org/treasure-data/trino-client-ruby) [![Gem](https://img.shields.io/gem/v/trino-client)](https://rubygems.org/gems/trino-client) [![Gem](https://img.shields.io/gem/dt/trino-client)](https://rubygems.org/gems/trino-client) [![GitHub](https://img.shields.io/github/license/treasure-data/trino-client-ruby)]()
 
-Presto is a distributed SQL query engine for big data:
-https://prestosql.io/
+Trino is a distributed SQL query engine for big data:
+https://trino.io/
 
-This is a client library for Ruby to run queries on Presto.
+This is a client library for Ruby to run queries on Trino.
 
 ## Example
 
 ```ruby
-require 'presto-client'
+require 'trino-client'
 
 # create a client object:
-client = Presto::Client.new(
+client = Trino::Client.new(
   server: "localhost:8880",   # required option
   ssl: {verify: false},
   catalog: "native",
@@ -74,7 +74,7 @@ $ bundle exec rake modelgen:latest
 
 ## Options
 
-* **server** sets address (and port) of a Presto coordinator server.
+* **server** sets address (and port) of a Trino coordinator server.
 * **ssl** enables https.
   * Setting `true` enables SSL and verifies server certificate using system's built-in certificates.
   * Setting `{verify: false}` enables SSL but doesn't verify server certificate.
@@ -84,18 +84,18 @@ $ bundle exec rake modelgen:latest
     * **cert_store**: a `OpenSSL::X509::Store` object used for verification
     * **client_cert**: a `OpenSSL::X509::Certificate` object as client certificate
     * **client_key**: a `OpenSSL::PKey::RSA` or `OpenSSL::PKey::DSA` object used for client certificate
-* **catalog** sets catalog (connector) name of Presto such as `hive-cdh4`, `hive-hadoop1`, etc.
-* **schema** sets default schema name of Presto. You need to use qualified name like `FROM myschema.table1` to use non-default schemas.
-* **source** sets source name to connect to a Presto. This name is shown on Presto web interface.
+* **catalog** sets catalog (connector) name of Trino such as `hive-cdh4`, `hive-hadoop1`, etc.
+* **schema** sets default schema name of Trino. You need to use qualified name like `FROM myschema.table1` to use non-default schemas.
+* **source** sets source name to connect to a Trino. This name is shown on Trino web interface.
 * **client_info** sets client info to queries. It can be a string to pass a raw string, or an object that can be encoded to JSON.
 * **client_tags** sets client tags to queries. It needs to be an array of strings. The tags are shown on web interface.
-* **user** sets user name to connect to a Presto.
-* **password** sets a password to connect to Presto using basic auth.
+* **user** sets user name to connect to a Trino.
+* **password** sets a password to connect to Trino using basic auth.
 * **time_zone** sets time zone of queries. Time zone affects some functions such as `format_datetime`.
 * **language** sets language of queries. Language affects some functions such as `format_datetime`.
 * **properties** set session properties. Session properties affect internal behavior such as `hive.force_local_scheduling: true`, `raptor.reader_stream_buffer_size: "32MB"`, etc.
-* **query_timeout** sets timeout in seconds for the entire query execution (from the first API call until there're no more output data). If timeout happens, client raises PrestoQueryTimeoutError. Default is nil (disabled).
-* **plan_timeout** sets timeout in seconds for query planning execution (from the first API call until result columns become available). If timeout happens, client raises PrestoQueryTimeoutError. Default is nil (disabled).
+* **query_timeout** sets timeout in seconds for the entire query execution (from the first API call until there're no more output data). If timeout happens, client raises TrinoQueryTimeoutError. Default is nil (disabled).
+* **plan_timeout** sets timeout in seconds for query planning execution (from the first API call until result columns become available). If timeout happens, client raises TrinoQueryTimeoutError. Default is nil (disabled).
 * **http_headers** sets custom HTTP headers. It must be a Hash of string to string.
 * **http_proxy** sets host:port of a HTTP proxy server.
 * **http_debug** enables debug message to STDOUT for each HTTP requests.
@@ -103,7 +103,7 @@ $ bundle exec rake modelgen:latest
 * **http_timeout** sets timeout in seconds to read data from a server.
 * **gzip** enables gzip compression.
 * **follow_redirect** enables HTTP redirection support.
-* **model_version** set the presto version to which a job is submitted. Supported versions are 316, 303, 0.205, 0.178, 0.173, 0.153 and 0.149. Default is 316.
+* **model_version** set the Trino version to which a job is submitted. Supported versions are 316, 303, 0.205, 0.178, 0.173, 0.153 and 0.149. Default is 316.
 
 See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentation.
 
@@ -111,7 +111,7 @@ See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentati
 
 ### Releasing a new version
 
-1. First update `lib/presto/client/version.rb` to the next version.
+1. First update `lib/trino/client/version.rb` to the next version.
 2. Run the following command which will update `ChangeLog.md` file automatically.
 ```
 $ ruby release.rb
@@ -126,6 +126,6 @@ $ git tag "vX.Y.Z"
 
 4. Push package
 ```
-$ gem build presto-client.gemspec
-$ gem push presto-client-X.Y.Z.gem
+$ gem build trino-client.gemspec
+$ gem push trino-client-X.Y.Z.gem
 ```
