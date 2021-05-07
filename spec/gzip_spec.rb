@@ -10,11 +10,11 @@ describe Trino::Client::Client do
     loop do
       begin
         # Make sure to all workers are available.
-        @client.run('select 1234')
+        @client.run('show schemas')
         break
       rescue StandardError => exception
         puts "Waiting for cluster ready... #{exception}"
-        sleep(5)
+        sleep(3)
       end
     end
     puts 'Cluster is ready'
