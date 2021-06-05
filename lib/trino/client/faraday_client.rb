@@ -34,6 +34,23 @@ module Trino::Client
     TRINO_PAGE_SEQUENCE_ID = "X-Trino-Page-Sequence-Id"
   end
 
+  module PrestoHeaders
+    PRESTO_USER = "X-Presto-User"
+    PRESTO_SOURCE = "X-Presto-Source"
+    PRESTO_CATALOG = "X-Presto-Catalog"
+    PRESTO_SCHEMA = "X-Presto-Schema"
+    PRESTO_TIME_ZONE = "X-Presto-Time-Zone"
+    PRESTO_LANGUAGE = "X-Presto-Language"
+    PRESTO_SESSION = "X-Presto-Session"
+    PRESTO_CLIENT_INFO = "X-Presto-Client-Info";
+    PRESTO_CLIENT_TAGS = "X-Presto-Client-Tags";
+
+    PRESTO_CURRENT_STATE = "X-Presto-Current-State"
+    PRESTO_MAX_WAIT = "X-Presto-Max-Wait"
+    PRESTO_MAX_SIZE = "X-Presto-Max-Size"
+    PRESTO_PAGE_SEQUENCE_ID = "X-Presto-Page-Sequence-Id"
+  end
+
   HEADERS = {
     "User-Agent" => "trino-ruby/#{VERSION}",
   }
@@ -105,33 +122,74 @@ module Trino::Client
   end
 
   def self.optional_headers(options)
+    usePrestoHeader = false
+    if v = options[:model_version] && v < 351
+      usePrestoHeader = true
+    end
+
     headers = {}
     if v = options[:user]
-      headers[TrinoHeaders::TRINO_USER] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_USER] = v
+      else
+        headers[TrinoHeaders::TRINO_USER] = v
+      end
     end
     if v = options[:source]
-      headers[TrinoHeaders::TRINO_SOURCE] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_SOURCE] = v
+      else
+        headers[TrinoHeaders::TRINO_SOURCE] = v
+      end
     end
     if v = options[:catalog]
-      headers[TrinoHeaders::TRINO_CATALOG] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_CATALOG] = v
+      else
+        headers[TrinoHeaders::TRINO_CATALOG] = v
+      end
     end
     if v = options[:schema]
-      headers[TrinoHeaders::TRINO_SCHEMA] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_SCHEMA] = v
+      else
+        headers[TrinoHeaders::TRINO_SCHEMA] = v
+      end
     end
     if v = options[:time_zone]
-      headers[TrinoHeaders::TRINO_TIME_ZONE] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_TIME_ZONE] = v
+      else
+        headers[TrinoHeaders::TRINO_TIME_ZONE] = v
+      end
     end
     if v = options[:language]
-      headers[TrinoHeaders::TRINO_LANGUAGE] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_LANGUAGE] = v
+      else
+        headers[TrinoHeaders::TRINO_LANGUAGE] = v
+      end
     end
     if v = options[:properties]
-      headers[TrinoHeaders::TRINO_SESSION] = encode_properties(v)
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_SESSION] = encode_properties(v)
+      else
+        headers[TrinoHeaders::TRINO_SESSION] = encode_properties(v)
+      end
     end
     if v = options[:client_info]
-      headers[TrinoHeaders::TRINO_CLIENT_INFO] = encode_client_info(v)
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_CLIENT_INFO] = encode_client_info(v)
+      else
+        headers[TrinoHeaders::TRINO_CLIENT_INFO] = encode_client_info(v)
+      end
     end
     if v = options[:client_tags]
-      headers[TrinoHeaders::TRINO_CLIENT_TAGS] = encode_client_tags(v)
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_CLIENT_TAGS] = encode_client_tags(v)
+      else
+        headers[TrinoHeaders::TRINO_CLIENT_TAGS] = encode_client_tags(v)
+      end
     end
     if options[:enable_x_msgpack]
       # option name is enable_"x"_msgpack because "Accept: application/x-msgpack" header is
