@@ -1,5 +1,9 @@
-presto-client-ruby
+trino-client-ruby
 ====
+## 1.0.0
+- Migration to Trino ([#70](https://github.com/treasure-data/trino-client-ruby/issues/70)) [[933db57](https://github.com/treasure-data/trino-client-ruby/commit/933db57)]
+- Setup GitHub Actions ([#71](https://github.com/treasure-data/trino-client-ruby/issues/71)) [[697d20f](https://github.com/treasure-data/trino-client-ruby/commit/697d20f)]
+
 ## 0.6.5
 - Add gzip option ([#68](https://github.com/treasure-data/presto-client-ruby/issues/68)) [[1f43629](https://github.com/treasure-data/presto-client-ruby/commit/1f43629)]
 - Bump tiny-presto to 0.0.7 to use docker image in GitHub Container Registry ([#69](https://github.com/treasure-data/presto-client-ruby/issues/69)) [[57b5045](https://github.com/treasure-data/presto-client-ruby/commit/57b5045)]
