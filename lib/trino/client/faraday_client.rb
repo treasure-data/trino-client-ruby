@@ -1,5 +1,5 @@
 #
-# Presto client for Ruby
+# Trino client for Ruby
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,9 +13,26 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-module Presto::Client
+module Trino::Client
 
   require 'cgi'
+
+  module TrinoHeaders
+    TRINO_USER = "X-Trino-User"
+    TRINO_SOURCE = "X-Trino-Source"
+    TRINO_CATALOG = "X-Trino-Catalog"
+    TRINO_SCHEMA = "X-Trino-Schema"
+    TRINO_TIME_ZONE = "X-Trino-Time-Zone"
+    TRINO_LANGUAGE = "X-Trino-Language"
+    TRINO_SESSION = "X-Trino-Session"
+    TRINO_CLIENT_INFO = "X-Trino-Client-Info";
+    TRINO_CLIENT_TAGS = "X-Trino-Client-Tags";
+
+    TRINO_CURRENT_STATE = "X-Trino-Current-State"
+    TRINO_MAX_WAIT = "X-Trino-Max-Wait"
+    TRINO_MAX_SIZE = "X-Trino-Max-Size"
+    TRINO_PAGE_SEQUENCE_ID = "X-Trino-Page-Sequence-Id"
+  end
 
   module PrestoHeaders
     PRESTO_USER = "X-Presto-User"
@@ -35,7 +52,7 @@ module Presto::Client
   end
 
   HEADERS = {
-    "User-Agent" => "presto-ruby/#{VERSION}",
+    "User-Agent" => "trino-ruby/#{VERSION}",
   }
 
   def self.faraday_client(options)
@@ -105,38 +122,79 @@ module Presto::Client
   end
 
   def self.optional_headers(options)
+    usePrestoHeader = false
+    if v = options[:model_version] && v < 351
+      usePrestoHeader = true
+    end
+
     headers = {}
     if v = options[:user]
-      headers[PrestoHeaders::PRESTO_USER] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_USER] = v
+      else
+        headers[TrinoHeaders::TRINO_USER] = v
+      end
     end
     if v = options[:source]
-      headers[PrestoHeaders::PRESTO_SOURCE] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_SOURCE] = v
+      else
+        headers[TrinoHeaders::TRINO_SOURCE] = v
+      end
     end
     if v = options[:catalog]
-      headers[PrestoHeaders::PRESTO_CATALOG] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_CATALOG] = v
+      else
+        headers[TrinoHeaders::TRINO_CATALOG] = v
+      end
     end
     if v = options[:schema]
-      headers[PrestoHeaders::PRESTO_SCHEMA] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_SCHEMA] = v
+      else
+        headers[TrinoHeaders::TRINO_SCHEMA] = v
+      end
     end
     if v = options[:time_zone]
-      headers[PrestoHeaders::PRESTO_TIME_ZONE] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_TIME_ZONE] = v
+      else
+        headers[TrinoHeaders::TRINO_TIME_ZONE] = v
+      end
     end
     if v = options[:language]
-      headers[PrestoHeaders::PRESTO_LANGUAGE] = v
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_LANGUAGE] = v
+      else
+        headers[TrinoHeaders::TRINO_LANGUAGE] = v
+      end
     end
     if v = options[:properties]
-      headers[PrestoHeaders::PRESTO_SESSION] = encode_properties(v)
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_SESSION] = encode_properties(v)
+      else
+        headers[TrinoHeaders::TRINO_SESSION] = encode_properties(v)
+      end
     end
     if v = options[:client_info]
-      headers[PrestoHeaders::PRESTO_CLIENT_INFO] = encode_client_info(v)
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_CLIENT_INFO] = encode_client_info(v)
+      else
+        headers[TrinoHeaders::TRINO_CLIENT_INFO] = encode_client_info(v)
+      end
     end
     if v = options[:client_tags]
-      headers[PrestoHeaders::PRESTO_CLIENT_TAGS] = encode_client_tags(v)
+      if usePrestoHeader
+        headers[PrestoHeaders::PRESTO_CLIENT_TAGS] = encode_client_tags(v)
+      else
+        headers[TrinoHeaders::TRINO_CLIENT_TAGS] = encode_client_tags(v)
+      end
     end
     if options[:enable_x_msgpack]
       # option name is enable_"x"_msgpack because "Accept: application/x-msgpack" header is
-      # not officially supported by Presto. We can use this option only if a proxy server
-      # decodes & encodes response body. Once this option is supported by Presto, option
+      # not officially supported by Trino. We can use this option only if a proxy server
+      # decodes & encodes response body. Once this option is supported by Trino, option
       # name should be enable_msgpack, which might be slightly different behavior.
       headers['Accept'] = 'application/x-msgpack,application/json'
     end

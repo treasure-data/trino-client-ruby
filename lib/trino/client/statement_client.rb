@@ -1,5 +1,5 @@
 #
-# Presto client for Ruby
+# Trino client for Ruby
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-module Presto::Client
+module Trino::Client
 
   require 'json'
   require 'msgpack'
-  require 'presto/client/models'
-  require 'presto/client/errors'
+  require 'trino/client/models'
+  require 'trino/client/errors'
 
   class StatementClient
-    # Presto can return too deep nested JSON
+    # Trino can return too deep nested JSON
     JSON_OPTIONS = {
         :max_nesting => false
     }
@@ -75,7 +75,7 @@ module Presto::Client
 
       # TODO error handling
       if response.status != 200
-        exception! PrestoHttpError.new(response.status, "Failed to start query: #{response.body} (#{response.status})")
+        exception! TrinoHttpError.new(response.status, "Failed to start query: #{response.body} (#{response.status})")
       end
 
       @results_headers = response.headers
@@ -168,7 +168,7 @@ module Presto::Client
         if body.size > 1024 + 3
           body = "#{body[0, 1024]}..."
         end
-        exception! PrestoHttpError.new(500, "Presto API returned unexpected structure at #{uri}. Expected #{body_class} but got #{body}: #{e}")
+        exception! TrinoHttpError.new(500, "Trino API returned unexpected structure at #{uri}. Expected #{body_class} but got #{body}: #{e}")
       end
     end
 
@@ -183,7 +183,7 @@ module Presto::Client
           JSON.parse(response.body, opts = JSON_OPTIONS)
         end
       rescue => e
-        exception! PrestoHttpError.new(500, "Presto API returned unexpected data format. #{e}")
+        exception! TrinoHttpError.new(500, "Trino API returned unexpected data format. #{e}")
       end
     end
 
@@ -210,7 +210,7 @@ module Presto::Client
 
           if response.status != 503  # retry only if 503 Service Unavailable
             # deterministic error
-            exception! PrestoHttpError.new(response.status, "Presto API error at #{uri} returned #{response.status}: #{response.body}")
+            exception! TrinoHttpError.new(response.status, "Trino API error at #{uri} returned #{response.status}: #{response.body}")
           end
         end
 
@@ -220,7 +220,7 @@ module Presto::Client
         sleep attempts * 0.1
       end while (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) < @retry_timeout && !client_aborted?
 
-      exception! PrestoHttpError.new(408, "Presto API error due to timeout")
+      exception! TrinoHttpError.new(408, "Trino API error due to timeout")
     end
 
     def raise_if_timeout!
@@ -236,7 +236,7 @@ module Presto::Client
         if @plan_timeout && (@results == nil || @results.columns == nil) &&
             elapsed > @plan_timeout
           # @results is not set (even first faraday_get_with_retry isn't called yet) or
-          # result from Presto doesn't include result schema. Query planning isn't done yet.
+          # result from Trino doesn't include result schema. Query planning isn't done yet.
           raise_timeout_error!
         end
       end
@@ -244,9 +244,9 @@ module Presto::Client
 
     def raise_timeout_error!
       if query_id = @results && @results.id
-        exception! PrestoQueryTimeoutError.new("Query #{query_id} timed out")
+        exception! TrinoQueryTimeoutError.new("Query #{query_id} timed out")
       else
-        exception! PrestoQueryTimeoutError.new("Query timed out")
+        exception! TrinoQueryTimeoutError.new("Query timed out")
       end
     end
 

@@ -1,11 +1,11 @@
 require 'spec_helper'
 
-describe Presto::Client::Client do
+describe Trino::Client::Client do
   before(:all) do
     WebMock.disable!
-    @cluster = TinyPresto::Cluster.new('ghcr.io/trinodb/presto', '316')
+    @cluster = TinyPresto::Cluster.new()
     @container = @cluster.run
-    @client = Presto::Client.new(server: 'localhost:8080', catalog: 'memory', user: 'test-user', schema: 'default')
+    @client = Trino::Client.new(server: 'localhost:8080', catalog: 'memory', user: 'test-user', schema: 'default')
     loop do
       begin
         @client.run('show schemas')
@@ -67,7 +67,7 @@ describe Presto::Client::Client do
   it 'partial cancel' do
     @client.query('show schemas') do |q|
       q.cancel
-      expect { q.query_info }.to raise_error(Presto::Client::PrestoHttpError, /Error 410 Gone/)
+      expect { q.query_info }.to raise_error(Trino::Client::TrinoHttpError, /Error 410 Gone/)
     end
   end
 

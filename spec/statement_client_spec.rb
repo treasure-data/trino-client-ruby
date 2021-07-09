@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Presto::Client::StatementClient do
+describe Trino::Client::StatementClient do
   let :options do
     {
       server: "localhost",
@@ -26,19 +26,19 @@ describe Presto::Client::StatementClient do
   end
 
   let :faraday do
-    Presto::Client.faraday_client(options)
+    Trino::Client.faraday_client(options)
   end
 
   it "sets headers" do
     stub_request(:post, "localhost/v1/statement").
       with(body: query,
            headers: {
-              "User-Agent" => "presto-ruby/#{VERSION}",
-              "X-Presto-Catalog" => options[:catalog],
-              "X-Presto-Schema" => options[:schema],
-              "X-Presto-User" => options[:user],
-              "X-Presto-Language" => options[:language],
-              "X-Presto-Time-Zone" => options[:time_zone],
+              "User-Agent" => "trino-ruby/#{VERSION}",
+              "X-Trino-Catalog" => options[:catalog],
+              "X-Trino-Schema" => options[:schema],
+              "X-Trino-User" => options[:user],
+              "X-Trino-Language" => options[:language],
+              "X-Trino-Time-Zone" => options[:time_zone],
     }).to_return(body: response_json.to_json)
 
     StatementClient.new(faraday, query, options)
@@ -57,22 +57,22 @@ describe Presto::Client::StatementClient do
     stub_request(:post, "localhost/v1/statement").
       with(body: query,
            headers: {
-              "User-Agent" => "presto-ruby/#{VERSION}",
-              "X-Presto-Catalog" => options[:catalog],
-              "X-Presto-Schema" => options[:schema],
-              "X-Presto-User" => options[:user],
-              "X-Presto-Language" => options[:language],
-              "X-Presto-Time-Zone" => options[:time_zone],
+              "User-Agent" => "trino-ruby/#{VERSION}",
+              "X-Trino-Catalog" => options[:catalog],
+              "X-Trino-Schema" => options[:schema],
+              "X-Trino-User" => options[:user],
+              "X-Trino-Language" => options[:language],
+              "X-Trino-Time-Zone" => options[:time_zone],
     }).to_return(body: response_json2.to_json)
 
     stub_request(:get, "localhost/v1/next_uri").
       with(headers: {
-              "User-Agent" => "presto-ruby/#{VERSION}",
-              "X-Presto-Catalog" => options[:catalog],
-              "X-Presto-Schema" => options[:schema],
-              "X-Presto-User" => options[:user],
-              "X-Presto-Language" => options[:language],
-              "X-Presto-Time-Zone" => options[:time_zone],
+              "User-Agent" => "trino-ruby/#{VERSION}",
+              "X-Trino-Catalog" => options[:catalog],
+              "X-Trino-Schema" => options[:schema],
+              "X-Trino-User" => options[:user],
+              "X-Trino-Language" => options[:language],
+              "X-Trino-Time-Zone" => options[:time_zone],
     }).to_return(body: lambda{|req|if retry_p; response_json.to_json; else; retry_p=true; raise Timeout::Error.new("execution expired"); end })
 
     sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
@@ -86,23 +86,23 @@ describe Presto::Client::StatementClient do
     stub_request(:post, "localhost/v1/statement").
       with(body: query,
            headers: {
-              "User-Agent" => "presto-ruby/#{VERSION}",
-              "X-Presto-Catalog" => options[:catalog],
-              "X-Presto-Schema" => options[:schema],
-              "X-Presto-User" => options[:user],
-              "X-Presto-Language" => options[:language],
-              "X-Presto-Time-Zone" => options[:time_zone],
+              "User-Agent" => "trino-ruby/#{VERSION}",
+              "X-Trino-Catalog" => options[:catalog],
+              "X-Trino-Schema" => options[:schema],
+              "X-Trino-User" => options[:user],
+              "X-Trino-Language" => options[:language],
+              "X-Trino-Time-Zone" => options[:time_zone],
               "Accept" => "application/x-msgpack,application/json"
     }).to_return(body: MessagePack.dump(response_json2), headers: {"Content-Type" => "application/x-msgpack"})
 
     stub_request(:get, "localhost/v1/next_uri").
       with(headers: {
-              "User-Agent" => "presto-ruby/#{VERSION}",
-              "X-Presto-Catalog" => options[:catalog],
-              "X-Presto-Schema" => options[:schema],
-              "X-Presto-User" => options[:user],
-              "X-Presto-Language" => options[:language],
-              "X-Presto-Time-Zone" => options[:time_zone],
+              "User-Agent" => "trino-ruby/#{VERSION}",
+              "X-Trino-Catalog" => options[:catalog],
+              "X-Trino-Schema" => options[:schema],
+              "X-Trino-User" => options[:user],
+              "X-Trino-Language" => options[:language],
+              "X-Trino-Time-Zone" => options[:time_zone],
               "Accept" => "application/x-msgpack,application/json"
     }).to_return(body: lambda{|req|if retry_p; MessagePack.dump(response_json); else; retry_p=true; raise Timeout::Error.new("execution expired"); end }, headers: {"Content-Type" => "application/x-msgpack"})
 
@@ -113,11 +113,11 @@ describe Presto::Client::StatementClient do
     retry_p.should be_true
   end
 
-  # presto version could be "V0_ddd" or "Vddd"
-  /\APresto::Client::ModelVersions::V(\w+)/ =~ Presto::Client::Models.to_s
+  # trino version could be "V0_ddd" or "Vddd"
+  /\Trino::Client::ModelVersions::V(\w+)/ =~ Trino::Client::Models.to_s
 
   # https://github.com/prestosql/presto/commit/80a2c5113d47e3390bf6dc041486a1c9dfc04592
-  # renamed DeleteHandle to DeleteTarget, then DeleteHandle exists when presto version
+  # renamed DeleteHandle to DeleteTarget, then DeleteHandle exists when trino version
   # is less than 313.
   if $1[0, 2] == "0_" || $1.to_i < 314
     it "decodes DeleteHandle" do
@@ -174,7 +174,7 @@ describe Presto::Client::StatementClient do
     stub_request(:post, "localhost/v1/statement").
       with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
 
-    q = Presto::Client.new(options).query(query)
+    q = Trino::Client.new(options).query(query)
     q.current_results_headers["X-Test-Header"].should == "123"
   end
 
@@ -197,12 +197,12 @@ describe Presto::Client::StatementClient do
   describe '#query_info' do
     let :headers do
       {
-        "User-Agent" => "presto-ruby/#{VERSION}",
-        "X-Presto-Catalog" => options[:catalog],
-          "X-Presto-Schema" => options[:schema],
-          "X-Presto-User" => options[:user],
-          "X-Presto-Language" => options[:language],
-          "X-Presto-Time-Zone" => options[:time_zone],
+        "User-Agent" => "trino-ruby/#{VERSION}",
+        "X-Trino-Catalog" => options[:catalog],
+          "X-Trino-Schema" => options[:schema],
+          "X-Trino-User" => options[:user],
+          "X-Trino-Language" => options[:language],
+          "X-Trino-Time-Zone" => options[:time_zone],
       }
     end
 
@@ -219,7 +219,7 @@ describe Presto::Client::StatementClient do
           with(headers: headers).
           to_return(body: {"session" => "invalid session structure"}.to_json)
         statement_client.query_info
-      end.should raise_error(PrestoHttpError, /Presto API returned unexpected structure at \/v1\/query\/queryid\. Expected Presto::Client::ModelVersions::.*::QueryInfo but got {"session":"invalid session structure"}/)
+      end.should raise_error(TrinoHttpError, /Trino API returned unexpected structure at \/v1\/query\/queryid\. Expected Trino::Client::ModelVersions::.*::QueryInfo but got {"session":"invalid session structure"}/)
     end
 
     it "raises an exception if response format is unexpected" do
@@ -228,14 +228,14 @@ describe Presto::Client::StatementClient do
           with(headers: headers).
           to_return(body: "unexpected data structure (not JSON)")
         statement_client.query_info
-      end.should raise_error(PrestoHttpError, /Presto API returned unexpected data format./)
+      end.should raise_error(TrinoHttpError, /Trino API returned unexpected data format./)
     end
 
     it "is redirected if server returned 301" do
       stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
         with(headers: headers).
         to_return(status: 301, headers: {"Location" => "http://localhost/v1/query/redirected"})
-      
+
       stub_request(:get, "http://localhost/v1/query/redirected").
         with(headers: headers).
         to_return(body: {"queryId" => "queryid"}.to_json)
@@ -252,71 +252,71 @@ describe Presto::Client::StatementClient do
       stub_request(:delete, "http://localhost/v1/query/#{query_id}").
         with(body: "",
              headers: {
-                "User-Agent" => "presto-ruby/#{VERSION}",
-                "X-Presto-Catalog" => options[:catalog],
-                "X-Presto-Schema" => options[:schema],
-                "X-Presto-User" => options[:user],
-                "X-Presto-Language" => options[:language],
-                "X-Presto-Time-Zone" => options[:time_zone],
+                "User-Agent" => "trino-ruby/#{VERSION}",
+                "X-Trino-Catalog" => options[:catalog],
+                "X-Trino-Schema" => options[:schema],
+                "X-Trino-User" => options[:user],
+                "X-Trino-Language" => options[:language],
+                "X-Trino-Time-Zone" => options[:time_zone],
       }).to_return(body: {}.to_json)
 
-      Presto::Client.new(options).kill(query_id)
+      Trino::Client.new(options).kill(query_id)
     end
   end
 
   describe 'advanced HTTP headers' do
     let(:headers) do
       {
-        "User-Agent" => "presto-ruby/#{VERSION}",
-        "X-Presto-Catalog" => options[:catalog],
-        "X-Presto-Schema" => options[:schema],
-        "X-Presto-User" => options[:user],
-        "X-Presto-Language" => options[:language],
-        "X-Presto-Time-Zone" => options[:time_zone],
+        "User-Agent" => "trino-ruby/#{VERSION}",
+        "X-Trino-Catalog" => options[:catalog],
+        "X-Trino-Schema" => options[:schema],
+        "X-Trino-User" => options[:user],
+        "X-Trino-Language" => options[:language],
+        "X-Trino-Time-Zone" => options[:time_zone],
       }
     end
 
-    it "sets X-Presto-Session from properties" do
+    it "sets X-Trino-Session from properties" do
       options[:properties] = {"hello" => "world", "name"=>"value"}
 
       stub_request(:post, "localhost/v1/statement").
         with(body: query,
              headers: headers.merge({
-               "X-Presto-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join(", ")
+               "X-Trino-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join(", ")
              })).
         to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
     end
 
-    it "sets X-Presto-Client-Info from client_info" do
+    it "sets X-Trino-Client-Info from client_info" do
       options[:client_info] = "raw"
 
       stub_request(:post, "localhost/v1/statement").
         with(body: query,
-             headers: headers.merge("X-Presto-Client-Info" => "raw")).
+             headers: headers.merge("X-Trino-Client-Info" => "raw")).
         to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
     end
 
-    it "sets X-Presto-Client-Info in JSON from client_info" do
+    it "sets X-Trino-Client-Info in JSON from client_info" do
       options[:client_info] = {"k1" => "v1", "k2" => "v2"}
 
       stub_request(:post, "localhost/v1/statement").
         with(body: query,
-             headers: headers.merge("X-Presto-Client-Info" => '{"k1":"v1","k2":"v2"}')).
+             headers: headers.merge("X-Trino-Client-Info" => '{"k1":"v1","k2":"v2"}')).
         to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
     end
 
-    it "sets X-Presto-Client-Tags" do
+    it "sets X-Trino-Client-Tags" do
       options[:client_tags] = ["k1:v1", "k2:v2"]
 
       stub_request(:post, "localhost/v1/statement").
         with(body: query,
-             headers: headers.merge("X-Presto-Client-Tags" => "k1:v1,k2:v2")).
+             headers: headers.merge("X-Trino-Client-Tags" => "k1:v1,k2:v2")).
         to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
@@ -330,12 +330,12 @@ describe Presto::Client::StatementClient do
       stub_request(:post, "https://localhost/v1/statement").
         with(body: query,
              headers: {
-                "User-Agent" => "presto-ruby/#{VERSION}",
-                "X-Presto-Catalog" => options[:catalog],
-                "X-Presto-Schema" => options[:schema],
-                "X-Presto-User" => options[:user],
-                "X-Presto-Language" => options[:language],
-                "X-Presto-Time-Zone" => options[:time_zone],
+                "User-Agent" => "trino-ruby/#{VERSION}",
+                "X-Trino-Catalog" => options[:catalog],
+                "X-Trino-Schema" => options[:schema],
+                "X-Trino-User" => options[:user],
+                "X-Trino-Language" => options[:language],
+                "X-Trino-Time-Zone" => options[:time_zone],
             },
             basic_auth: [options[:user], password]
       ).to_return(body: response_json.to_json)
@@ -433,14 +433,14 @@ describe Presto::Client::StatementClient do
     end
   end
 
-  it "supports multiple model versions" do
+  it "supports Presto" do
     stub_request(:post, "localhost/v1/statement").
       with({body: query}).
       to_return(body: response_json.to_json)
 
     faraday = Faraday.new(url: "http://localhost")
-    client = StatementClient.new(faraday, query, options.merge(model_version: "0.149"))
-    client.current_results.should be_a_kind_of(ModelVersions::V0_149::QueryResults)
+    client = StatementClient.new(faraday, query, options.merge(model_version: "316"))
+    client.current_results.should be_a_kind_of(ModelVersions::V316::QueryResults)
   end
 
   it "rejects unsupported model version" do
@@ -466,12 +466,12 @@ describe Presto::Client::StatementClient do
     stub_request(:post, "localhost/v1/statement").
         with(body: query,
              headers: {
-                 "User-Agent" => "presto-ruby/#{VERSION}",
-                 "X-Presto-Catalog" => options[:catalog],
-                 "X-Presto-Schema" => options[:schema],
-                 "X-Presto-User" => options[:user],
-                 "X-Presto-Language" => options[:language],
-                 "X-Presto-Time-Zone" => options[:time_zone],
+                 "User-Agent" => "trino-ruby/#{VERSION}",
+                 "X-Trino-Catalog" => options[:catalog],
+                 "X-Trino-Schema" => options[:schema],
+                 "X-Trino-User" => options[:user],
+                 "X-Trino-Language" => options[:language],
+                 "X-Trino-Time-Zone" => options[:time_zone],
              }).to_return(body: nested_json.to_json(:max_nesting => false))
 
     StatementClient.new(faraday, query, options)
@@ -480,12 +480,12 @@ describe Presto::Client::StatementClient do
   describe "query timeout" do
     let :headers do
       {
-        "User-Agent" => "presto-ruby/#{VERSION}",
-        "X-Presto-Catalog" => options[:catalog],
-        "X-Presto-Schema" => options[:schema],
-        "X-Presto-User" => options[:user],
-        "X-Presto-Language" => options[:language],
-        "X-Presto-Time-Zone" => options[:time_zone],
+        "User-Agent" => "trino-ruby/#{VERSION}",
+        "X-Trino-Catalog" => options[:catalog],
+        "X-Trino-Schema" => options[:schema],
+        "X-Trino-User" => options[:user],
+        "X-Trino-Language" => options[:language],
+        "X-Trino-Time-Zone" => options[:time_zone],
       }
     end
 
@@ -528,7 +528,7 @@ describe Presto::Client::StatementClient do
     end
 
     [:plan_timeout, :query_timeout].each do |timeout_type|
-      it "raises PrestoQueryTimeoutError if timeout during planning" do
+      it "raises TrinoQueryTimeoutError if timeout during planning" do
         stub_request(:post, "localhost/v1/statement").
           with(body: query, headers: headers).
           to_return(body: planning_response.to_json)
@@ -546,27 +546,27 @@ describe Presto::Client::StatementClient do
           to_return(body: planning_response.to_json)
         lambda do
           client.advance
-        end.should raise_error(Presto::Client::PrestoQueryTimeoutError, "Query queryid timed out")
+        end.should raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
       end
 
-      it "raises PrestoQueryTimeoutError if timeout during initial resuming" do
+      it "raises TrinoQueryTimeoutError if timeout during initial resuming" do
         stub_request(:get, "localhost/v1/next_uri").
           with(headers: headers).
           to_return(body: lambda{|req| raise Timeout::Error.new("execution expired")})
 
         lambda do
           StatementClient.new(faraday, query, options.merge(timeout_type => 1), "/v1/next_uri")
-        end.should raise_error(Presto::Client::PrestoQueryTimeoutError, "Query timed out")
+        end.should raise_error(Trino::Client::TrinoQueryTimeoutError, "Query timed out")
       end
 
-      it "raises PrestoHttpError if timeout during initial resuming and #{timeout_type} < retry_timeout" do
+      it "raises TrinoHttpError if timeout during initial resuming and #{timeout_type} < retry_timeout" do
         stub_request(:get, "localhost/v1/next_uri").
           with(headers: headers).
           to_return(body: lambda{|req| raise Timeout::Error.new("execution expired")})
 
         lambda do
           StatementClient.new(faraday, query, options.merge(timeout_type => 2, retry_timeout: 1), "/v1/next_uri")
-        end.should raise_error(Presto::Client::PrestoHttpError, "Presto API error due to timeout")
+        end.should raise_error(Trino::Client::TrinoHttpError, "Trino API error due to timeout")
       end
     end
 
@@ -590,7 +590,7 @@ describe Presto::Client::StatementClient do
       client.advance
     end
 
-    it "raises PrestoQueryTimeoutError if timeout during execution" do
+    it "raises TrinoQueryTimeoutError if timeout during execution" do
       stub_request(:post, "localhost/v1/statement").
         with(body: query, headers: headers).
         to_return(body: planning_response.to_json)
@@ -608,7 +608,7 @@ describe Presto::Client::StatementClient do
         to_return(body: late_running_response.to_json)
       lambda do
         client.advance
-      end.should raise_error(Presto::Client::PrestoQueryTimeoutError, "Query queryid timed out")
+      end.should raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
     end
 
     it "doesn't raise errors if query is done" do

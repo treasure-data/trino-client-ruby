@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Presto::Client::Client do
-  let(:client) { Presto::Client.new({}) }
+describe Trino::Client::Client do
+  let(:client) { Trino::Client.new({}) }
 
   describe 'rehashes' do
     let(:columns) do

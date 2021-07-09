@@ -14,8 +14,8 @@ SimpleCov.start
 require 'json'
 require 'webmock/rspec'
 
-require 'presto-client'
-include Presto::Client
+require 'trino-client'
+include Trino::Client
 
 require 'tiny-presto'
 
@@ -30,7 +30,7 @@ def run_with_retry(client, sql)
     begin
       columns, rows = @client.run(sql)
       return columns, rows
-    rescue Presto::Client::PrestoQueryError => e
+    rescue Trino::Client::TrinoQueryError => e
       if RETRYABLE_ERRORS.any? { |error| e.message =~ error }
         sleep(i)
         i += 1

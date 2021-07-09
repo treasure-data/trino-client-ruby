@@ -1,5 +1,5 @@
 #
-# Presto client for Ruby
+# Trino client for Ruby
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-module Presto::Client::ModelVersions
+module Trino::Client::ModelVersions
 
   ####
-  ## lib/presto/client/model_versions/*.rb is automatically generated using "rake modelgen:all" command.
+  ## lib/trino/client/model_versions/*.rb is automatically generated using "rake modelgen:all" command.
   ## You should not edit this file directly. To modify the class definitions, edit
   ## modelgen/model_versions.rb file and run "rake modelgen:all".
   ##
@@ -115,6 +115,7 @@ module Presto::Client::ModelVersions
           when "remoteSource"       then RemoteSourceNode
           when "join"               then JoinNode
           when "semijoin"           then SemiJoinNode
+          when "spatialjoin"        then SpatialJoinNode
           when "indexjoin"          then IndexJoinNode
           when "indexsource"        then IndexSourceNode
           when "tablewriter"        then TableWriterNode
@@ -130,7 +131,7 @@ module Presto::Client::ModelVersions
           when "explainAnalyze"     then ExplainAnalyzeNode
           when "apply"              then ApplyNode
           when "assignUniqueId"     then AssignUniqueId
-          when "lateralJoin"        then LateralJoinNode
+          when "correlatedJoin"     then CorrelatedJoinNode
           when "statisticsWriterNode" then StatisticsWriterNode
         end
         if model_class

@@ -1,5 +1,5 @@
 #
-# Presto client for Ruby
+# Trino client for Ruby
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-module Presto::Client
+module Trino::Client
 
   require 'faraday'
   require 'faraday_middleware'
-  require 'presto/client/models'
-  require 'presto/client/errors'
-  require 'presto/client/faraday_client'
-  require 'presto/client/statement_client'
+  require 'trino/client/models'
+  require 'trino/client/errors'
+  require 'trino/client/faraday_client'
+  require 'trino/client/statement_client'
 
   class Query
     def self.start(query, options)
@@ -40,7 +40,7 @@ module Presto::Client
     end
 
     def self.faraday_client(options)
-      Presto::Client.faraday_client(options)
+      Trino::Client.faraday_client(options)
     end
 
     def initialize(api)
@@ -103,7 +103,7 @@ module Presto::Client
       wait_for_data
 
       if self.columns == nil
-        raise PrestoError, "Query #{@api.current_results.id} has no columns"
+        raise TrinoError, "Query #{@api.current_results.id} has no columns"
       end
 
       begin
@@ -132,11 +132,11 @@ module Presto::Client
 
     def raise_if_failed
       if @api.client_aborted?
-        raise PrestoClientError, "Query aborted by user"
+        raise TrinoClientError, "Query aborted by user"
       elsif @api.query_failed?
         results = @api.current_results
         error = results.error
-        raise PrestoQueryError.new("Query #{results.id} failed: #{error.message}", results.id, error.error_code, error.error_name, error.failure_info)
+        raise TrinoQueryError.new("Query #{results.id} failed: #{error.message}", results.id, error.error_code, error.error_name, error.failure_info)
       end
     end
   end

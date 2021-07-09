@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Presto::Client::Models do
+describe Trino::Client::Models do
   describe 'rehash of BlockedReason' do
     h = {
       "operatorId" => 0,

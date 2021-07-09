@@ -1,5 +1,5 @@
 
-module PrestoModels
+module TrinoModels
   require 'find'
   require 'stringio'
 
@@ -146,7 +146,7 @@ module PrestoModels
 
       @source_files ||= Find.find(@source_path).to_a
       pattern = /\/#{model_name}.java$/
-      matched = @source_files.find_all {|path| path =~ pattern && !path.include?('/test/')}
+      matched = @source_files.find_all {|path| path =~ pattern && !path.include?('/test/') && !path.include?('/verifier/')}
       if matched.empty?
         raise ModelAnalysisError, "Model class #{model_name} is not found"
       end

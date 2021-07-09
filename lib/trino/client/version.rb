@@ -1,5 +1,5 @@
 #
-# Presto client for Ruby
+# Trino client for Ruby
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -13,11 +13,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-module Presto
+module Trino
   module Client
-
-    require 'presto/client/version'
-    require 'presto/client/client'
-
+    VERSION = "0.6.5"
   end
 end
