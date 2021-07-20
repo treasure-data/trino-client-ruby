@@ -30,15 +30,17 @@ module Presto::Client
   end
 
   class PrestoQueryError < PrestoError
-    def initialize(message, query_id, error_code, error_name, failure_info)
+    def initialize(message, query_id, error_code, error_name, error_type, error_location, failure_info)
       super(message)
       @query_id = query_id
       @error_code = error_code
       @error_name = error_name
+      @error_type = error_type
+      @error_location = error_location
       @failure_info = failure_info
     end
 
-    attr_reader :error_code, :error_name, :failure_info
+    attr_reader :error_code, :error_name, :error_type, :error_location, :failure_info
   end
 
   class PrestoQueryTimeoutError < PrestoError
