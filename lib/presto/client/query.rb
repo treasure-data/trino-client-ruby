@@ -136,7 +136,7 @@ module Presto::Client
       elsif @api.query_failed?
         results = @api.current_results
         error = results.error
-        raise PrestoQueryError.new("Query #{results.id} failed: #{error.message}", results.id, error.error_code, error.error_name, error.failure_info)
+        raise PrestoQueryError.new("Query #{results.id} failed: #{error.message}", results.id, error.error_code, error.error_name, error.error_type, error.error_location, error.failure_info)
       end
     end
   end
