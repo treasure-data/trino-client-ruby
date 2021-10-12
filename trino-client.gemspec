@@ -19,13 +19,13 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = ">= 1.9.1"
 
-  gem.add_dependency "faraday", ["~> 0.12"]
-  gem.add_dependency "faraday_middleware", ["~> 0.12.2"]
+  gem.add_dependency "faraday", ["~> 1.0"]
+  gem.add_dependency "faraday_middleware", ["~> 1.0"]
     gem.add_dependency "msgpack", [">= 0.7.0"]
 
   gem.add_development_dependency "rake", [">= 0.9.2", "< 11.0"]
   gem.add_development_dependency "rspec", ["~> 2.13.0"]
-  gem.add_development_dependency "webmock", ["~> 2.0.0"]
+  gem.add_development_dependency "webmock", ["~> 3.0"]
   gem.add_development_dependency "addressable", ["~> 2.4.0"] # 2.5.0 doesn't support Ruby 1.9.3
   gem.add_development_dependency "simplecov", ["~> 0.10.0"]
 end
