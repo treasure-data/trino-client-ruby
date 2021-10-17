@@ -129,3 +129,11 @@ $ git tag "vX.Y.Z"
 $ gem build trino-client.gemspec
 $ gem push trino-client-X.Y.Z.gem
 ```
+
+5. Push alias package (trino-client-ruby)
+```
+# Push the alias gem too
+$ cd trino-client-ruby
+$ gem build trino-client-ruby.gemspec
+$ gem push trino-client-ruby-X.Y.Z.gem
+```
