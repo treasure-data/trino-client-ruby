@@ -124,8 +124,7 @@ $ git tag "vX.Y.Z"
 % git push --tags
 ```
 
-4. Push package
+4. Push package by the following command which will build and push `trino-client-X.Y.Z.gem` and `trino-client-ruby-X.Y.Z.gem` automatically.
 ```
-$ gem build trino-client.gemspec
-$ gem push trino-client-X.Y.Z.gem
+$ ruby publish.rb
 ```
