@@ -1,5 +1,14 @@
 trino-client-ruby
 ====
+## 1.0.1
+- Merge pull request [#73](https://github.com/treasure-data/trino-client-ruby/issues/73) from pedrombl/update-faraday [[2a6482c](https://github.com/treasure-data/trino-client-ruby/commit/2a6482c)]
+- Merge pull request [#74](https://github.com/treasure-data/trino-client-ruby/issues/74) from takezoe/alias-gem [[6829f5b](https://github.com/treasure-data/trino-client-ruby/commit/6829f5b)]
+- Add a script to publish two gems at once [[2eea152](https://github.com/treasure-data/trino-client-ruby/commit/2eea152)]
+- Add alias gem 'trino-client-ruby' [[597d332](https://github.com/treasure-data/trino-client-ruby/commit/597d332)]
+- Bump faraday version from 0.12 to 1.0 [[cd7864f](https://github.com/treasure-data/trino-client-ruby/commit/cd7864f)]
+- Merge pull request [#72](https://github.com/treasure-data/trino-client-ruby/issues/72) from miniway/trino_add_error_type [[2aa365a](https://github.com/treasure-data/trino-client-ruby/commit/2aa365a)]
+- Add error_type and error_location at TrinoQueryError [[e3598c1](https://github.com/treasure-data/trino-client-ruby/commit/e3598c1)]
+
 ## 1.0.0
 - Migration to Trino ([#70](https://github.com/treasure-data/trino-client-ruby/issues/70)) [[933db57](https://github.com/treasure-data/trino-client-ruby/commit/933db57)]
 - Setup GitHub Actions ([#71](https://github.com/treasure-data/trino-client-ruby/issues/71)) [[697d20f](https://github.com/treasure-data/trino-client-ruby/commit/697d20f)]
