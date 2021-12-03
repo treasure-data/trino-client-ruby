@@ -34,7 +34,7 @@ module Trino::Client
       @state = :running
       @retry_timeout = options[:retry_timeout] || 120
       if model_version = @options[:model_version]
-        @models = ModelVersions.const_get("V#{model_version.gsub(".", "_")}")
+        @models = ModelVersions.const_get("V#{model_version.to_s.gsub(".", "_")}")
       else
         @models = Models
       end
