@@ -123,7 +123,7 @@ module Trino::Client
 
   def self.optional_headers(options)
     usePrestoHeader = false
-    if v = options[:model_version] && v < 351
+    if options[:model_version] && options[:model_version] < 351
       usePrestoHeader = true
     end
 
