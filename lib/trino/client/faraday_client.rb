@@ -75,7 +75,7 @@ module Trino::Client
 
     faraday = Faraday.new(faraday_options) do |faraday|
       if options[:user] && options[:password]
-        faraday.basic_auth(options[:user], options[:password])
+        faraday.request(:basic_auth, options[:user], options[:password])
       end
       if options[:follow_redirect]
         faraday.use FaradayMiddleware::FollowRedirects
