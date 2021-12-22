@@ -1,5 +1,12 @@
 trino-client-ruby
 ====
+## 1.0.2
+- Merge pull request [#75](https://github.com/treasure-data/trino-client-ruby/issues/75) from evgeniy-b/1-0-1-fixes [[4cdd21f](https://github.com/treasure-data/trino-client-ruby/commit/4cdd21f)]
+- Faraday basic auth deprecation fix [[5c20266](https://github.com/treasure-data/trino-client-ruby/commit/5c20266)]
+- Gem::Specification#has_rdoc deprecation fix [[baaec53](https://github.com/treasure-data/trino-client-ruby/commit/baaec53)]
+- Convert model_version to string to use gsub() [[7118ad5](https://github.com/treasure-data/trino-client-ruby/commit/7118ad5)]
+- Fix model version check (operator priority) [[31c22f3](https://github.com/treasure-data/trino-client-ruby/commit/31c22f3)]
+
 ## 1.0.1
 - Merge pull request [#73](https://github.com/treasure-data/trino-client-ruby/issues/73) from pedrombl/update-faraday [[2a6482c](https://github.com/treasure-data/trino-client-ruby/commit/2a6482c)]
 - Merge pull request [#74](https://github.com/treasure-data/trino-client-ruby/issues/74) from takezoe/alias-gem [[6829f5b](https://github.com/treasure-data/trino-client-ruby/commit/6829f5b)]
