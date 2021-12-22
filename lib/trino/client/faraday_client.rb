@@ -75,7 +75,7 @@ module Trino::Client
 
     faraday = Faraday.new(faraday_options) do |faraday|
       if options[:user] && options[:password]
-        faraday.basic_auth(options[:user], options[:password])
+        faraday.request(:basic_auth, options[:user], options[:password])
       end
       if options[:follow_redirect]
         faraday.use FaradayMiddleware::FollowRedirects
@@ -123,7 +123,7 @@ module Trino::Client
 
   def self.optional_headers(options)
     usePrestoHeader = false
-    if v = options[:model_version] && v < 351
+    if options[:model_version] && options[:model_version] < 351
       usePrestoHeader = true
     end
 
