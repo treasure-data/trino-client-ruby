@@ -32,7 +32,7 @@ def run_with_retry(client, sql)
       return columns, rows
     rescue Trino::Client::TrinoQueryError => e
       if RETRYABLE_ERRORS.any? { |error| e.message =~ error }
-        sleep(i)
+        sleep(2 ** i)
         i += 1
         next
       end
