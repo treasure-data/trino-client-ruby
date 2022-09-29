@@ -21,7 +21,8 @@ require 'tiny-presto'
 
 MAX_RETRY_COUNT = 5
 RETRYABLE_ERRORS = [
-  /No nodes available to run query/
+  /No nodes available to run query/,
+  /failed: nodes is empty/
 ]
 
 def run_with_retry(client, sql)
@@ -32,7 +33,7 @@ def run_with_retry(client, sql)
       return columns, rows
     rescue Trino::Client::TrinoQueryError => e
       if RETRYABLE_ERRORS.any? { |error| e.message =~ error }
-        sleep(i)
+        sleep(2 ** i)
         i += 1
         next
       end
