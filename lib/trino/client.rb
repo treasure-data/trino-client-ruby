@@ -15,9 +15,7 @@
 #
 module Trino
   module Client
-
-    require 'trino/client/version'
-    require 'trino/client/client'
-
+    require "trino/client/version"
+    require "trino/client/client"
   end
 end

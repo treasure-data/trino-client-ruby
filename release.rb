@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-require 'fileutils'
+require "fileutils"
 
-PREFIX = 'https://github.com/treasure-data/trino-client-ruby'
+PREFIX = "https://github.com/treasure-data/trino-client-ruby"
 RELEASE_NOTES_FILE = "ChangeLog.md"
 
 last_tag = `git describe --tags --abbrev=0`.chomp
@@ -21,8 +21,8 @@ logs = logs.gsub(/\#([0-9]+)/, "[#\\1](#{PREFIX}/issues/\\1)")
 new_release_notes = []
 new_release_notes <<= "\#\# #{next_version}\n"
 new_release_notes <<= logs.split(/\n/)
-  .reject{|line| line.include?("#{last_version} release notes")}
-  .map{|x|
+  .reject { |line| line.include?("#{last_version} release notes") }
+  .map { |x|
     rev = x[0..6]
     "- #{x[8..-1]} [[#{rev}](#{PREFIX}/commit/#{rev})]\n"
   }
@@ -36,11 +36,11 @@ release_notes <<= "\n"
 release_notes <<= notes[2..-1]
 
 TMP_RELEASE_NOTES_FILE = "#{RELEASE_NOTES_FILE}.tmp"
-File.delete(TMP_RELEASE_NOTES_FILE) if File.exists?(TMP_RELEASE_NOTES_FILE)
-File.write("#{TMP_RELEASE_NOTES_FILE}", release_notes.join)
+File.delete(TMP_RELEASE_NOTES_FILE) if File.exist?(TMP_RELEASE_NOTES_FILE)
+File.write(TMP_RELEASE_NOTES_FILE.to_s, release_notes.join)
 system("cat #{TMP_RELEASE_NOTES_FILE} | vim - -c ':f #{TMP_RELEASE_NOTES_FILE}' -c ':9'")
 
-abort("The release note file is not saved. Aborted") unless File.exists?(TMP_RELEASE_NOTES_FILE)
+abort("The release note file is not saved. Aborted") unless File.exist?(TMP_RELEASE_NOTES_FILE)
 
 def run(cmd)
   puts cmd

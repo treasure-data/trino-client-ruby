@@ -1,6 +1,6 @@
-source 'https://rubygems.org/'
+source "https://rubygems.org/"
 gemspec
 
 group :development, :test do
-  gem 'tiny-presto', "~> 0.0.8"
+  gem "tiny-presto", "~> 0.0.8"
 end

@@ -1,1 +1,1 @@
-require 'trino-client'
+require "trino-client"
