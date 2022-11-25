@@ -1,4 +1,3 @@
-
 if ARGV.length != 4
   puts "usage: <model-version> <trino-source-dir> <template.erb> <output.rb>"
   exit 1
@@ -70,7 +69,7 @@ name_mapping = Hash[*%w[
 StatementStats StageStats ClientStageStats
 ClientStageStats StageStats ClientStageStats
 QueryResults Column ClientColumn
-].each_slice(3).map { |x, y, z| [[x,y], z] }.flatten(1)]
+].each_slice(3).map { |x, y, z| [[x, y], z] }.flatten(1)]
 
 path_mapping = Hash[*%w[
 ClientColumn client/trino-client/src/main/java/io/trino/client/Column.java
@@ -82,7 +81,7 @@ PartitionedOutputInfo core/trino-main/src/main/java/io/trino/operator/Partitione
 TableWriterInfo core/trino-main/src/main/java/io/trino/operator/TableWriterOperator.java
 TableInfo core/trino-main/src/main/java/io/trino/execution/TableInfo.java
 DynamicFiltersStats core/trino-main/src/main/java/io/trino/server/DynamicFilterService.java
-].map.with_index { |v,i| i % 2 == 0 ? v : (source_path + "/" + v) }]
+].map.with_index { |v, i| i % 2 == 0 ? v : (source_path + "/" + v) }]
 
 # model => [ [key,nullable,type], ... ]
 extra_fields = {
@@ -107,7 +106,7 @@ formatter = TrinoModels::ModelFormatter.new(
   primitive_types: assume_primitive,
   skip_types: skipped_models,
   simple_classes: predefined_simple_classes,
-  enum_types: enum_types,
+  enum_types: enum_types
 )
 formatter.format(models)
 
@@ -116,4 +115,3 @@ formatter.format(models)
 
 data = erb.result
 File.write(output_path, data)
-

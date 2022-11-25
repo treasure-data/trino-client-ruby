@@ -1,22 +1,22 @@
 #!/usr/bin/env rake
-require 'bundler/gem_tasks'
+require "bundler/gem_tasks"
 
-require 'rake/testtask'
-require 'rake/clean'
+require "rake/testtask"
+require "rake/clean"
 
-require 'rspec/core/rake_task'
+require "rspec/core/rake_task"
 
 RSpec::Core::RakeTask.new(:spec)
 
-task :default => [:spec, :build]
+task default: [:spec, :build]
 
 GEN_MODEL_VERSIONS = %w[
   351
 ]
 
 namespace "modelgen" do
-  task :latest => :all do
-    require 'erb'
+  task latest: :all do
+    require "erb"
     erb = ERB.new(File.read("modelgen/models.rb"))
     @versions = GEN_MODEL_VERSIONS
     @latest_version = GEN_MODEL_VERSIONS.last
@@ -24,7 +24,7 @@ namespace "modelgen" do
     File.write("lib/trino/client/models.rb", data)
   end
 
-  task :all => GEN_MODEL_VERSIONS
+  task all: GEN_MODEL_VERSIONS
 
   GEN_MODEL_VERSIONS.each do |ver|
     file "build/trino-#{ver}.tar.gz" do
@@ -42,4 +42,3 @@ namespace "modelgen" do
     task ver => "lib/trino/client/model_versions/#{ver}.rb"
   end
 end
-

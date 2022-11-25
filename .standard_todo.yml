@@ -1,0 +1,54 @@
+---
+ignore:
+  - 'lib/trino/client/*.rb'
+  - 'modelgen/model_versions.rb': &modelgen_common
+      - Style/StringLiterals # TODO: Remove this later
+      - Layout/DotPosition # TODO: Remove this later
+      # NOTE: Selecting the below items
+      - Layout/ArrayAlignment
+      - Layout/EmptyLinesAroundExceptionHandlingKeywords
+      - Layout/FirstArrayElementIndentation
+      - Layout/FirstHashElementIndentation
+      - Lint/AssignmentInCondition
+      - Lint/Syntax
+      - Lint/UselessAssignment
+      - Performance/FlatMap
+      - Performance/RegexpMatch
+      - Style/InfiniteLoop
+      - Style/RedundantRegexpCharacterClass
+      - Style/RedundantRegexpEscape
+      - Style/StringLiteralsInInterpolation
+  - 'modelgen/modelgen.rb': *modelgen_common
+  - 'modelgen/models.rb': *modelgen_common
+  - 'modelgen/trino_models.rb': *modelgen_common
+  - 'spec/*.rb':
+      - Style/StringLiterals  # TODO: Remove this later
+      - Layout/DotPosition  # TODO: Remove this later
+      - Style/RedundantBegin
+      - Style/TrailingCommaInHashLiteral
+      - Lint/Void
+      - Layout/FirstHashElementIndentation
+      - Style/For
+      - Style/Semicolon
+      - Lint/UselessAssignment
+      - Style/MixinUsage
+      # NOTE: Selecting the below items
+      - Layout/ClosingParenthesisIndentation
+      - Layout/HashAlignment
+      - Layout/IndentationConsistency
+      - Layout/MultilineMethodCallBraceLayout
+      - Layout/MultilineMethodCallIndentation
+      - Lint/ElseLayout
+      - Lint/ParenthesesAsGroupedExpression
+      - Style/HashSyntax
+      - Style/IfWithSemicolon
+      - Style/MethodCallWithoutArgsParentheses
+      - Style/OneLineConditional
+      - Style/RescueStandardError
+      - Style/StderrPuts
+  - '**/*.gemspec':
+      - Layout/ExtraSpacing
+  - 'release.rb':
+      - Style/TrailingCommaInArguments
+      - Style/SlicingWithRange
+      - Style/GlobalStdStream

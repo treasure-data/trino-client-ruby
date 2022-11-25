@@ -1,4 +1,3 @@
-
 module TrinoModels
   require 'find'
   require 'stringio'
@@ -15,7 +14,7 @@ module TrinoModels
     alias_method :map?, :map
 
     def name
-      @name ||= key.gsub(/[A-Z]/) {|f| "_#{f.downcase}" }
+      @name ||= key.gsub(/[A-Z]/) { |f| "_#{f.downcase}" }
     end
   end
 
@@ -23,7 +22,7 @@ module TrinoModels
   end
 
   class ModelAnalyzer
-    def initialize(source_path, options={})
+    def initialize(source_path, options = {})
       @source_path = source_path
       @ignore_types = PRIMITIVE_TYPES + ARRAY_PRIMITIVE_TYPES + (options[:skip_models] || [])
       @path_mapping = options[:path_mapping] || {}
@@ -36,11 +35,11 @@ module TrinoModels
     attr_reader :skipped_models
 
     def models
-      @models.values.sort_by {|model| model.name }
+      @models.values.sort_by { |model| model.name }
     end
 
     def analyze(root_models)
-      root_models.each {|model_name|
+      root_models.each { |model_name|
         analyze_model(model_name)
       }
     end
@@ -54,7 +53,7 @@ module TrinoModels
     def analyze_fields(model_name, creator_block, generic: nil)
       model_name = "#{model_name}_#{generic}" if generic
       extra = @extra_fields[model_name] || []
-      fields = creator_block.scan(PROPERTY_PATTERN).concat(extra).map do |key,nullable,type|
+      fields = creator_block.scan(PROPERTY_PATTERN).concat(extra).map do |key, nullable, type|
         map = false
         array = false
         nullable = !!nullable
@@ -84,10 +83,10 @@ module TrinoModels
         end
         base_type = @name_mapping[[model_name, base_type]] || base_type
         map_value_base_type = @name_mapping[[model_name, map_value_base_type]] || map_value_base_type
-        
+
         if generic
           base_type = generic if base_type == 'T'
-          map_value_base_type = generic if map_value_base_type == 'T'  
+          map_value_base_type = generic if map_value_base_type == 'T'
         end
         if m = GENERIC_PATTERN.match(base_type)
           base_type_alias = "#{m[1]}_#{m[2]}"
@@ -103,10 +102,10 @@ module TrinoModels
         analyze_model(field.map_value_base_type, model_name) if field.map_value_base_type
       end
 
-      return fields
+      fields
     end
 
-    def analyze_model(model_name, parent_model=  nil, generic: nil)
+    def analyze_model(model_name, parent_model = nil, generic: nil)
       return if @models[model_name] || @ignore_types.include?(model_name)
 
       if m = GENERIC_PATTERN.match(model_name)
@@ -123,7 +122,7 @@ module TrinoModels
         raise ModelAnalysisError, "Can't find JsonCreator of a model class #{model_name} of #{parent_model} at #{path}"
       end
 
-      body = m[0] 
+      body = m[0]
       # check inner class first
       while true
         offset = m.end(0)
@@ -146,12 +145,12 @@ module TrinoModels
 
       @source_files ||= Find.find(@source_path).to_a
       pattern = /\/#{model_name}.java$/
-      matched = @source_files.find_all {|path| path =~ pattern && !path.include?('/test/') && !path.include?('/verifier/')}
+      matched = @source_files.find_all { |path| path =~ pattern && !path.include?('/test/') && !path.include?('/verifier/') }
       if matched.empty?
         raise ModelAnalysisError, "Model class #{model_name} is not found"
       end
       if matched.size == 1
-        return matched.first
+        matched.first
       else
         raise ModelAnalysisError, "Model class #{model_name} of #{parent_model} found multiple match #{matched}"
       end
@@ -159,7 +158,7 @@ module TrinoModels
   end
 
   class ModelFormatter
-    def initialize(options={})
+    def initialize(options = {})
       @indent = options[:indent] || '  '
       @base_indent_count = options[:base_indent_count] || 0
       @struct_class = options[:struct_class] || 'Struct'
@@ -182,7 +181,7 @@ module TrinoModels
         @model = model
 
         puts_with_indent 0, "class << #{model.name} ="
-        puts_with_indent 2, "#{@struct_class}.new(#{model.fields.map {|f| ":#{f.name}" }.join(', ')})"
+        puts_with_indent 2, "#{@struct_class}.new(#{model.fields.map { |f| ":#{f.name}" }.join(', ')})"
         format_decode
         puts_with_indent 0, "end"
         line
@@ -220,7 +219,7 @@ module TrinoModels
           expr = "hash[\"#{field.key}\"]"
         else
           expr = ""
-          expr << "hash[\"#{field.key}\"] && " #if field.nullable?
+          expr << "hash[\"#{field.key}\"] && " # if field.nullable?
 
           if field.map?
             key_expr = convert_expression(field.base_type, field.base_type, "k")
@@ -238,8 +237,8 @@ module TrinoModels
           end
         end
 
-        #comment = "# #{field.base_type}#{field.array? ? '[]' : ''} #{field.key}"
-        #puts_with_indent 3, "#{expr},  #{comment}"
+        # comment = "# #{field.base_type}#{field.array? ? '[]' : ''} #{field.key}"
+        # puts_with_indent 3, "#{expr},  #{comment}"
         puts_with_indent 3, "#{expr},"
       end
 
@@ -261,10 +260,9 @@ module TrinoModels
         key
       elsif @simple_classes.include?(base_type)
         "#{base_type}.new(#{key})"
-      else  # model class
+      else # model class
         "#{base_type}.decode(#{key})"
       end
     end
   end
 end
-

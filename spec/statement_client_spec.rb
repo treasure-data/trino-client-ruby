@@ -73,7 +73,7 @@ describe Trino::Client::StatementClient do
               "X-Trino-User" => options[:user],
               "X-Trino-Language" => options[:language],
               "X-Trino-Time-Zone" => options[:time_zone],
-    }).to_return(body: lambda{|req|if retry_p; response_json.to_json; else; retry_p=true; raise Timeout::Error.new("execution expired"); end })
+    }).to_return(body: lambda { |req| if retry_p; response_json.to_json; else; retry_p = true; raise Timeout::Error.new("execution expired"); end })
 
     sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
     sc.has_next?.should be_true
@@ -104,7 +104,7 @@ describe Trino::Client::StatementClient do
               "X-Trino-Language" => options[:language],
               "X-Trino-Time-Zone" => options[:time_zone],
               "Accept" => "application/x-msgpack,application/json"
-    }).to_return(body: lambda{|req|if retry_p; MessagePack.dump(response_json); else; retry_p=true; raise Timeout::Error.new("execution expired"); end }, headers: {"Content-Type" => "application/x-msgpack"})
+    }).to_return(body: lambda { |req| if retry_p; MessagePack.dump(response_json); else; retry_p = true; raise Timeout::Error.new("execution expired"); end }, headers: {"Content-Type" => "application/x-msgpack"})
 
     options.merge!(http_open_timeout: 1, enable_x_msgpack: "application/x-msgpack")
     sc = StatementClient.new(faraday, query, options)
@@ -277,12 +277,12 @@ describe Trino::Client::StatementClient do
     end
 
     it "sets X-Trino-Session from properties" do
-      options[:properties] = {"hello" => "world", "name"=>"value"}
+      options[:properties] = {"hello" => "world", "name" => "value"}
 
       stub_request(:post, "localhost/v1/statement").
         with(body: query,
              headers: headers.merge({
-               "X-Trino-Session" => options[:properties].map {|k,v| "#{k}=#{v}"}.join(", ")
+               "X-Trino-Session" => options[:properties].map { |k, v| "#{k}=#{v}" }.join(", ")
              })).
         to_return(body: response_json.to_json)
 
@@ -340,7 +340,7 @@ describe Trino::Client::StatementClient do
             basic_auth: [options[:user], password]
       ).to_return(body: response_json.to_json)
 
-      options.merge!(ssl: { verify: true }, password: password)
+      options.merge!(ssl: {verify: true}, password: password)
       StatementClient.new(faraday, query, options)
     end
 
@@ -449,7 +449,6 @@ describe Trino::Client::StatementClient do
     end.should raise_error(NameError)
   end
 
-
   let :nested_json do
     nested_stats = {createTime: Time.now}
     # JSON max nesting default value is 100
@@ -552,7 +551,7 @@ describe Trino::Client::StatementClient do
       it "raises TrinoQueryTimeoutError if timeout during initial resuming" do
         stub_request(:get, "localhost/v1/next_uri").
           with(headers: headers).
-          to_return(body: lambda{|req| raise Timeout::Error.new("execution expired")})
+          to_return(body: lambda { |req| raise Timeout::Error.new("execution expired") })
 
         lambda do
           StatementClient.new(faraday, query, options.merge(timeout_type => 1), "/v1/next_uri")
@@ -562,7 +561,7 @@ describe Trino::Client::StatementClient do
       it "raises TrinoHttpError if timeout during initial resuming and #{timeout_type} < retry_timeout" do
         stub_request(:get, "localhost/v1/next_uri").
           with(headers: headers).
-          to_return(body: lambda{|req| raise Timeout::Error.new("execution expired")})
+          to_return(body: lambda { |req| raise Timeout::Error.new("execution expired") })
 
         lambda do
           StatementClient.new(faraday, query, options.merge(timeout_type => 2, retry_timeout: 1), "/v1/next_uri")
@@ -631,7 +630,5 @@ describe Trino::Client::StatementClient do
       sleep 1
       client.advance # set finished
     end
-
   end
 end
-
