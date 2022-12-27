@@ -32,14 +32,14 @@ describe Trino::Client::StatementClient do
   it "sets headers" do
     stub_request(:post, "localhost/v1/statement").
       with(body: query,
-           headers: {
-              "User-Agent" => "trino-ruby/#{VERSION}",
-              "X-Trino-Catalog" => options[:catalog],
-              "X-Trino-Schema" => options[:schema],
-              "X-Trino-User" => options[:user],
-              "X-Trino-Language" => options[:language],
-              "X-Trino-Time-Zone" => options[:time_zone],
-    }).to_return(body: response_json.to_json)
+        headers: {
+           "User-Agent" => "trino-ruby/#{VERSION}",
+           "X-Trino-Catalog" => options[:catalog],
+           "X-Trino-Schema" => options[:schema],
+           "X-Trino-User" => options[:user],
+           "X-Trino-Language" => options[:language],
+           "X-Trino-Time-Zone" => options[:time_zone],
+ }).to_return(body: response_json.to_json)
 
     StatementClient.new(faraday, query, options)
   end
@@ -56,14 +56,14 @@ describe Trino::Client::StatementClient do
     retry_p = false
     stub_request(:post, "localhost/v1/statement").
       with(body: query,
-           headers: {
-              "User-Agent" => "trino-ruby/#{VERSION}",
-              "X-Trino-Catalog" => options[:catalog],
-              "X-Trino-Schema" => options[:schema],
-              "X-Trino-User" => options[:user],
-              "X-Trino-Language" => options[:language],
-              "X-Trino-Time-Zone" => options[:time_zone],
-    }).to_return(body: response_json2.to_json)
+        headers: {
+           "User-Agent" => "trino-ruby/#{VERSION}",
+           "X-Trino-Catalog" => options[:catalog],
+           "X-Trino-Schema" => options[:schema],
+           "X-Trino-User" => options[:user],
+           "X-Trino-Language" => options[:language],
+           "X-Trino-Time-Zone" => options[:time_zone],
+ }).to_return(body: response_json2.to_json)
 
     stub_request(:get, "localhost/v1/next_uri").
       with(headers: {
@@ -85,15 +85,15 @@ describe Trino::Client::StatementClient do
     retry_p = false
     stub_request(:post, "localhost/v1/statement").
       with(body: query,
-           headers: {
-              "User-Agent" => "trino-ruby/#{VERSION}",
-              "X-Trino-Catalog" => options[:catalog],
-              "X-Trino-Schema" => options[:schema],
-              "X-Trino-User" => options[:user],
-              "X-Trino-Language" => options[:language],
-              "X-Trino-Time-Zone" => options[:time_zone],
-              "Accept" => "application/x-msgpack,application/json"
-    }).to_return(body: MessagePack.dump(response_json2), headers: {"Content-Type" => "application/x-msgpack"})
+        headers: {
+           "User-Agent" => "trino-ruby/#{VERSION}",
+           "X-Trino-Catalog" => options[:catalog],
+           "X-Trino-Schema" => options[:schema],
+           "X-Trino-User" => options[:user],
+           "X-Trino-Language" => options[:language],
+           "X-Trino-Time-Zone" => options[:time_zone],
+           "Accept" => "application/x-msgpack,application/json"
+ }).to_return(body: MessagePack.dump(response_json2), headers: {"Content-Type" => "application/x-msgpack"})
 
     stub_request(:get, "localhost/v1/next_uri").
       with(headers: {
@@ -251,14 +251,14 @@ describe Trino::Client::StatementClient do
     it "sends DELETE request with empty body to /v1/query/{queryId}" do
       stub_request(:delete, "http://localhost/v1/query/#{query_id}").
         with(body: "",
-             headers: {
-                "User-Agent" => "trino-ruby/#{VERSION}",
-                "X-Trino-Catalog" => options[:catalog],
-                "X-Trino-Schema" => options[:schema],
-                "X-Trino-User" => options[:user],
-                "X-Trino-Language" => options[:language],
-                "X-Trino-Time-Zone" => options[:time_zone],
-      }).to_return(body: {}.to_json)
+          headers: {
+             "User-Agent" => "trino-ruby/#{VERSION}",
+             "X-Trino-Catalog" => options[:catalog],
+             "X-Trino-Schema" => options[:schema],
+             "X-Trino-User" => options[:user],
+             "X-Trino-Language" => options[:language],
+             "X-Trino-Time-Zone" => options[:time_zone],
+   }).to_return(body: {}.to_json)
 
       Trino::Client.new(options).kill(query_id)
     end
@@ -281,9 +281,9 @@ describe Trino::Client::StatementClient do
 
       stub_request(:post, "localhost/v1/statement").
         with(body: query,
-             headers: headers.merge({
-               "X-Trino-Session" => options[:properties].map { |k, v| "#{k}=#{v}" }.join(", ")
-             })).
+          headers: headers.merge({
+            "X-Trino-Session" => options[:properties].map { |k, v| "#{k}=#{v}" }.join(", ")
+          })).
         to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
@@ -294,7 +294,7 @@ describe Trino::Client::StatementClient do
 
       stub_request(:post, "localhost/v1/statement").
         with(body: query,
-             headers: headers.merge("X-Trino-Client-Info" => "raw")).
+          headers: headers.merge("X-Trino-Client-Info" => "raw")).
         to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
@@ -305,7 +305,7 @@ describe Trino::Client::StatementClient do
 
       stub_request(:post, "localhost/v1/statement").
         with(body: query,
-             headers: headers.merge("X-Trino-Client-Info" => '{"k1":"v1","k2":"v2"}')).
+          headers: headers.merge("X-Trino-Client-Info" => '{"k1":"v1","k2":"v2"}')).
         to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
@@ -316,7 +316,7 @@ describe Trino::Client::StatementClient do
 
       stub_request(:post, "localhost/v1/statement").
         with(body: query,
-             headers: headers.merge("X-Trino-Client-Tags" => "k1:v1,k2:v2")).
+          headers: headers.merge("X-Trino-Client-Tags" => "k1:v1,k2:v2")).
         to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
@@ -329,15 +329,15 @@ describe Trino::Client::StatementClient do
     it "adds basic auth headers when ssl is enabled and a password is given" do
       stub_request(:post, "https://localhost/v1/statement").
         with(body: query,
-             headers: {
-                "User-Agent" => "trino-ruby/#{VERSION}",
-                "X-Trino-Catalog" => options[:catalog],
-                "X-Trino-Schema" => options[:schema],
-                "X-Trino-User" => options[:user],
-                "X-Trino-Language" => options[:language],
-                "X-Trino-Time-Zone" => options[:time_zone],
-            },
-            basic_auth: [options[:user], password]
+          headers: {
+             "User-Agent" => "trino-ruby/#{VERSION}",
+             "X-Trino-Catalog" => options[:catalog],
+             "X-Trino-Schema" => options[:schema],
+             "X-Trino-User" => options[:user],
+             "X-Trino-Language" => options[:language],
+             "X-Trino-Time-Zone" => options[:time_zone],
+         },
+          basic_auth: [options[:user], password]
       ).to_return(body: response_json.to_json)
 
       options.merge!(ssl: {verify: true}, password: password)
@@ -464,14 +464,14 @@ describe Trino::Client::StatementClient do
   it "parse nested json properly" do
     stub_request(:post, "localhost/v1/statement").
         with(body: query,
-             headers: {
-                 "User-Agent" => "trino-ruby/#{VERSION}",
-                 "X-Trino-Catalog" => options[:catalog],
-                 "X-Trino-Schema" => options[:schema],
-                 "X-Trino-User" => options[:user],
-                 "X-Trino-Language" => options[:language],
-                 "X-Trino-Time-Zone" => options[:time_zone],
-             }).to_return(body: nested_json.to_json(:max_nesting => false))
+          headers: {
+              "User-Agent" => "trino-ruby/#{VERSION}",
+              "X-Trino-Catalog" => options[:catalog],
+              "X-Trino-Schema" => options[:schema],
+              "X-Trino-User" => options[:user],
+              "X-Trino-Language" => options[:language],
+              "X-Trino-Time-Zone" => options[:time_zone],
+          }).to_return(body: nested_json.to_json(:max_nesting => false))
 
     StatementClient.new(faraday, query, options)
   end

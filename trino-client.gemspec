@@ -27,5 +27,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "webmock", ["~> 3.0"]
   gem.add_development_dependency "addressable", ["~> 2.4.0"] # 2.5.0 doesn't support Ruby 1.9.3
   gem.add_development_dependency "simplecov", ["~> 0.10.0"]
-  gem.add_development_dependency "standard", ["~> 1.0.0"]
+  gem.add_development_dependency "standard", "~> 1.12.1"
 end
