@@ -20,7 +20,7 @@ logs = logs.gsub(/\#([0-9]+)/, "[#\\1](#{PREFIX}/issues/\\1)")
 
 new_release_notes = []
 new_release_notes <<= "\#\# #{next_version}\n"
-new_release_notes <<= logs.split(/\n/)
+new_release_notes <<= logs.split("\n")
   .reject { |line| line.include?("#{last_version} release notes") }
   .map { |x|
     rev = x[0..6]
