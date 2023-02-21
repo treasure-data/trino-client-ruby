@@ -81,7 +81,7 @@ PartitionedOutputInfo core/trino-main/src/main/java/io/trino/operator/Partitione
 TableWriterInfo core/trino-main/src/main/java/io/trino/operator/TableWriterOperator.java
 TableInfo core/trino-main/src/main/java/io/trino/execution/TableInfo.java
 DynamicFiltersStats core/trino-main/src/main/java/io/trino/server/DynamicFilterService.java
-].map.with_index { |v, i| i % 2 == 0 ? v : (source_path + "/" + v) }]
+].map.with_index { |v, i| (i % 2 == 0) ? v : (source_path + "/" + v) }]
 
 # model => [ [key,nullable,type], ... ]
 extra_fields = {
