@@ -29,7 +29,9 @@ describe Trino::Client::Models do
       "info" => {"k" => "v"}
     }
 
-    stats = Models::OperatorStats.decode(h)
-    stats.blocked_reason.should == :waiting_for_memory
+    it 'decode blocked_reason' do
+      stats = Models::OperatorStats.decode(h)
+      expect(stats.blocked_reason).to eq :waiting_for_memory
+    end
   end
 end
