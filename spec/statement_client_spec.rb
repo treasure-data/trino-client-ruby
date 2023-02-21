@@ -76,9 +76,9 @@ describe Trino::Client::StatementClient do
     }).to_return(body: lambda { |req| if retry_p; response_json.to_json; else; retry_p = true; raise Timeout::Error.new("execution expired"); end })
 
     sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
-    sc.has_next?.should be_true
-    sc.advance.should be_true
-    retry_p.should be_true
+    expect(sc.has_next?).to eq true
+    expect(sc.advance).to eq true
+    expect(retry_p).to eq true
   end
 
   it "uses 'Accept: application/x-msgpack' if option is set" do
@@ -108,9 +108,9 @@ describe Trino::Client::StatementClient do
 
     options.merge!(http_open_timeout: 1, enable_x_msgpack: "application/x-msgpack")
     sc = StatementClient.new(faraday, query, options)
-    sc.has_next?.should be_true
-    sc.advance.should be_true
-    retry_p.should be_true
+    expect(sc.has_next?).to eq true
+    expect(sc.advance).to eq true
+    expect(retry_p).to eq true
   end
 
   # trino version could be "V0_ddd" or "Vddd"
@@ -127,17 +127,17 @@ describe Trino::Client::StatementClient do
           "connectorHandle" => {}
         }
       })
-      dh.handle.should be_a_kind_of Models::TableHandle
-      dh.handle.connector_id.should == "c1"
-      dh.handle.connector_handle.should == {}
+      expect(dh.handle).to be_a_kind_of Models::TableHandle
+      expect(dh.handle.connector_id).to eq "c1"
+      expect(dh.handle.connector_handle).to eq {}
     end
 
     it "validates models" do
-      lambda do
+      expect do
         Models::DeleteHandle.decode({
           "handle" => "invalid"
         })
-      end.should raise_error(TypeError, /String to Hash/)
+      end.to raise_error(TypeError, /String to Hash/)
     end
   else
     it "decodes DeleteTarget" do
@@ -147,18 +147,18 @@ describe Trino::Client::StatementClient do
           "connectorHandle" => {}
         }
       })
-      dh.handle.should be_a_kind_of Models::TableHandle
-      dh.handle.catalog_name.should == "c1"
-      dh.handle.connector_handle.should == {}
+      expect(dh.handle).to be_a_kind_of(Models::TableHandle)
+      expect(dh.handle.catalog_name).to eq "c1"
+      expect(dh.handle.connector_handle).to eq({})
     end
 
     it "validates models" do
-      lambda do
+      expect do
         Models::DeleteTarget.decode({
           "catalogName" => "c1",
           "handle" => "invalid"
         })
-      end.should raise_error(TypeError, /String to Hash/)
+      end.to raise_error(TypeError, /String to Hash/)
     end
   end
 
@@ -167,7 +167,7 @@ describe Trino::Client::StatementClient do
       with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
 
     sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
-    sc.current_results_headers["X-Test-Header"].should == "123"
+    expect(sc.current_results_headers["X-Test-Header"]).to eq "123"
   end
 
   it "receives headers of POST through Query" do
@@ -175,7 +175,7 @@ describe Trino::Client::StatementClient do
       with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
 
     q = Trino::Client.new(options).query(query)
-    q.current_results_headers["X-Test-Header"].should == "123"
+    expect(q.current_results_headers["X-Test-Header"]).to eq "123"
   end
 
   describe "#query_id" do
@@ -187,10 +187,10 @@ describe Trino::Client::StatementClient do
         to_return(body: response_json.to_json, headers: {"X-Test-Header" => "123"})
 
       sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
-      sc.query_id.should == "queryid"
-      sc.has_next?.should be_true
-      sc.advance.should be_true
-      sc.query_id.should == "queryid"
+      expect(sc.query_id).to eq "queryid"
+      expect(sc.has_next?).to eq true
+      expect(sc.advance).to eq true
+      expect(sc.query_id).to eq "queryid"
     end
   end
 
@@ -214,21 +214,21 @@ describe Trino::Client::StatementClient do
     end
 
     it "raises an exception with sample JSON if response is unexpected" do
-      lambda do
+      expect do
         stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
           with(headers: headers).
           to_return(body: {"session" => "invalid session structure"}.to_json)
         statement_client.query_info
-      end.should raise_error(TrinoHttpError, /Trino API returned unexpected structure at \/v1\/query\/queryid\. Expected Trino::Client::ModelVersions::.*::QueryInfo but got {"session":"invalid session structure"}/)
+      end.to raise_error(TrinoHttpError, /Trino API returned unexpected structure at \/v1\/query\/queryid\. Expected Trino::Client::ModelVersions::.*::QueryInfo but got {"session":"invalid session structure"}/)
     end
 
     it "raises an exception if response format is unexpected" do
-      lambda do
+      expect do
         stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
           with(headers: headers).
           to_return(body: "unexpected data structure (not JSON)")
         statement_client.query_info
-      end.should raise_error(TrinoHttpError, /Trino API returned unexpected data format./)
+      end.to raise_error(TrinoHttpError, /Trino API returned unexpected data format./)
     end
 
     it "is redirected if server returned 301" do
@@ -241,7 +241,7 @@ describe Trino::Client::StatementClient do
         to_return(body: {"queryId" => "queryid"}.to_json)
 
       query_info = statement_client.query_info
-      query_info.query_id.should == "queryid"
+      expect(query_info.query_id).to eq "queryid"
     end
   end
 
@@ -345,12 +345,12 @@ describe Trino::Client::StatementClient do
     end
 
     it "forbids using basic auth when ssl is disabled" do
-      lambda do
+      expect do
         Query.__send__(:faraday_client, {
           server: 'localhost',
           password: 'abcd'
         })
-      end.should raise_error(ArgumentError)
+      end.to raise_error(ArgumentError)
     end
   end
 
@@ -359,7 +359,7 @@ describe Trino::Client::StatementClient do
       f = Query.__send__(:faraday_client, {
         server: "localhost",
       })
-      f.url_prefix.to_s.should == "http://localhost/"
+      expect(f.url_prefix.to_s).to eq "http://localhost/"
     end
 
     it "is enabled with ssl: true" do
@@ -367,8 +367,8 @@ describe Trino::Client::StatementClient do
         server: "localhost",
         ssl: true,
       })
-      f.url_prefix.to_s.should == "https://localhost/"
-      f.ssl.verify?.should == true
+      expect(f.url_prefix.to_s).to eq "https://localhost/"
+      expect(f.ssl.verify?).to eq true
     end
 
     it "is enabled with ssl: {verify: false}" do
@@ -376,17 +376,17 @@ describe Trino::Client::StatementClient do
         server: "localhost",
         ssl: {verify: false}
       })
-      f.url_prefix.to_s.should == "https://localhost/"
-      f.ssl.verify?.should == false
+      expect(f.url_prefix.to_s).to eq "https://localhost/"
+      expect(f.ssl.verify?).to eq false
     end
 
     it "rejects invalid ssl: verify: object" do
-      lambda do
+      expect do
         f = Query.__send__(:faraday_client, {
           server: "localhost",
           ssl: {verify: "??"}
         })
-      end.should raise_error(ArgumentError, /String/)
+      end.to raise_error(ArgumentError, /String/)
     end
 
     it "is enabled with ssl: Hash" do
@@ -405,31 +405,31 @@ describe Trino::Client::StatementClient do
         ssl: ssl,
       })
 
-      f.url_prefix.to_s.should == "https://localhost/"
-      f.ssl.verify?.should == true
-      f.ssl.ca_file.should == ssl[:ca_file]
-      f.ssl.ca_path.should == ssl[:ca_path]
-      f.ssl.cert_store.should == ssl[:cert_store]
-      f.ssl.client_cert.should == ssl[:client_cert]
-      f.ssl.client_key.should == ssl[:client_key]
+      expect(f.url_prefix.to_s).to eq "https://localhost/"
+      expect(f.ssl.verify?).to eq true
+      expect(f.ssl.ca_file).to eq ssl[:ca_file]
+      expect(f.ssl.ca_path).to eq ssl[:ca_path]
+      expect(f.ssl.cert_store).to eq ssl[:cert_store]
+      expect(f.ssl.client_cert).to eq ssl[:client_cert]
+      expect(f.ssl.client_key).to eq ssl[:client_key]
     end
 
     it "rejects an invalid string" do
-      lambda do
+      expect do
         Query.__send__(:faraday_client, {
           server: "localhost",
           ssl: '??',
         })
-      end.should raise_error(ArgumentError, /String/)
+      end.to raise_error(ArgumentError, /String/)
     end
 
     it "rejects an integer" do
-      lambda do
+      expect do
         Query.__send__(:faraday_client, {
           server: "localhost",
           ssl: 3,
         })
-      end.should raise_error(ArgumentError, /:ssl/)
+      end.to raise_error(ArgumentError, /:ssl/)
     end
   end
 
@@ -440,13 +440,13 @@ describe Trino::Client::StatementClient do
 
     faraday = Faraday.new(url: "http://localhost")
     client = StatementClient.new(faraday, query, options.merge(model_version: "316"))
-    client.current_results.should be_a_kind_of(ModelVersions::V316::QueryResults)
+    expect(client.current_results).to be_a_kind_of(ModelVersions::V316::QueryResults)
   end
 
   it "rejects unsupported model version" do
-    lambda do
+    expect do
       StatementClient.new(faraday, query, options.merge(model_version: "0.111"))
-    end.should raise_error(NameError)
+    end.to raise_error(NameError)
   end
 
   let :nested_json do
@@ -543,9 +543,9 @@ describe Trino::Client::StatementClient do
         stub_request(:get, "localhost/v1/next_uri").
           with(headers: headers).
           to_return(body: planning_response.to_json)
-        lambda do
+        expect do
           client.advance
-        end.should raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
+        end.to raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
       end
 
       it "raises TrinoQueryTimeoutError if timeout during initial resuming" do
@@ -553,9 +553,9 @@ describe Trino::Client::StatementClient do
           with(headers: headers).
           to_return(body: lambda { |req| raise Timeout::Error.new("execution expired") })
 
-        lambda do
+        expect do
           StatementClient.new(faraday, query, options.merge(timeout_type => 1), "/v1/next_uri")
-        end.should raise_error(Trino::Client::TrinoQueryTimeoutError, "Query timed out")
+        end.to raise_error(Trino::Client::TrinoQueryTimeoutError, "Query timed out")
       end
 
       it "raises TrinoHttpError if timeout during initial resuming and #{timeout_type} < retry_timeout" do
@@ -563,9 +563,9 @@ describe Trino::Client::StatementClient do
           with(headers: headers).
           to_return(body: lambda { |req| raise Timeout::Error.new("execution expired") })
 
-        lambda do
+        expect do
           StatementClient.new(faraday, query, options.merge(timeout_type => 2, retry_timeout: 1), "/v1/next_uri")
-        end.should raise_error(Trino::Client::TrinoHttpError, "Trino API error due to timeout")
+        end.to raise_error(Trino::Client::TrinoHttpError, "Trino API error due to timeout")
       end
     end
 
@@ -605,9 +605,9 @@ describe Trino::Client::StatementClient do
       stub_request(:get, "localhost/v1/next_uri").
         with(headers: headers).
         to_return(body: late_running_response.to_json)
-      lambda do
+      expect do
         client.advance
-      end.should raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
+      end.to raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
     end
 
     it "doesn't raise errors if query is done" do

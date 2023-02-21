@@ -22,23 +22,23 @@ describe Trino::Client::Client do
 
       rehashed = client.run_with_names('fake query')
 
-      rehashed.length.should == 3
+      expect(rehashed.length).to eq 3
 
-      rehashed[0]['animal'].should == 'dog'
-      rehashed[0]['score'].should == 1
-      rehashed[0]['name'].should == 'Lassie'
+      expect(rehashed[0]['animal']).to eq 'dog'
+      expect(rehashed[0]['score']).to eq 1
+      expect(rehashed[0]['name']).to eq 'Lassie'
 
-      rehashed[0].values[0].should == 'dog'
-      rehashed[0].values[1].should == 1
-      rehashed[0].values[2].should == 'Lassie'
+      expect(rehashed[0].values[0]).to eq 'dog'
+      expect(rehashed[0].values[1]).to eq 1
+      expect(rehashed[0].values[2]).to eq 'Lassie'
 
-      rehashed[1]['animal'].should == 'horse'
-      rehashed[1]['score'].should == 5
-      rehashed[1]['name'].should == 'Mr. Ed'
+      expect(rehashed[1]['animal']).to eq 'horse'
+      expect(rehashed[1]['score']).to eq 5
+      expect(rehashed[1]['name']).to eq 'Mr. Ed'
 
-      rehashed[1].values[0].should == 'horse'
-      rehashed[1].values[1].should == 5
-      rehashed[1].values[2].should == 'Mr. Ed'
+      expect(rehashed[1].values[0]).to eq 'horse'
+      expect(rehashed[1].values[1]).to eq 5
+      expect(rehashed[1].values[2]).to eq 'Mr. Ed'
     end
 
     it 'empty results' do
@@ -47,14 +47,14 @@ describe Trino::Client::Client do
 
       rehashed = client.run_with_names('fake query')
 
-      rehashed.length.should == 0
+      expect(rehashed.length).to eq 0
     end
 
     it 'handles too few result columns' do
       rows = [['wrong', 'count']]
       client.stub(:run).and_return([columns, rows])
 
-      client.run_with_names('fake query').should == [{
+      expect(client.run_with_names('fake query')).to eq [{
         "animal" => "wrong",
         "score" => "count",
         "name" => nil,
@@ -65,7 +65,7 @@ describe Trino::Client::Client do
       rows = [['wrong', 'count', 'too', 'much', 'columns']]
       client.stub(:run).and_return([columns, rows])
 
-      client.run_with_names('fake query').should == [{
+      expect(client.run_with_names('fake query')).to eq [{
         "animal" => "wrong",
         "score" => "count",
         "name" => 'too',
