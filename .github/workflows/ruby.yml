@@ -17,6 +17,9 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version: ['2.7', '3.0', '3.2']
+        faraday-version: ['~> 1', '~> 2']
+    env:
+      FARADAY_VERSION: ${{ matrix.faraday-version }}
     timeout-minutes: 5 # Typically ends within 1-2 min
     steps:
       - uses: actions/checkout@v2
