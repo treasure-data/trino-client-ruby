@@ -107,11 +107,12 @@ module Trino::Client
         raise TrinoError, "Query #{@api.current_results.id} has no columns"
       end
 
-      begin
+      loop do
         if data = @api.current_results.data
           block.call(data)
         end
-      end while advance_and_raise
+        break unless advance_and_raise
+      end
     end
 
     def query_info
