@@ -8,7 +8,12 @@
 
 name: Ruby
 
-on: [push, pull_request]
+on:
+  push:
+    branch:
+      - main
+      - master
+  pull_request:
 
 jobs:
   test:
