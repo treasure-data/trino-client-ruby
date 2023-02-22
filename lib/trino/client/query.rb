@@ -16,6 +16,8 @@
 module Trino::Client
 
   require 'faraday'
+  require 'faraday/gzip'
+  require 'faraday/follow_redirects'
   require 'trino/client/models'
   require 'trino/client/errors'
   require 'trino/client/faraday_client'
