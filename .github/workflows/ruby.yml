@@ -14,9 +14,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        ruby-version: ['2.7', '3.0']
-
+        ruby-version: ['2.7', '3.0', '3.2']
+    timeout-minutes: 5 # Typically ends within 1-2 min
     steps:
       - uses: actions/checkout@v2
       - name: Set up Ruby
