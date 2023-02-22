@@ -30,8 +30,8 @@ describe Trino::Client::StatementClient do
   end
 
   it "sets headers" do
-    stub_request(:post, "localhost/v1/statement").
-      with(body: query,
+    stub_request(:post, "localhost/v1/statement")
+      .with(body: query,
         headers: {
            "User-Agent" => "trino-ruby/#{VERSION}",
            "X-Trino-Catalog" => options[:catalog],
@@ -54,8 +54,8 @@ describe Trino::Client::StatementClient do
 
   it "sets headers" do
     retry_p = false
-    stub_request(:post, "localhost/v1/statement").
-      with(body: query,
+    stub_request(:post, "localhost/v1/statement")
+      .with(body: query,
         headers: {
            "User-Agent" => "trino-ruby/#{VERSION}",
            "X-Trino-Catalog" => options[:catalog],
@@ -65,8 +65,8 @@ describe Trino::Client::StatementClient do
            "X-Trino-Time-Zone" => options[:time_zone],
  }).to_return(body: response_json2.to_json)
 
-    stub_request(:get, "localhost/v1/next_uri").
-      with(headers: {
+    stub_request(:get, "localhost/v1/next_uri")
+      .with(headers: {
               "User-Agent" => "trino-ruby/#{VERSION}",
               "X-Trino-Catalog" => options[:catalog],
               "X-Trino-Schema" => options[:schema],
@@ -83,8 +83,8 @@ describe Trino::Client::StatementClient do
 
   it "uses 'Accept: application/x-msgpack' if option is set" do
     retry_p = false
-    stub_request(:post, "localhost/v1/statement").
-      with(body: query,
+    stub_request(:post, "localhost/v1/statement")
+      .with(body: query,
         headers: {
            "User-Agent" => "trino-ruby/#{VERSION}",
            "X-Trino-Catalog" => options[:catalog],
@@ -95,8 +95,8 @@ describe Trino::Client::StatementClient do
            "Accept" => "application/x-msgpack,application/json"
  }).to_return(body: MessagePack.dump(response_json2), headers: {"Content-Type" => "application/x-msgpack"})
 
-    stub_request(:get, "localhost/v1/next_uri").
-      with(headers: {
+    stub_request(:get, "localhost/v1/next_uri")
+      .with(headers: {
               "User-Agent" => "trino-ruby/#{VERSION}",
               "X-Trino-Catalog" => options[:catalog],
               "X-Trino-Schema" => options[:schema],
@@ -163,16 +163,16 @@ describe Trino::Client::StatementClient do
   end
 
   it "receives headers of POST" do
-    stub_request(:post, "localhost/v1/statement").
-      with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
+    stub_request(:post, "localhost/v1/statement")
+      .with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
 
     sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
     expect(sc.current_results_headers["X-Test-Header"]).to eq "123"
   end
 
   it "receives headers of POST through Query" do
-    stub_request(:post, "localhost/v1/statement").
-      with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
+    stub_request(:post, "localhost/v1/statement")
+      .with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
 
     q = Trino::Client.new(options).query(query)
     expect(q.current_results_headers["X-Test-Header"]).to eq "123"
@@ -180,11 +180,11 @@ describe Trino::Client::StatementClient do
 
   describe "#query_id" do
     it "returns query_id" do
-      stub_request(:post, "localhost/v1/statement").
-        with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
+      stub_request(:post, "localhost/v1/statement")
+        .with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})
 
-     stub_request(:get, "localhost/v1/next_uri").
-        to_return(body: response_json.to_json, headers: {"X-Test-Header" => "123"})
+     stub_request(:get, "localhost/v1/next_uri")
+       .to_return(body: response_json.to_json, headers: {"X-Test-Header" => "123"})
 
       sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
       expect(sc.query_id).to eq "queryid"
@@ -207,38 +207,38 @@ describe Trino::Client::StatementClient do
     end
 
     let :statement_client do
-      stub_request(:post, "http://localhost/v1/statement").
-        with(body: query, headers: headers).
-        to_return(body: response_json2.to_json)
+      stub_request(:post, "http://localhost/v1/statement")
+        .with(body: query, headers: headers)
+        .to_return(body: response_json2.to_json)
       StatementClient.new(faraday, query, options)
     end
 
     it "raises an exception with sample JSON if response is unexpected" do
       expect do
-        stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
-          with(headers: headers).
-          to_return(body: {"session" => "invalid session structure"}.to_json)
+        stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}")
+          .with(headers: headers)
+          .to_return(body: {"session" => "invalid session structure"}.to_json)
         statement_client.query_info
       end.to raise_error(TrinoHttpError, /Trino API returned unexpected structure at \/v1\/query\/queryid\. Expected Trino::Client::ModelVersions::.*::QueryInfo but got {"session":"invalid session structure"}/)
     end
 
     it "raises an exception if response format is unexpected" do
       expect do
-        stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
-          with(headers: headers).
-          to_return(body: "unexpected data structure (not JSON)")
+        stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}")
+          .with(headers: headers)
+          .to_return(body: "unexpected data structure (not JSON)")
         statement_client.query_info
       end.to raise_error(TrinoHttpError, /Trino API returned unexpected data format./)
     end
 
     it "is redirected if server returned 301" do
-      stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}").
-        with(headers: headers).
-        to_return(status: 301, headers: {"Location" => "http://localhost/v1/query/redirected"})
+      stub_request(:get, "http://localhost/v1/query/#{response_json2[:id]}")
+        .with(headers: headers)
+        .to_return(status: 301, headers: {"Location" => "http://localhost/v1/query/redirected"})
 
-      stub_request(:get, "http://localhost/v1/query/redirected").
-        with(headers: headers).
-        to_return(body: {"queryId" => "queryid"}.to_json)
+      stub_request(:get, "http://localhost/v1/query/redirected")
+        .with(headers: headers)
+        .to_return(body: {"queryId" => "queryid"}.to_json)
 
       query_info = statement_client.query_info
       expect(query_info.query_id).to eq "queryid"
@@ -249,8 +249,8 @@ describe Trino::Client::StatementClient do
     let(:query_id) { "A_QUERY_ID" }
 
     it "sends DELETE request with empty body to /v1/query/{queryId}" do
-      stub_request(:delete, "http://localhost/v1/query/#{query_id}").
-        with(body: "",
+      stub_request(:delete, "http://localhost/v1/query/#{query_id}")
+        .with(body: "",
           headers: {
              "User-Agent" => "trino-ruby/#{VERSION}",
              "X-Trino-Catalog" => options[:catalog],
@@ -279,12 +279,12 @@ describe Trino::Client::StatementClient do
     it "sets X-Trino-Session from properties" do
       options[:properties] = {"hello" => "world", "name" => "value"}
 
-      stub_request(:post, "localhost/v1/statement").
-        with(body: query,
+      stub_request(:post, "localhost/v1/statement")
+        .with(body: query,
           headers: headers.merge({
             "X-Trino-Session" => options[:properties].map { |k, v| "#{k}=#{v}" }.join(", ")
-          })).
-        to_return(body: response_json.to_json)
+          }))
+        .to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
     end
@@ -292,10 +292,10 @@ describe Trino::Client::StatementClient do
     it "sets X-Trino-Client-Info from client_info" do
       options[:client_info] = "raw"
 
-      stub_request(:post, "localhost/v1/statement").
-        with(body: query,
-          headers: headers.merge("X-Trino-Client-Info" => "raw")).
-        to_return(body: response_json.to_json)
+      stub_request(:post, "localhost/v1/statement")
+        .with(body: query,
+          headers: headers.merge("X-Trino-Client-Info" => "raw"))
+        .to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
     end
@@ -303,10 +303,10 @@ describe Trino::Client::StatementClient do
     it "sets X-Trino-Client-Info in JSON from client_info" do
       options[:client_info] = {"k1" => "v1", "k2" => "v2"}
 
-      stub_request(:post, "localhost/v1/statement").
-        with(body: query,
-          headers: headers.merge("X-Trino-Client-Info" => '{"k1":"v1","k2":"v2"}')).
-        to_return(body: response_json.to_json)
+      stub_request(:post, "localhost/v1/statement")
+        .with(body: query,
+          headers: headers.merge("X-Trino-Client-Info" => '{"k1":"v1","k2":"v2"}'))
+        .to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
     end
@@ -314,10 +314,10 @@ describe Trino::Client::StatementClient do
     it "sets X-Trino-Client-Tags" do
       options[:client_tags] = ["k1:v1", "k2:v2"]
 
-      stub_request(:post, "localhost/v1/statement").
-        with(body: query,
-          headers: headers.merge("X-Trino-Client-Tags" => "k1:v1,k2:v2")).
-        to_return(body: response_json.to_json)
+      stub_request(:post, "localhost/v1/statement")
+        .with(body: query,
+          headers: headers.merge("X-Trino-Client-Tags" => "k1:v1,k2:v2"))
+        .to_return(body: response_json.to_json)
 
       StatementClient.new(faraday, query, options)
     end
@@ -327,8 +327,8 @@ describe Trino::Client::StatementClient do
     let(:password) { "abcd" }
 
     it "adds basic auth headers when ssl is enabled and a password is given" do
-      stub_request(:post, "https://localhost/v1/statement").
-        with(body: query,
+      stub_request(:post, "https://localhost/v1/statement")
+        .with(body: query,
           headers: {
              "User-Agent" => "trino-ruby/#{VERSION}",
              "X-Trino-Catalog" => options[:catalog],
@@ -434,9 +434,9 @@ describe Trino::Client::StatementClient do
   end
 
   it "supports Presto" do
-    stub_request(:post, "localhost/v1/statement").
-      with({body: query}).
-      to_return(body: response_json.to_json)
+    stub_request(:post, "localhost/v1/statement")
+      .with({body: query})
+      .to_return(body: response_json.to_json)
 
     faraday = Faraday.new(url: "http://localhost")
     client = StatementClient.new(faraday, query, options.merge(model_version: "316"))
@@ -462,8 +462,8 @@ describe Trino::Client::StatementClient do
   end
 
   it "parse nested json properly" do
-    stub_request(:post, "localhost/v1/statement").
-        with(body: query,
+    stub_request(:post, "localhost/v1/statement")
+        .with(body: query,
           headers: {
               "User-Agent" => "trino-ruby/#{VERSION}",
               "X-Trino-Catalog" => options[:catalog],
@@ -528,30 +528,30 @@ describe Trino::Client::StatementClient do
 
     [:plan_timeout, :query_timeout].each do |timeout_type|
       it "raises TrinoQueryTimeoutError if timeout during planning" do
-        stub_request(:post, "localhost/v1/statement").
-          with(body: query, headers: headers).
-          to_return(body: planning_response.to_json)
+        stub_request(:post, "localhost/v1/statement")
+          .with(body: query, headers: headers)
+          .to_return(body: planning_response.to_json)
 
         client = StatementClient.new(faraday, query, options.merge(timeout_type => 1))
 
-        stub_request(:get, "localhost/v1/next_uri").
-          with(headers: headers).
-          to_return(body: planning_response.to_json)
+        stub_request(:get, "localhost/v1/next_uri")
+          .with(headers: headers)
+          .to_return(body: planning_response.to_json)
         client.advance
 
         sleep 1
-        stub_request(:get, "localhost/v1/next_uri").
-          with(headers: headers).
-          to_return(body: planning_response.to_json)
+        stub_request(:get, "localhost/v1/next_uri")
+          .with(headers: headers)
+          .to_return(body: planning_response.to_json)
         expect do
           client.advance
         end.to raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
       end
 
       it "raises TrinoQueryTimeoutError if timeout during initial resuming" do
-        stub_request(:get, "localhost/v1/next_uri").
-          with(headers: headers).
-          to_return(body: lambda { |req| raise Timeout::Error.new("execution expired") })
+        stub_request(:get, "localhost/v1/next_uri")
+          .with(headers: headers)
+          .to_return(body: lambda { |req| raise Timeout::Error.new("execution expired") })
 
         expect do
           StatementClient.new(faraday, query, options.merge(timeout_type => 1), "/v1/next_uri")
@@ -559,9 +559,9 @@ describe Trino::Client::StatementClient do
       end
 
       it "raises TrinoHttpError if timeout during initial resuming and #{timeout_type} < retry_timeout" do
-        stub_request(:get, "localhost/v1/next_uri").
-          with(headers: headers).
-          to_return(body: lambda { |req| raise Timeout::Error.new("execution expired") })
+        stub_request(:get, "localhost/v1/next_uri")
+          .with(headers: headers)
+          .to_return(body: lambda { |req| raise Timeout::Error.new("execution expired") })
 
         expect do
           StatementClient.new(faraday, query, options.merge(timeout_type => 2, retry_timeout: 1), "/v1/next_uri")
@@ -570,61 +570,61 @@ describe Trino::Client::StatementClient do
     end
 
     it "doesn't raise errors with plan_timeout if query planning is done" do
-      stub_request(:post, "localhost/v1/statement").
-        with(body: query, headers: headers).
-        to_return(body: planning_response.to_json)
+      stub_request(:post, "localhost/v1/statement")
+        .with(body: query, headers: headers)
+        .to_return(body: planning_response.to_json)
 
       client = StatementClient.new(faraday, query, options.merge(plan_timeout: 1))
 
       sleep 1
 
-      stub_request(:get, "localhost/v1/next_uri").
-        with(headers: headers).
-        to_return(body: early_running_response.to_json)
+      stub_request(:get, "localhost/v1/next_uri")
+        .with(headers: headers)
+        .to_return(body: early_running_response.to_json)
       client.advance
 
-      stub_request(:get, "localhost/v1/next_uri").
-        with(headers: headers).
-        to_return(body: late_running_response.to_json)
+      stub_request(:get, "localhost/v1/next_uri")
+        .with(headers: headers)
+        .to_return(body: late_running_response.to_json)
       client.advance
     end
 
     it "raises TrinoQueryTimeoutError if timeout during execution" do
-      stub_request(:post, "localhost/v1/statement").
-        with(body: query, headers: headers).
-        to_return(body: planning_response.to_json)
+      stub_request(:post, "localhost/v1/statement")
+        .with(body: query, headers: headers)
+        .to_return(body: planning_response.to_json)
 
       client = StatementClient.new(faraday, query, options.merge(query_timeout: 1))
 
-      stub_request(:get, "localhost/v1/next_uri").
-        with(headers: headers).
-        to_return(body: early_running_response.to_json)
+      stub_request(:get, "localhost/v1/next_uri")
+        .with(headers: headers)
+        .to_return(body: early_running_response.to_json)
       client.advance
 
       sleep 1
-      stub_request(:get, "localhost/v1/next_uri").
-        with(headers: headers).
-        to_return(body: late_running_response.to_json)
+      stub_request(:get, "localhost/v1/next_uri")
+        .with(headers: headers)
+        .to_return(body: late_running_response.to_json)
       expect do
         client.advance
       end.to raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
     end
 
     it "doesn't raise errors if query is done" do
-      stub_request(:post, "localhost/v1/statement").
-        with(body: query, headers: headers).
-        to_return(body: planning_response.to_json)
+      stub_request(:post, "localhost/v1/statement")
+        .with(body: query, headers: headers)
+        .to_return(body: planning_response.to_json)
 
       client = StatementClient.new(faraday, query, options.merge(query_timeout: 1))
 
-      stub_request(:get, "localhost/v1/next_uri").
-        with(headers: headers).
-        to_return(body: early_running_response.to_json)
+      stub_request(:get, "localhost/v1/next_uri")
+        .with(headers: headers)
+        .to_return(body: early_running_response.to_json)
       client.advance
 
-      stub_request(:get, "localhost/v1/next_uri").
-        with(headers: headers).
-        to_return(body: done_response.to_json)
+      stub_request(:get, "localhost/v1/next_uri")
+        .with(headers: headers)
+        .to_return(body: done_response.to_json)
       client.advance # set finished
 
       sleep 1
