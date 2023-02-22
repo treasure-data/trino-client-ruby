@@ -16,7 +16,6 @@
 module Trino::Client
 
   require 'faraday'
-  require 'faraday_middleware'
   require 'trino/client/models'
   require 'trino/client/errors'
   require 'trino/client/faraday_client'
