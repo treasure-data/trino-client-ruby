@@ -10,7 +10,7 @@ name: Ruby
 
 on:
   push:
-    branch:
+    branches:
       - main
       - master
   pull_request:
