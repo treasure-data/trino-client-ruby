@@ -2,7 +2,6 @@
 ignore:
   - 'lib/trino/client/*.rb'
   - 'modelgen/model_versions.rb': &modelgen_common
-      - Style/StringLiterals # TODO: Remove this later
       - Layout/DotPosition # TODO: Remove this later
       # NOTE: Selecting the below items
       - Layout/ArrayAlignment
@@ -22,7 +21,6 @@ ignore:
   - 'modelgen/models.rb': *modelgen_common
   - 'modelgen/trino_models.rb': *modelgen_common
   - 'spec/*.rb':
-      - Style/StringLiterals  # TODO: Remove this later
       - Layout/DotPosition  # TODO: Remove this later
       - Style/RedundantBegin
       - Style/TrailingCommaInHashLiteral

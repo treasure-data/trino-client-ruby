@@ -1,6 +1,6 @@
 module TrinoModels
-  require 'find'
-  require 'stringio'
+  require "find"
+  require "stringio"
 
   PRIMITIVE_TYPES = %w[String boolean long int short byte double float Integer Double Boolean]
   ARRAY_PRIMITIVE_TYPES = PRIMITIVE_TYPES.map { |t| "#{t}[]" }
@@ -68,13 +68,13 @@ module TrinoModels
           base_type = m[1]
           nullable = true
         elsif m = /OptionalInt/.match(type)
-          base_type = 'Integer'
+          base_type = "Integer"
           nullable = true
         elsif m = /OptionalLong/.match(type)
-          base_type = 'Long'
+          base_type = "Long"
           nullable = true
         elsif m = /OptionalDouble/.match(type)
-          base_type = 'Double'
+          base_type = "Double"
           nullable = true
         elsif type =~ /\w+/
           base_type = type
@@ -85,8 +85,8 @@ module TrinoModels
         map_value_base_type = @name_mapping[[model_name, map_value_base_type]] || map_value_base_type
 
         if generic
-          base_type = generic if base_type == 'T'
-          map_value_base_type = generic if map_value_base_type == 'T'
+          base_type = generic if base_type == "T"
+          map_value_base_type = generic if map_value_base_type == "T"
         end
         if m = GENERIC_PATTERN.match(base_type)
           base_type_alias = "#{m[1]}_#{m[2]}"
@@ -145,7 +145,7 @@ module TrinoModels
 
       @source_files ||= Find.find(@source_path).to_a
       pattern = /\/#{model_name}.java$/
-      matched = @source_files.find_all { |path| path =~ pattern && !path.include?('/test/') && !path.include?('/verifier/') }
+      matched = @source_files.find_all { |path| path =~ pattern && !path.include?("/test/") && !path.include?("/verifier/") }
       if matched.empty?
         raise ModelAnalysisError, "Model class #{model_name} is not found"
       end
@@ -159,9 +159,9 @@ module TrinoModels
 
   class ModelFormatter
     def initialize(options = {})
-      @indent = options[:indent] || '  '
+      @indent = options[:indent] || "  "
       @base_indent_count = options[:base_indent_count] || 0
-      @struct_class = options[:struct_class] || 'Struct'
+      @struct_class = options[:struct_class] || "Struct"
       @special_struct_initialize_method = options[:special_struct_initialize_method]
       @primitive_types = PRIMITIVE_TYPES + ARRAY_PRIMITIVE_TYPES + (options[:primitive_types] || [])
       @skip_types = options[:skip_types] || []
@@ -224,7 +224,7 @@ module TrinoModels
           if field.map?
             key_expr = convert_expression(field.base_type, field.base_type, "k")
             value_expr = convert_expression(field.map_value_base_type, field.map_value_base_type, "v")
-            if key_expr == 'k' && value_expr == 'v'
+            if key_expr == "k" && value_expr == "v"
               expr = "hash[\"#{field.key}\"]"
             else
               expr << "Hash[hash[\"#{field.key}\"].to_a.map! {|k,v| [#{key_expr}, #{value_expr}] }]"

@@ -1,4 +1,4 @@
-require 'bundler'
+require "bundler"
 
 begin
   Bundler.setup(:default, :test)
@@ -8,16 +8,16 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 
-require 'simplecov'
+require "simplecov"
 SimpleCov.start
 
-require 'json'
-require 'webmock/rspec'
+require "json"
+require "webmock/rspec"
 
-require 'trino-client'
+require "trino-client"
 include Trino::Client
 
-require 'tiny-presto'
+require "tiny-presto"
 
 MAX_RETRY_COUNT = 5
 RETRYABLE_ERRORS = [

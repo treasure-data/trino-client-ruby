@@ -5,9 +5,9 @@ end
 
 model_version, source_dir, template_path, output_path = *ARGV
 
-require_relative 'trino_models'
+require_relative "trino_models"
 
-require 'erb'
+require "erb"
 erb = ERB.new(File.read(template_path))
 
 source_path = source_dir
@@ -85,7 +85,7 @@ DynamicFiltersStats core/trino-main/src/main/java/io/trino/server/DynamicFilterS
 
 # model => [ [key,nullable,type], ... ]
 extra_fields = {
-    'QueryInfo' => [['finalQueryInfo', nil, 'boolean']]
+    "QueryInfo" => [["finalQueryInfo", nil, "boolean"]]
 }
 
 analyzer = TrinoModels::ModelAnalyzer.new(

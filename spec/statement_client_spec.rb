@@ -1,4 +1,4 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe Trino::Client::StatementClient do
   let :options do
@@ -47,7 +47,7 @@ describe Trino::Client::StatementClient do
   let :response_json2 do
     {
       id: "queryid",
-      nextUri: 'http://localhost/v1/next_uri',
+      nextUri: "http://localhost/v1/next_uri",
       stats: {}
     }
   end
@@ -194,7 +194,7 @@ describe Trino::Client::StatementClient do
     end
   end
 
-  describe '#query_info' do
+  describe "#query_info" do
     let :headers do
       {
         "User-Agent" => "trino-ruby/#{VERSION}",
@@ -246,7 +246,7 @@ describe Trino::Client::StatementClient do
   end
 
   describe "Killing a query" do
-    let(:query_id) { 'A_QUERY_ID' }
+    let(:query_id) { "A_QUERY_ID" }
 
     it "sends DELETE request with empty body to /v1/query/{queryId}" do
       stub_request(:delete, "http://localhost/v1/query/#{query_id}").
@@ -264,7 +264,7 @@ describe Trino::Client::StatementClient do
     end
   end
 
-  describe 'advanced HTTP headers' do
+  describe "advanced HTTP headers" do
     let(:headers) do
       {
         "User-Agent" => "trino-ruby/#{VERSION}",
@@ -323,8 +323,8 @@ describe Trino::Client::StatementClient do
     end
   end
 
-  describe 'HTTP basic auth' do
-    let(:password) { 'abcd' }
+  describe "HTTP basic auth" do
+    let(:password) { "abcd" }
 
     it "adds basic auth headers when ssl is enabled and a password is given" do
       stub_request(:post, "https://localhost/v1/statement").
@@ -347,8 +347,8 @@ describe Trino::Client::StatementClient do
     it "forbids using basic auth when ssl is disabled" do
       expect do
         Query.__send__(:faraday_client, {
-          server: 'localhost',
-          password: 'abcd'
+          server: "localhost",
+          password: "abcd"
         })
       end.to raise_error(ArgumentError)
     end
@@ -390,7 +390,7 @@ describe Trino::Client::StatementClient do
     end
 
     it "is enabled with ssl: Hash" do
-      require 'openssl'
+      require "openssl"
 
       ssl = {
         ca_file: "/path/to/dummy.pem",
@@ -418,7 +418,7 @@ describe Trino::Client::StatementClient do
       expect do
         Query.__send__(:faraday_client, {
           server: "localhost",
-          ssl: '??',
+          ssl: "??",
         })
       end.to raise_error(ArgumentError, /String/)
     end
@@ -491,7 +491,7 @@ describe Trino::Client::StatementClient do
     let :planning_response do
       {
         id: "queryid",
-        nextUri: 'http://localhost/v1/next_uri',
+        nextUri: "http://localhost/v1/next_uri",
         stats: {},
       }
     end
@@ -499,7 +499,7 @@ describe Trino::Client::StatementClient do
     let :early_running_response do
       {
         id: "queryid",
-        nextUri: 'http://localhost/v1/next_uri',
+        nextUri: "http://localhost/v1/next_uri",
         stats: {},
         columns: [{name: "_col0", type: "bigint"}],
       }
@@ -508,7 +508,7 @@ describe Trino::Client::StatementClient do
     let :late_running_response do
       {
         id: "queryid",
-        nextUri: 'http://localhost/v1/next_uri',
+        nextUri: "http://localhost/v1/next_uri",
         stats: {},
         columns: [{name: "_col0", type: "bigint"}],
         data: "",

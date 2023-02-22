@@ -1,7 +1,7 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe Trino::Client::Models do
-  describe 'rehash of BlockedReason' do
+  describe "rehash of BlockedReason" do
     h = {
       "operatorId" => 0,
       "planNodeId" => "47",
@@ -29,7 +29,7 @@ describe Trino::Client::Models do
       "info" => {"k" => "v"}
     }
 
-    it 'decode blocked_reason' do
+    it "decode blocked_reason" do
       stats = Models::OperatorStats.decode(h)
       expect(stats.blocked_reason).to eq :waiting_for_memory
     end
