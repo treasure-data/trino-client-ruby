@@ -1,6 +1,6 @@
 ---
 ignore:
-  - 'lib/trino/client/*.rb':
+  - 'lib/**/*.rb':
       - Layout/EmptyLinesAroundModuleBody
       - Layout/FirstHashElementIndentation
       - Layout/SpaceAroundEqualsInParameterDefault
