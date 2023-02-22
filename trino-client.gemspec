@@ -18,7 +18,8 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = ">= 2.7.0"
 
   gem.add_dependency "faraday", ">= 1", "< 3"
-  gem.add_dependency "faraday_middleware", ["~> 1.0"]
+  gem.add_dependency "faraday-gzip", ">= 1"
+  gem.add_dependency "faraday-follow_redirects", ">= 0.3"
   gem.add_dependency "msgpack", [">= 1.5.1"]
 
   gem.add_development_dependency "rake", [">= 0.9.2", "< 14.0"]

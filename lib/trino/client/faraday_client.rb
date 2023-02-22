@@ -14,6 +14,8 @@
 #    limitations under the License.
 #
 module Trino::Client
+  FARADAY1_USED = Faraday::VERSION.start_with?("1.")
+  private_constant :FARADAY1_USED
 
   require 'cgi'
 
@@ -76,13 +78,18 @@ module Trino::Client
 
     faraday = Faraday.new(faraday_options) do |faraday|
       if options[:user] && options[:password]
-        faraday.request(:basic_auth, options[:user], options[:password])
+        # https://lostisland.github.io/faraday/middleware/authentication
+        if FARADAY1_USED
+          faraday.request(:basic_auth, options[:user], options[:password])
+        else
+          faraday.request :authorization, :basic, options[:user], options[:password]
+        end
       end
       if options[:follow_redirect]
-        faraday.use FaradayMiddleware::FollowRedirects
+        faraday.response :follow_redirects
       end
       if options[:gzip]
-        faraday.use FaradayMiddleware::Gzip
+        faraday.request :gzip
       end
       faraday.response :logger if options[:http_debug]
       faraday.adapter Faraday.default_adapter
