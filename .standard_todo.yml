@@ -1,6 +1,32 @@
 ---
 ignore:
-  - 'lib/trino/client/*.rb'
+  - 'lib/trino/client/*.rb':
+      - Layout/EmptyLinesAroundModuleBody
+      - Layout/FirstHashElementIndentation
+      - Layout/SpaceAroundEqualsInParameterDefault
+      - Layout/SpaceInsideBlockBraces
+      - Layout/SpaceInsideBlockBraces
+      - Lint/AssignmentInCondition
+      - Lint/UselessAssignment
+      - Naming/VariableName
+      - Performance/RegexpMatch
+      - Performance/StringReplacement
+      - Style/ConditionalAssignment
+      - Style/HashConversion
+      - Style/HashSyntax
+      - Style/NilComparison
+      - Style/RedundantBegin
+      - Style/RedundantFileExtensionInRequire
+      - Style/RedundantInterpolation
+      - Style/RedundantReturn
+      - Style/RedundantSelf
+      - Style/SafeNavigation
+      - Style/Semicolon
+      - Style/StringLiterals
+      - Style/StringLiteralsInInterpolation
+      - Style/TernaryParentheses
+      - Style/TrailingCommaInHashLiteral
+
   - 'modelgen/model_versions.rb': &modelgen_common
       - Style/StringLiterals # TODO: Remove this later
       - Layout/DotPosition # TODO: Remove this later

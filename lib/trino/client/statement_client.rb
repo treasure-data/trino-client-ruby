@@ -193,7 +193,7 @@ module Trino::Client
       start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       attempts = 0
 
-      begin
+      loop do
         begin
           response = @faraday.get(uri)
         rescue Faraday::TimeoutError, Faraday::ConnectionFailed
@@ -218,7 +218,9 @@ module Trino::Client
 
         attempts += 1
         sleep attempts * 0.1
-      end while (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) < @retry_timeout && !client_aborted?
+
+        break unless (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) < @retry_timeout && !client_aborted?
+      end
 
       exception! TrinoHttpError.new(408, "Trino API error due to timeout")
     end
