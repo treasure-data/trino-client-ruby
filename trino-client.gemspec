@@ -11,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.homepage      = "https://github.com/treasure-data/trino-client-ruby"
   gem.license       = "Apache-2.0"
 
-  gem.files         = `git ls-files`.split($\)
+  gem.files         = `git ls-files -z`.split("\x0").reject { |f| f.start_with?(*%w[.git .standard modelgen spec trino-client-ruby Gemfile Rakefile publish.rb release.rb]) }
   gem.executables   = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   gem.require_paths = ["lib"]
 
