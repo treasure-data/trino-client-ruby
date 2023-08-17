@@ -1,5 +1,9 @@
 trino-client-ruby
 ====
+## 2.0.1
+- Reduce published gem size ([#113](https://github.com/treasure-data/trino-client-ruby/issues/113)) [[4e03819](https://github.com/treasure-data/trino-client-ruby/commit/4e03819)]
+- Update standard requirement from ~> 1.24.3 to ~> 1.30.1 ([#112](https://github.com/treasure-data/trino-client-ruby/issues/112)) [[b9f9c0c](https://github.com/treasure-data/trino-client-ruby/commit/b9f9c0c)]
+
 ## 2.0.0
 - Bump actions/checkout from 2 to 3 ([#99](https://github.com/treasure-data/trino-client-ruby/issues/99)) [[3022dc1](https://github.com/treasure-data/trino-client-ruby/commit/3022dc1)]
 - linter: Enable linter on lib  ([#98](https://github.com/treasure-data/trino-client-ruby/issues/98)) [[1c043cd](https://github.com/treasure-data/trino-client-ruby/commit/1c043cd)]
