@@ -45,6 +45,19 @@ module Trino::Client
       Trino::Client.faraday_client(options)
     end
 
+    def self.transform_row(column_value_parsers, row)
+      row_object = {}
+
+      row.each_with_index do |element, i|
+        column = column_value_parsers[i]
+        value = column.value(element)
+
+        row_object[column.name] = value
+      end
+
+      row_object
+    end
+
     def initialize(api)
       @api = api
     end
@@ -85,6 +98,20 @@ module Trino::Client
       wait_for_columns
 
       return @api.current_results.columns
+    end
+
+    def column_value_parsers
+      @column_value_parsers ||= columns.map {|column|
+        ColumnValueParser.new(column)
+      }
+    end
+
+    def transform_rows
+      rows.map(&:transform_row)
+    end
+
+    def transform_row(row)
+      self.class.transform_row(column_value_parsers, row)
     end
 
     def rows

@@ -51,6 +51,41 @@ describe Trino::Client::Client do
       expect(rehashed[1].values[4]).to eq ['some horse', 0]
     end
 
+    it 'transforms rows into Ruby objects' do
+      rows = [
+        ['dog', 1, 'Lassie', ['kibble', 'peanut butter'], ['spaniel', 2]],
+        ['horse', 5, 'Mr. Ed', ['hay', 'sugar cubes'], ['some horse', 0]],
+        ['t-rex', 37, 'Doug', ['rodents', 'small dinos'], ['dino', 0]]
+      ]
+      client.stub(:run).and_return([columns, rows])
+
+      columns, rows = client.run('fake query')
+      column_value_parsers = columns.map { |column| Trino::Client::ColumnValueParser.new(column) }
+      transformed_rows = rows.map { |row| Trino::Client::Query.transform_row(column_value_parsers, row) }
+
+      expect(transformed_rows[0]).to eq({
+        "animal" => "dog",
+        "score" => 1,
+        "name" => "Lassie",
+        "foods" => ["kibble", "peanut butter"],
+        "traits" => {
+          "breed" => "spaniel",
+          "num_spots" => 2,
+        },
+      })
+
+      expect(transformed_rows[1]).to eq({
+        "animal" => "horse",
+        "score" => 5,
+        "name" => "Mr. Ed",
+        "foods" => ["hay", "sugar cubes"],
+        "traits" => {
+          "breed" => "some horse",
+          "num_spots" => 0,
+        },
+      })
+    end
+
     it 'empty results' do
       rows = []
       client.stub(:run).and_return([columns, rows])
