@@ -121,7 +121,7 @@ describe Trino::Client::ColumnValueParser do
       'subobj' => {
         'login' => 'userLogin',
         'created_at' => Time.parse('2022-07-01T14:53:02Z'),
-        'id' => { 'subid' => 1234 }
+        'id' => {'subid' => 1234}
       },
       'onemore' => 'value'
     }
