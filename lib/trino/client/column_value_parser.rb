@@ -2,11 +2,12 @@ module Trino::Client
   class ColumnValueParser
     INSIDE_MATCHING_PARENS_REGEX = /\((?>[^)(]+|\g<0>)*\)/
 
-    attr_reader :name, :type
+    attr_reader :name, :type, :scalar_parser
 
-    def initialize(column)
+    def initialize(column, scalar_parser = nil)
       @name = column.name
       @type = prepare_type_for_parsing(column.type)
+      @scalar_parser = scalar_parser
     end
 
     # Public: Parse the value of a row's field by using its column's Trino type.
@@ -33,16 +34,12 @@ module Trino::Client
       elsif starts_with?(dtype, 'row(')
         return parse_row_element(data, dtype)
 
-      # Decode VARBINARY strings
-      elsif starts_with?(dtype, 'varbinary')
-        return blank?(data) ? nil : Base64.decode64(data)
-
-      # Convert TIMESTAMP fields to Ruby Time objects
-      elsif starts_with?(dtype, 'timestamp')
-        return blank?(data) ? nil : Time.parse(data)
+      # If defined, use scalar_parser to convert scalar types
+      elsif !scalar_parser.nil?
+        return scalar_parser.call(data, dtype)
       end
 
-      # Other types are returned unaltered
+      # Otherwise, values are returned unaltered
       data
     end
 

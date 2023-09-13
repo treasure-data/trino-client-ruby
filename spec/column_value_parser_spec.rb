@@ -1,9 +1,9 @@
 require 'spec_helper'
 
 describe Trino::Client::ColumnValueParser do
-  def column_value(data, type)
+  def column_value(data, type, scalar_parser = nil)
     column = Struct.new(:type, :name).new(type)
-    Trino::Client::ColumnValueParser.new(column).value(data)
+    Trino::Client::ColumnValueParser.new(column, scalar_parser).value(data)
   end
 
   it 'parses varchar values' do
@@ -13,11 +13,12 @@ describe Trino::Client::ColumnValueParser do
     expect(column_value(data, type)).to eq(expected_value)
   end
 
-  it 'parses timestamp values' do
+  it 'converts scalar values if configured to do so' do
     data = '2022-07-01T14:53:02Z'
     type = 'timestamp with time zone'
+    scalar_parser = ->(value, _dtype) { Time.parse(value) }
     expected_value = Time.parse(data)
-    expect(column_value(data, type)).to eq(expected_value)
+    expect(column_value(data, type, scalar_parser)).to eq(expected_value)
   end
 
   it 'parses array type values' do
@@ -42,12 +43,10 @@ describe Trino::Client::ColumnValueParser do
       'name' => 'userLogin',
       'plan_sku' => 'SKU_FREE',
       'type' => 'TYPE_USER',
-      'created_at' => Time.parse('2022-07-01T14:53:02Z'),
+      'created_at' => '2022-07-01T14:53:02Z',
       'organization_tenant_name' => ''
     }
-    value = column_value(data, type)
     expect(column_value(data, type)).to eq(expected_value)
-    expect(value['created_at'].is_a?(Time)).to eq true
   end
 
   it 'parses an array of row type values' do
@@ -65,12 +64,10 @@ describe Trino::Client::ColumnValueParser do
       'name' => 'userLogin',
       'plan_sku' => 'SKU_FREE',
       'type' => 'TYPE_USER',
-      'created_at' => Time.parse('2022-07-01T14:53:02Z'),
+      'created_at' => '2022-07-01T14:53:02Z',
       'organization_tenant_name' => ''
     }]
-    value = column_value(data, type)
     expect(column_value(data, type)).to eq(expected_value)
-    expect(value[0]['created_at'].is_a?(Time)).to eq true
   end
 
   it 'parses row type values that have an array in them' do
@@ -99,14 +96,12 @@ describe Trino::Client::ColumnValueParser do
       'id' => 'userId',
       'subobj' => {
         'login' => 'userLogin',
-        'created_at' => Time.parse('2022-07-01T14:53:02Z'),
+        'created_at' => '2022-07-01T14:53:02Z',
         'id' => 1234
       },
       'onemore' => 'value'
     }
-    value = column_value(data, type)
     expect(column_value(data, type)).to eq(expected_value)
-    expect(value['subobj']['created_at'].is_a?(Time)).to eq true
   end
 
   it 'parses row type values that have nested rows in them' do
@@ -120,13 +115,11 @@ describe Trino::Client::ColumnValueParser do
       'id' => 'userId',
       'subobj' => {
         'login' => 'userLogin',
-        'created_at' => Time.parse('2022-07-01T14:53:02Z'),
+        'created_at' => '2022-07-01T14:53:02Z',
         'id' => {'subid' => 1234}
       },
       'onemore' => 'value'
     }
-    value = column_value(data, type)
     expect(column_value(data, type)).to eq(expected_value)
-    expect(value['subobj']['created_at'].is_a?(Time)).to eq true
   end
 end
