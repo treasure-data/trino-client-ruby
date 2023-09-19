@@ -59,29 +59,35 @@ describe Trino::Client::Client do
       ]
       client.stub(:run).and_return([columns, rows])
 
+      query = Trino::Client::Query.new(nil)
+      query.stub(:columns).and_return(columns)
+      query.stub(:rows).and_return(rows)
+
+      # For this test, we'll use scalar_parser to add 2 to every integer
+      query.scalar_parser = ->(data, type) { (type == 'integer') ? data + 2 : data }
+
       columns, rows = client.run('fake query')
-      column_value_parsers = columns.map { |column| Trino::Client::ColumnValueParser.new(column) }
-      transformed_rows = rows.map { |row| Trino::Client::Query.transform_row(column_value_parsers, row) }
+      transformed_rows = query.transform_rows
 
       expect(transformed_rows[0]).to eq({
         "animal" => "dog",
-        "score" => 1,
+        "score" => 3,
         "name" => "Lassie",
         "foods" => ["kibble", "peanut butter"],
         "traits" => {
           "breed" => "spaniel",
-          "num_spots" => 2,
+          "num_spots" => 4,
         },
       })
 
       expect(transformed_rows[1]).to eq({
         "animal" => "horse",
-        "score" => 5,
+        "score" => 7,
         "name" => "Mr. Ed",
         "foods" => ["hay", "sugar cubes"],
         "traits" => {
           "breed" => "some horse",
-          "num_spots" => 0,
+          "num_spots" => 2,
         },
       })
     end

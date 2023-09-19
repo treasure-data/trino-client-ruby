@@ -58,6 +58,8 @@ module Trino::Client
       row_object
     end
 
+    attr_accessor :scalar_parser
+
     def initialize(api)
       @api = api
     end
@@ -102,12 +104,12 @@ module Trino::Client
 
     def column_value_parsers
       @column_value_parsers ||= columns.map {|column|
-        ColumnValueParser.new(column)
+        ColumnValueParser.new(column, scalar_parser)
       }
     end
 
     def transform_rows
-      rows.map(&:transform_row)
+      rows.map { |row| transform_row(row) }
     end
 
     def transform_row(row)
