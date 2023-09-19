@@ -1,5 +1,9 @@
 trino-client-ruby
 ====
+## 2.1.0
+- Add utility for transforming Trino ROW type columns into Ruby hashes ([#117](https://github.com/treasure-data/trino-client-ruby/issues/117)) [[e14251c](https://github.com/treasure-data/trino-client-ruby/commit/e14251c)]
+- Bump actions/checkout from 3 to 4 ([#116](https://github.com/treasure-data/trino-client-ruby/issues/116)) [[ebd9d9e](https://github.com/treasure-data/trino-client-ruby/commit/ebd9d9e)]
+
 ## 2.0.1
 - Reduce published gem size ([#113](https://github.com/treasure-data/trino-client-ruby/issues/113)) [[4e03819](https://github.com/treasure-data/trino-client-ruby/commit/4e03819)]
 - Update standard requirement from ~> 1.24.3 to ~> 1.30.1 ([#112](https://github.com/treasure-data/trino-client-ruby/issues/112)) [[b9f9c0c](https://github.com/treasure-data/trino-client-ruby/commit/b9f9c0c)]
