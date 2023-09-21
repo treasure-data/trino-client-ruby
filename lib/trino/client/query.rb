@@ -103,7 +103,8 @@ module Trino::Client
     end
 
     def column_value_parsers
-      @column_value_parsers ||= columns.map {|column|
+      @column_value_parsers ||= {}
+      @column_value_parsers[scalar_parser] ||= columns.map {|column|
         ColumnValueParser.new(column, scalar_parser)
       }
     end

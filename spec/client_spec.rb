@@ -90,6 +90,33 @@ describe Trino::Client::Client do
           "num_spots" => 2,
         },
       })
+
+      # And to show that you can change the scalar_parser, now we only add 1 to each integer.
+      query.scalar_parser = ->(data, type) { (type == 'integer') ? data + 1 : data }
+
+      transformed_rows = query.transform_rows
+
+      expect(transformed_rows[0]).to eq({
+        "animal" => "dog",
+        "score" => 2,
+        "name" => "Lassie",
+        "foods" => ["kibble", "peanut butter"],
+        "traits" => {
+          "breed" => "spaniel",
+          "num_spots" => 3,
+        },
+      })
+
+      expect(transformed_rows[1]).to eq({
+        "animal" => "horse",
+        "score" => 6,
+        "name" => "Mr. Ed",
+        "foods" => ["hay", "sugar cubes"],
+        "traits" => {
+          "breed" => "some horse",
+          "num_spots" => 1,
+        },
+      })
     end
 
     it 'empty results' do
