@@ -64,6 +64,19 @@ query = client.query("select * from sys.node")
 query_id = query.query_info.query_id
 query.each_row {|row| ... }  # when a thread is processing the query,
 client.kill(query_id)  # another thread / process can kill the query.
+
+# Use Query#transform_row to parse Trino ROW types into Ruby Hashes.
+# You can also set a scalar_parser to parse scalars how you'd like them.
+scalar_parser = -> (data, type) { (type === 'json') ? JSON.parse(data) : data }
+client.query("select * from sys.node") do |q|
+  q.scalar_parser = scalar_parser
+
+  # get query results. it feeds more rows until
+  # query execution finishes:
+  q.each_row {|row|
+    p q.transform_row(row)
+  }
+end
 ```
 
 ## Build models
