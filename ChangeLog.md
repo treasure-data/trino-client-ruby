@@ -1,5 +1,8 @@
 trino-client-ruby
 ====
+## 2.2.0
+- Add transform_row and scalar_parser documentation and make them easier to use ([#118](https://github.com/treasure-data/trino-client-ruby/issues/118)) [[41ffca7](https://github.com/treasure-data/trino-client-ruby/commit/41ffca7)]
+
 ## 2.1.0
 - Add utility for transforming Trino ROW type columns into Ruby hashes ([#117](https://github.com/treasure-data/trino-client-ruby/issues/117)) [[e14251c](https://github.com/treasure-data/trino-client-ruby/commit/e14251c)]
 - Bump actions/checkout from 3 to 4 ([#116](https://github.com/treasure-data/trino-client-ruby/issues/116)) [[ebd9d9e](https://github.com/treasure-data/trino-client-ruby/commit/ebd9d9e)]
