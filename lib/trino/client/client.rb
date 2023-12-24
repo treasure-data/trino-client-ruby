@@ -72,7 +72,7 @@ module Trino::Client
     end
   end
 
-  def self.new(*args)
-    Client.new(*args)
+  def self.new(...)
+    Client.new(...)
   end
 end
