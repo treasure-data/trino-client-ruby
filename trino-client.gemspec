@@ -32,5 +32,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "addressable", "~> 2.9.0"
   gem.add_development_dependency "simplecov", "~> 0.22.0"
   gem.add_development_dependency "standard", "~> 1.54.0"
-  gem.add_development_dependency "psych", "~> 3"
+  gem.add_development_dependency "psych", "~> 5"
 end
