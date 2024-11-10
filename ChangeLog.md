@@ -1,5 +1,12 @@
 trino-client-ruby
 ====
+## 2.2.1
+- fix: Retry GET against 502, 503 responses ([#129](https://github.com/treasure-data/trino-client-ruby/issues/129)) [[80f342d](https://github.com/treasure-data/trino-client-ruby/commit/80f342d)]
+- Update CODEOWNERS ([#127](https://github.com/treasure-data/trino-client-ruby/issues/127)) [[bad4b34](https://github.com/treasure-data/trino-client-ruby/commit/bad4b34)]
+- Update rspec requirement from ~> 3.12.0 to ~> 3.13.0 ([#124](https://github.com/treasure-data/trino-client-ruby/issues/124)) [[6716716](https://github.com/treasure-data/trino-client-ruby/commit/6716716)]
+- Bump release-drafter/release-drafter from 5 to 6 ([#125](https://github.com/treasure-data/trino-client-ruby/issues/125)) [[0c808c2](https://github.com/treasure-data/trino-client-ruby/commit/0c808c2)]
+- Bump github/codeql-action from 2 to 3 ([#123](https://github.com/treasure-data/trino-client-ruby/issues/123)) [[c9d9356](https://github.com/treasure-data/trino-client-ruby/commit/c9d9356)]
+
 ## 2.2.0
 - Add transform_row and scalar_parser documentation and make them easier to use ([#118](https://github.com/treasure-data/trino-client-ruby/issues/118)) [[41ffca7](https://github.com/treasure-data/trino-client-ruby/commit/41ffca7)]
 
