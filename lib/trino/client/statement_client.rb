@@ -208,7 +208,8 @@ module Trino::Client
             return response
           end
 
-          if response.status != 503  # retry only if 503 Service Unavailable
+          # retry if 502, 503, 504 according to the trino protocol
+          unless [502, 503, 504].include?(response.status)
             # deterministic error
             exception! TrinoHttpError.new(response.status, "Trino API error at #{uri} returned #{response.status}: #{response.body}")
           end
