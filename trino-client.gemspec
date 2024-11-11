@@ -28,5 +28,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "addressable", "~> 2.8.1" # 2.5.0 doesn't support Ruby 1.9.3
   gem.add_development_dependency "simplecov", "~> 0.22.0"
   gem.add_development_dependency "standard", "~> 1.30.1"
-  gem.add_development_dependency "psych", "~> 3"
+  gem.add_development_dependency "psych", "~> 5"
 end
