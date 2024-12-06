@@ -262,9 +262,11 @@ module Trino::Client
     end
 
     def close
-      return unless running?
+      return if finished? || query_failed? || client_aborted?
 
-      @state = :client_aborted
+      if running?
+        @state = :client_aborted
+      end
 
       begin
         if uri = @results.next_uri

@@ -608,6 +608,13 @@ describe Trino::Client::StatementClient do
       expect do
         client.advance
       end.to raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
+
+      # close sends a cancel request even after TrinoQueryTimeoutError
+      expect do
+        client.close
+      end.to raise_error(WebMock::NetConnectNotAllowedError, /.*Unregistered request: DELETE.*/)
+
+      expect(client.client_error?).to eq true
     end
 
     it "doesn't raise errors if query is done" do
@@ -629,6 +636,32 @@ describe Trino::Client::StatementClient do
 
       sleep 1
       client.advance # set finished
+
+      # close doesn't send a cancel request if query has finished
+      client.close
+      expect(client.finished?).to eq true
+    end
+
+    it "sends a cancel request when close is called during query execution" do
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query, headers: headers).
+        to_return(body: planning_response.to_json)
+
+      client = StatementClient.new(faraday, query, options)
+
+      stub_request(:get, "localhost/v1/next_uri").
+        with(headers: headers).
+        to_return(body: planning_response.to_json)
+      client.advance
+
+      expect(client.running?).to eq true
+
+      # close sends a cancel request if query is executing
+      expect do
+        client.close
+      end.to raise_error(WebMock::NetConnectNotAllowedError, /.*Unregistered request: DELETE.*/)
+
+      expect(client.client_aborted?).to eq true
     end
   end
 end
