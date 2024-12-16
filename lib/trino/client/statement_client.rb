@@ -85,7 +85,7 @@ module Trino::Client
         end
 
         if response
-          if response.status == 200 && !response.body.to_s.empty?
+          if response.status == 200
             @results_headers = response.headers
             @results = decode_model(uri, parse_body(response), @models::QueryResults)
             return
