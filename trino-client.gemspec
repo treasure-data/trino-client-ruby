@@ -15,12 +15,16 @@ Gem::Specification.new do |gem|
   gem.executables   = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   gem.require_paths = ["lib"]
 
-  gem.required_ruby_version = ">= 2.7.0"
+  gem.required_ruby_version = ">= 3.2.0"
 
   gem.add_dependency "faraday", ">= 1", "< 3"
   gem.add_dependency "faraday-gzip", ">= 1"
   gem.add_dependency "faraday-follow_redirects", ">= 0.3"
   gem.add_dependency "msgpack", [">= 1.5.1"]
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.4")
+    gem.add_dependency("base64")
+  end
 
   gem.add_development_dependency "rake", [">= 0.9.2", "< 14.0"]
   gem.add_development_dependency "rspec", "~> 3.13.0"

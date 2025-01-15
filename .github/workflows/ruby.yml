@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: ['2.7', '3.0', '3.2']
+        ruby-version: ['3.2', '3.3', '3.4']
         faraday-version: ['~> 1', '~> 2']
     env:
       FARADAY_VERSION: ${{ matrix.faraday-version }}
