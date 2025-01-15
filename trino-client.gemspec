@@ -22,6 +22,10 @@ Gem::Specification.new do |gem|
   gem.add_dependency "faraday-follow_redirects", ">= 0.3"
   gem.add_dependency "msgpack", [">= 1.5.1"]
 
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.4")
+    gem.add_dependency("base64")
+  end
+
   gem.add_development_dependency "rake", [">= 0.9.2", "< 14.0"]
   gem.add_development_dependency "rspec", "~> 3.13.0"
   gem.add_development_dependency "webmock", ["~> 3.0"]
