@@ -14,7 +14,7 @@ Gem::Specification.new do |gem|
   gem.files         = ["lib/trino-client-ruby.rb"]
   gem.require_paths = ["lib"]
 
-  gem.required_ruby_version = ">= 2.7.0"
+  gem.required_ruby_version = ">= 3.2.0"
 
   gem.add_dependency "trino-client", Trino::Client::VERSION
 end
