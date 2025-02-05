@@ -233,6 +233,7 @@ module Trino::Client
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - @started_at
 
         if @query_timeout && elapsed > @query_timeout
+          close
           raise_timeout_error!
         end
 
@@ -240,6 +241,7 @@ module Trino::Client
             elapsed > @plan_timeout
           # @results is not set (even first faraday_get_with_retry isn't called yet) or
           # result from Trino doesn't include result schema. Query planning isn't done yet.
+          close
           raise_timeout_error!
         end
       end
