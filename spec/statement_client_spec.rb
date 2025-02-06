@@ -540,12 +540,21 @@ describe Trino::Client::StatementClient do
         client.advance
 
         sleep 1
+
         stub_request(:get, "localhost/v1/next_uri").
           with(headers: headers).
           to_return(body: planning_response.to_json)
+
+        cancel = stub_request(:delete, "localhost/v1/next_uri").
+          with(headers: headers).
+          to_return(status: 204) # NoContent
+
         expect do
           client.advance
         end.to raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
+
+        expect(cancel).to have_been_requested
+        expect(client.client_error?).to eq true
       end
 
       it "raises TrinoQueryTimeoutError if timeout during initial resuming" do
@@ -602,12 +611,21 @@ describe Trino::Client::StatementClient do
       client.advance
 
       sleep 1
+
       stub_request(:get, "localhost/v1/next_uri").
         with(headers: headers).
         to_return(body: late_running_response.to_json)
+
+      cancel = stub_request(:delete, "localhost/v1/next_uri").
+        with(headers: headers).
+        to_return(status: 204) # NoContent
+
       expect do
         client.advance
       end.to raise_error(Trino::Client::TrinoQueryTimeoutError, "Query queryid timed out")
+
+      expect(cancel).to have_been_requested
+      expect(client.client_error?).to eq true
     end
 
     it "doesn't raise errors if query is done" do
