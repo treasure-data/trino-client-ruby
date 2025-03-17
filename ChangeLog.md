@@ -1,5 +1,10 @@
 trino-client-ruby
 ====
+## 2.2.2
+- Close StatementClient when hitting client-side timeout ([#136](https://github.com/treasure-data/trino-client-ruby/issues/136)) [[b3261b1](https://github.com/treasure-data/trino-client-ruby/commit/b3261b1)]
+- Tune Ruby versions in CI / Drop ruby 2.7, 3.0 and 3.1 supports ([#135](https://github.com/treasure-data/trino-client-ruby/issues/135)) [[da87c84](https://github.com/treasure-data/trino-client-ruby/commit/da87c84)]
+- Update standard requirement from ~> 1.30.1 to ~> 1.35.0 ([#132](https://github.com/treasure-data/trino-client-ruby/issues/132)) [[4f05141](https://github.com/treasure-data/trino-client-ruby/commit/4f05141)]
+
 ## 2.2.1
 - fix: Retry GET against 502, 503 responses ([#129](https://github.com/treasure-data/trino-client-ruby/issues/129)) [[80f342d](https://github.com/treasure-data/trino-client-ruby/commit/80f342d)]
 - Update CODEOWNERS ([#127](https://github.com/treasure-data/trino-client-ruby/issues/127)) [[bad4b34](https://github.com/treasure-data/trino-client-ruby/commit/bad4b34)]
