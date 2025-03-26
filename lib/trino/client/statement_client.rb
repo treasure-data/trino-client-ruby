@@ -66,20 +66,46 @@ module Trino::Client
 
     def post_query_request!
       uri = "/v1/statement"
-      response = @faraday.post do |req|
-        req.url uri
 
-        req.body = @query
-        init_request(req)
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      attempts = 0
+
+      loop do
+        begin
+          response = @faraday.post do |req|
+            req.url uri
+            req.body = @query
+            init_request(req)
+          end
+        rescue Faraday::TimeoutError, Faraday::ConnectionFailed
+          # temporally error to retry
+          response = nil
+        rescue => e
+          exception! e
+        end
+
+        if response
+          if response.status == 200
+            @results_headers = response.headers
+            @results = decode_model(uri, parse_body(response), @models::QueryResults)
+            return
+          end
+          # retry if 502, 503, 504 according to the trino protocol
+          unless [502, 503, 504].include?(response.status)
+            # deterministic error
+            exception! TrinoHttpError.new(response.status, "Trino API error at #{uri} returned #{response.status}: #{response.body}")
+          end
+        end
+
+        raise_if_timeout!
+
+        attempts += 1
+        sleep attempts * 0.1
+
+        break unless (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) < @retry_timeout && !client_aborted?
       end
 
-      # TODO error handling
-      if response.status != 200
-        exception! TrinoHttpError.new(response.status, "Failed to start query: #{response.body} (#{response.status})")
-      end
-
-      @results_headers = response.headers
-      @results = decode_model(uri, parse_body(response), @models::QueryResults)
+      exception! TrinoHttpError.new(408, "Trino API error due to timeout")
     end
 
     private :post_query_request!
