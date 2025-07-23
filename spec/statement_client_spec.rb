@@ -1,5 +1,5 @@
 require 'spec_helper'
-
+require 'faraday/net_http_persistent'
 describe Trino::Client::StatementClient do
   let :options do
     {
@@ -351,6 +351,16 @@ describe Trino::Client::StatementClient do
           password: 'abcd'
         })
       end.to raise_error(ArgumentError)
+    end
+  end
+
+  describe "faraday adapter" do
+    it "sets the adapter to the one specified in the options" do
+      f = Trino::Client.faraday_client({
+        server: "localhost",
+        faraday_adapter: :net_http_persistent
+      })
+      expect(f.adapter).to eq Faraday::Adapter::NetHttpPersistent
     end
   end
 
