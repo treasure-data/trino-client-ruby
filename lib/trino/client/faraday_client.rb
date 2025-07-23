@@ -84,7 +84,7 @@ module Trino::Client
         faraday.request :gzip
       end
       faraday.response :logger if options[:http_debug]
-      faraday.adapter Faraday.default_adapter
+      faraday.adapter(options[:faraday_adapter] || Faraday.default_adapter)
     end
 
     faraday.headers.merge!(HEADERS)
