@@ -8,5 +8,5 @@ group :development, :test do
 end
 
 group :test do
-  gem "faraday-net_http_persistent", "~> 2.0"
+  gem "faraday-net_http_persistent"
 end
