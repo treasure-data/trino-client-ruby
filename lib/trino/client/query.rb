@@ -25,24 +25,20 @@ module Trino::Client
   require 'trino/client/statement_client'
 
   class Query
-    def self.start(query, options)
-      new StatementClient.new(faraday_client(options), query, options)
+    def self.start(query, faraday, options)
+      new StatementClient.new(faraday, query, options)
     end
 
-    def self.resume(next_uri, options)
-      new StatementClient.new(faraday_client(options), nil, options, next_uri)
+    def self.resume(next_uri, faraday, options)
+      new StatementClient.new(faraday, nil, options, next_uri)
     end
 
-    def self.kill(query_id, options)
-      faraday = faraday_client(options)
+    def self.kill(query_id, faraday, options)
       response = faraday.delete do |req|
+        req.headers.merge!(Trino::Client.build_query_headers(options))
         req.url "/v1/query/#{query_id}"
       end
       return response.status / 100 == 2
-    end
-
-    def self.faraday_client(options)
-      Trino::Client.faraday_client(options)
     end
 
     def self.transform_row(column_value_parsers, row)

@@ -28,6 +28,10 @@ jobs:
     timeout-minutes: 5 # Typically ends within 1-2 min
     steps:
       - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:

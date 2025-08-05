@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Trino::Client::Client do
-  let(:client) { Trino::Client.new({}) }
+  let(:client) { Trino::Client.new({server: 'localhost:8080'}) }
 
   describe 'rehashes' do
     let(:columns) do
@@ -66,7 +66,7 @@ describe Trino::Client::Client do
       # For this test, we'll use scalar_parser to add 2 to every integer
       query.scalar_parser = ->(data, type) { (type == 'integer') ? data + 2 : data }
 
-      columns, rows = client.run('fake query')
+      _columns, rows = client.run('fake query')
       transformed_rows = query.transform_rows
 
       expect(transformed_rows[0]).to eq({

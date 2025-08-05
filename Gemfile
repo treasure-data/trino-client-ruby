@@ -6,3 +6,7 @@ group :development, :test do
   gem "faraday", ENV.fetch("FARADAY_VERSION", "~> 2")
   gem "tiny-presto", "~> 0.0.10"
 end
+
+group :test do
+  gem "faraday-net_http_persistent"
+end

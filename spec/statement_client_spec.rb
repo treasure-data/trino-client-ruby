@@ -1,5 +1,5 @@
 require 'spec_helper'
-
+require 'faraday/net_http_persistent'
 describe Trino::Client::StatementClient do
   let :options do
     {
@@ -346,7 +346,7 @@ describe Trino::Client::StatementClient do
 
     it "forbids using basic auth when ssl is disabled" do
       expect do
-        Query.__send__(:faraday_client, {
+        Trino::Client.faraday_client({
           server: 'localhost',
           password: 'abcd'
         })
@@ -354,16 +354,26 @@ describe Trino::Client::StatementClient do
     end
   end
 
+  describe "faraday adapter" do
+    it "sets the adapter to the one specified in the options" do
+      f = Trino::Client.faraday_client({
+        server: "localhost",
+        faraday_adapter: :net_http_persistent
+      })
+      expect(f.adapter).to eq Faraday::Adapter::NetHttpPersistent
+    end
+  end
+
   describe "ssl" do
     it "is disabled by default" do
-      f = Query.__send__(:faraday_client, {
+      f = Trino::Client.faraday_client({
         server: "localhost",
       })
       expect(f.url_prefix.to_s).to eq "http://localhost/"
     end
 
     it "is enabled with ssl: true" do
-      f = Query.__send__(:faraday_client, {
+      f = Trino::Client.faraday_client({
         server: "localhost",
         ssl: true,
       })
@@ -372,7 +382,7 @@ describe Trino::Client::StatementClient do
     end
 
     it "is enabled with ssl: {verify: false}" do
-      f = Query.__send__(:faraday_client, {
+      f = Trino::Client.faraday_client({
         server: "localhost",
         ssl: {verify: false}
       })
@@ -382,7 +392,7 @@ describe Trino::Client::StatementClient do
 
     it "rejects invalid ssl: verify: object" do
       expect do
-        f = Query.__send__(:faraday_client, {
+        Trino::Client.faraday_client({
           server: "localhost",
           ssl: {verify: "??"}
         })
@@ -400,7 +410,7 @@ describe Trino::Client::StatementClient do
         client_key: OpenSSL::PKey::DSA.new,
       }
 
-      f = Query.__send__(:faraday_client, {
+      f = Trino::Client.faraday_client({
         server: "localhost",
         ssl: ssl,
       })
@@ -416,7 +426,7 @@ describe Trino::Client::StatementClient do
 
     it "rejects an invalid string" do
       expect do
-        Query.__send__(:faraday_client, {
+        Trino::Client.faraday_client({
           server: "localhost",
           ssl: '??',
         })
@@ -425,7 +435,7 @@ describe Trino::Client::StatementClient do
 
     it "rejects an integer" do
       expect do
-        Query.__send__(:faraday_client, {
+        Trino::Client.faraday_client({
           server: "localhost",
           ssl: 3,
         })
@@ -452,7 +462,7 @@ describe Trino::Client::StatementClient do
   let :nested_json do
     nested_stats = {createTime: Time.now}
     # JSON max nesting default value is 100
-    for i in 0..100 do
+    100.times do
       nested_stats = {stats: nested_stats}
     end
     {
