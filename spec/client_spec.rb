@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Trino::Client::Client do
-  let(:client) { Trino::Client.new({ server: 'localhost:8080' }) }
+  let(:client) { Trino::Client.new({server: 'localhost:8080'}) }
 
   describe 'rehashes' do
     let(:columns) do
