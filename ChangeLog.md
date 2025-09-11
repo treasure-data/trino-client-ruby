@@ -1,5 +1,11 @@
 trino-client-ruby
 ====
+## 2.2.3
+- Add .github/workflows/publisher.yml [[f9643b2](https://github.com/treasure-data/trino-client-ruby/commit/f9643b2)]
+- Bump actions/checkout from 4 to 5 ([#141](https://github.com/treasure-data/trino-client-ruby/issues/141)) [[61372d4](https://github.com/treasure-data/trino-client-ruby/commit/61372d4)]
+- Update standard requirement from ~> 1.35.0 to ~> 1.50.0 ([#139](https://github.com/treasure-data/trino-client-ruby/issues/139)) [[e4c95a6](https://github.com/treasure-data/trino-client-ruby/commit/e4c95a6)]
+- misc: Add CLAUDE.md and etc ([#138](https://github.com/treasure-data/trino-client-ruby/issues/138)) [[1a0e975](https://github.com/treasure-data/trino-client-ruby/commit/1a0e975)]
+
 ## 2.2.2
 - Close StatementClient when hitting client-side timeout ([#136](https://github.com/treasure-data/trino-client-ruby/issues/136)) [[b3261b1](https://github.com/treasure-data/trino-client-ruby/commit/b3261b1)]
 - Tune Ruby versions in CI / Drop ruby 2.7, 3.0 and 3.1 supports ([#135](https://github.com/treasure-data/trino-client-ruby/issues/135)) [[da87c84](https://github.com/treasure-data/trino-client-ruby/commit/da87c84)]
