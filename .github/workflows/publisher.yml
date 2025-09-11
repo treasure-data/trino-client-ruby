@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Set up
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Ruby
@@ -31,9 +31,8 @@ jobs:
           bundle install --jobs 4 --retry 3
 
       # Release
-      - uses: rubygems/release-gem@v1
-
       # see: https://github.com/rubygems/release-gem/blob/ebe1ec66bd8d2c709ac29aa2b43438d450e7a0a6/action.yml
+      - uses: rubygems/release-gem@ebe1ec66bd8d2c709ac29aa2b43438d450e7a0a6
       - name: Generate gem
         run: gem build trino-client-ruby.gemspec && ls -l trino-client-ruby-*.gem
         working-directory: ./trino-client-ruby
