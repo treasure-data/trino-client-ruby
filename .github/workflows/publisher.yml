@@ -57,5 +57,7 @@ jobs:
           gem install bundler
           bundle install --jobs 4 --retry 3
       # Release
-      - run: rubygems/release-gem@v1
-        working-directory: ./trino-client-ruby
+      # - uses: rubygems/release-gem@v1
+      # see: https://github.com/rubygems/release-gem/blob/ebe1ec66bd8d2c709ac29aa2b43438d450e7a0a6/action.yml
+      - name: Configure trusted publishing credentials
+        uses: rubygems/configure-rubygems-credentials@v1.0.0
