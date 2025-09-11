@@ -4,6 +4,7 @@ require "fileutils"
 
 PREFIX = "https://github.com/treasure-data/trino-client-ruby"
 RELEASE_NOTES_FILE = "ChangeLog.md"
+VERSION_FILE = "lib/trino/client/version.rb"
 
 last_tag = `git describe --tags --abbrev=0`.chomp
 last_version = last_tag.sub("v", "")
@@ -13,6 +14,12 @@ print "next version? "
 next_version = STDIN.gets.chomp
 
 abort("Can't use empty version string") if next_version.empty?
+
+# Update version in version.rb
+version_content = File.read(VERSION_FILE)
+updated_version_content = version_content.gsub(/VERSION = "[^"]*"/, "VERSION = \"#{next_version}\"")
+File.write(VERSION_FILE, updated_version_content)
+puts "Updated version in #{VERSION_FILE} to #{next_version}"
 
 logs = `git log #{last_tag}..HEAD --pretty=format:'%h %s'`
 # Add links to GitHub issues
@@ -50,7 +57,8 @@ end
 FileUtils.cp(TMP_RELEASE_NOTES_FILE, RELEASE_NOTES_FILE)
 File.delete(TMP_RELEASE_NOTES_FILE)
 
-# run "git commit #{RELEASE_NOTES_FILE} -m \"Add #{next_version} release notes\""
+# run "git add #{VERSION_FILE} #{RELEASE_NOTES_FILE}"
+# run "git commit -m \"Release #{next_version}\""
 # run "git tag v#{next_version}"
 # run "git push"
 # run "git push --tags"
