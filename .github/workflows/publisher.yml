@@ -64,3 +64,6 @@ jobs:
       - name: Generate gem
         run: gem build trino-client-ruby.gemspec && ls -l trino-client-ruby-*.gem
         working-directory: ./trino-client-ruby
+      - name: Push to rubygems.org
+        run: gem push trino-client-ruby-*.gem
+        working-directory: ./trino-client-ruby
