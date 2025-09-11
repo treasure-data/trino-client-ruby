@@ -1,5 +1,8 @@
 trino-client-ruby
 ====
+## 2.2.4
+- Add steps to publish trino-client-ruby [[228f709](https://github.com/treasure-data/trino-client-ruby/commit/228f709)]
+
 ## 2.2.3
 - Add .github/workflows/publisher.yml [[f9643b2](https://github.com/treasure-data/trino-client-ruby/commit/f9643b2)]
 - Bump actions/checkout from 4 to 5 ([#141](https://github.com/treasure-data/trino-client-ruby/issues/141)) [[61372d4](https://github.com/treasure-data/trino-client-ruby/commit/61372d4)]
