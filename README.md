@@ -1,6 +1,7 @@
 # Trino client library for Ruby
 
 [![Ruby](https://github.com/treasure-data/trino-client-ruby/actions/workflows/ruby.yml/badge.svg)](https://github.com/treasure-data/trino-client-ruby/actions/workflows/ruby.yml) [![Gem](https://img.shields.io/gem/v/trino-client)](https://rubygems.org/gems/trino-client) [![Gem](https://img.shields.io/gem/dt/trino-client)](https://rubygems.org/gems/trino-client) [![GitHub](https://img.shields.io/github/license/treasure-data/trino-client-ruby)]()
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/treasure-data/trino-client-ruby)
 
 Trino is a distributed SQL query engine for big data:
 https://trino.io/
