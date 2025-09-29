@@ -32,7 +32,7 @@ jobs:
 
       # Release
       # see: https://github.com/rubygems/release-gem/blob/ebe1ec66bd8d2c709ac29aa2b43438d450e7a0a6/action.yml
-      - uses: rubygems/release-gem@ebe1ec66bd8d2c709ac29aa2b43438d450e7a0a6
+      - uses: rubygems/release-gem@9fc8c0f9a461e67716cde28f188b9a5c029333a8
       - name: Generate gem
         run: gem build trino-client-ruby.gemspec && ls -l trino-client-ruby-*.gem
         working-directory: ./trino-client-ruby
