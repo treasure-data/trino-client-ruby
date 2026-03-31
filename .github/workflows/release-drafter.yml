@@ -6,10 +6,7 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    # Only following types are handled by the action, but one can default to all as well
-    types: [opened, reopened, synchronize]
-    # pull_request_target event is required for auto-labeler to support PRs from forks
+  # pull_request_target event is required for auto-labeler to support PRs from forks
   pull_request_target:
     types: [opened, reopened, synchronize]
 
@@ -25,5 +22,8 @@ jobs:
     steps:
       # Drafts your next Release notes as Pull Requests are merged into "master"
       - uses: release-drafter/release-drafter@v7
+        with:
+          disable-releaser: ${{ github.event_name == 'pull_request_target' }}
+          disable-autolabeler: ${{ github.event_name != 'pull_request_target' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
