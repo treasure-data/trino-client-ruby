@@ -12,12 +12,12 @@ categories:
     labels:
       - 'deprecation'
   - title: '⛓  Dependency Updates'
-    label:
+    labels:
       - 'library-update'
       - 'test-library-update'
       - 'dependencies'
   - title: '🛠  Internal Updates'
-    label:
+    labels:
       - 'internal'
       - 'kaizen'
       - 'chore'
