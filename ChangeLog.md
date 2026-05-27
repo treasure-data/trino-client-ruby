@@ -1,5 +1,21 @@
 trino-client-ruby
 ====
+## 2.2.5
+- Merge pull request [#155](https://github.com/treasure-data/trino-client-ruby/issues/155) from murakami-ta/add-http-debug-logger-option [[143a801](https://github.com/treasure-data/trino-client-ruby/commit/143a801)]
+- Fix http_debug_logger test to work with both Faraday 1 and 2 [[0976be7](https://github.com/treasure-data/trino-client-ruby/commit/0976be7)]
+- Add http_debug_logger option [[b54b20a](https://github.com/treasure-data/trino-client-ruby/commit/b54b20a)]
+- Bump rubygems/release-gem from 1.1.4 to 1.2.0 ([#153](https://github.com/treasure-data/trino-client-ruby/issues/153)) [[52e0e30](https://github.com/treasure-data/trino-client-ruby/commit/52e0e30)]
+- Bump release-drafter/release-drafter from 6 to 7 ([#152](https://github.com/treasure-data/trino-client-ruby/issues/152)) [[851d586](https://github.com/treasure-data/trino-client-ruby/commit/851d586)]
+- Bump rubygems/release-gem from 1.1.2 to 1.1.4 ([#151](https://github.com/treasure-data/trino-client-ruby/issues/151)) [[bca14ae](https://github.com/treasure-data/trino-client-ruby/commit/bca14ae)]
+- Update standard requirement from ~> 1.51.1 to ~> 1.54.0 ([#150](https://github.com/treasure-data/trino-client-ruby/issues/150)) [[9dc220e](https://github.com/treasure-data/trino-client-ruby/commit/9dc220e)]
+- Bump actions/checkout from 5 to 6 ([#147](https://github.com/treasure-data/trino-client-ruby/issues/147)) [[76f9954](https://github.com/treasure-data/trino-client-ruby/commit/76f9954)]
+- Bump github/codeql-action from 3 to 4 ([#145](https://github.com/treasure-data/trino-client-ruby/issues/145)) [[3065e2a](https://github.com/treasure-data/trino-client-ruby/commit/3065e2a)]
+- Update standard requirement from ~> 1.50.0 to ~> 1.51.1 ([#143](https://github.com/treasure-data/trino-client-ruby/issues/143)) [[be846e0](https://github.com/treasure-data/trino-client-ruby/commit/be846e0)]
+- Bump rubygems/release-gem ([#146](https://github.com/treasure-data/trino-client-ruby/issues/146)) [[9821efc](https://github.com/treasure-data/trino-client-ruby/commit/9821efc)]
+- Add DeepWiki badge to README [skip ci] [[82afa57](https://github.com/treasure-data/trino-client-ruby/commit/82afa57)]
+- Update release.rb to increment the version in @lib/trino/client/version.rb [[c2bff61](https://github.com/treasure-data/trino-client-ruby/commit/c2bff61)]
+- Bump actions/checkout from 4 to 5, etc ([#142](https://github.com/treasure-data/trino-client-ruby/issues/142)) [[17eb1d2](https://github.com/treasure-data/trino-client-ruby/commit/17eb1d2)]
+
 ## 2.2.4
 - Add steps to publish trino-client-ruby [[228f709](https://github.com/treasure-data/trino-client-ruby/commit/228f709)]
 
