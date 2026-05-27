@@ -27,7 +27,7 @@ ignore:
       - Style/TernaryParentheses
       - Style/TrailingCommaInHashLiteral
 
-  - 'modelgen/model_versions.rb': &modelgen_common
+  - 'modelgen/model_versions.rb':
       - Style/StringLiterals # TODO: Remove this later
       - Layout/DotPosition # TODO: Remove this later
       # NOTE: Selecting the below items
@@ -44,9 +44,57 @@ ignore:
       - Style/RedundantRegexpCharacterClass
       - Style/RedundantRegexpEscape
       - Style/StringLiteralsInInterpolation
-  - 'modelgen/modelgen.rb': *modelgen_common
-  - 'modelgen/models.rb': *modelgen_common
-  - 'modelgen/trino_models.rb': *modelgen_common
+  - 'modelgen/modelgen.rb':
+      - Style/StringLiterals # TODO: Remove this later
+      - Layout/DotPosition # TODO: Remove this later
+      # NOTE: Selecting the below items
+      - Layout/ArrayAlignment
+      - Layout/EmptyLinesAroundExceptionHandlingKeywords
+      - Layout/FirstArrayElementIndentation
+      - Layout/FirstHashElementIndentation
+      - Lint/AssignmentInCondition
+      - Lint/Syntax
+      - Lint/UselessAssignment
+      - Performance/FlatMap
+      - Performance/RegexpMatch
+      - Style/InfiniteLoop
+      - Style/RedundantRegexpCharacterClass
+      - Style/RedundantRegexpEscape
+      - Style/StringLiteralsInInterpolation
+  - 'modelgen/models.rb':
+      - Style/StringLiterals # TODO: Remove this later
+      - Layout/DotPosition # TODO: Remove this later
+      # NOTE: Selecting the below items
+      - Layout/ArrayAlignment
+      - Layout/EmptyLinesAroundExceptionHandlingKeywords
+      - Layout/FirstArrayElementIndentation
+      - Layout/FirstHashElementIndentation
+      - Lint/AssignmentInCondition
+      - Lint/Syntax
+      - Lint/UselessAssignment
+      - Performance/FlatMap
+      - Performance/RegexpMatch
+      - Style/InfiniteLoop
+      - Style/RedundantRegexpCharacterClass
+      - Style/RedundantRegexpEscape
+      - Style/StringLiteralsInInterpolation
+  - 'modelgen/trino_models.rb':
+      - Style/StringLiterals # TODO: Remove this later
+      - Layout/DotPosition # TODO: Remove this later
+      # NOTE: Selecting the below items
+      - Layout/ArrayAlignment
+      - Layout/EmptyLinesAroundExceptionHandlingKeywords
+      - Layout/FirstArrayElementIndentation
+      - Layout/FirstHashElementIndentation
+      - Lint/AssignmentInCondition
+      - Lint/Syntax
+      - Lint/UselessAssignment
+      - Performance/FlatMap
+      - Performance/RegexpMatch
+      - Style/InfiniteLoop
+      - Style/RedundantRegexpCharacterClass
+      - Style/RedundantRegexpEscape
+      - Style/StringLiteralsInInterpolation
   - 'spec/*.rb':
       - Style/StringLiterals  # TODO: Remove this later
       - Layout/DotPosition  # TODO: Remove this later
