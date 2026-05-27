@@ -126,20 +126,17 @@ See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentati
 
 ### Releasing a new version
 
-1. First update `lib/trino/client/version.rb` to the next version.
-2. Run the following command which will update `ChangeLog.md` file automatically.
+1. Run the following command which will prompt for the new version, update `lib/trino/client/version.rb`, and generate/let you edit `ChangeLog.md`.
 ```
 $ ruby release.rb
 ```
 
-3. Create tag
+2. Commit and tag
 ```
 $ git commit -am "vX.Y.Z"
 $ git tag "vX.Y.Z"
-% git push --tags
+$ git push origin master
+$ git push --tags
 ```
 
-4. Push package by the following command which will build and push `trino-client-X.Y.Z.gem` and `trino-client-ruby-X.Y.Z.gem` automatically.
-```
-$ ruby publish.rb
-```
+Pushing a `v*` tag triggers the GitHub Actions publisher workflow, which automatically builds and publishes the gem to RubyGems.org.
