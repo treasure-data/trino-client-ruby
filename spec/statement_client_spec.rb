@@ -162,6 +162,88 @@ describe Trino::Client::StatementClient do
     end
   end
 
+  describe "POST /v1/statement retry" do
+    let :headers do
+      {
+        "User-Agent" => "trino-ruby/#{VERSION}",
+        "X-Trino-Catalog" => options[:catalog],
+        "X-Trino-Schema" => options[:schema],
+        "X-Trino-User" => options[:user],
+        "X-Trino-Language" => options[:language],
+        "X-Trino-Time-Zone" => options[:time_zone],
+      }
+    end
+
+    it "retries POST on Timeout::Error" do
+      attempts = 0
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query, headers: headers).
+        to_return(body: lambda { |req|
+          attempts += 1
+          if attempts < 2
+            raise Timeout::Error.new("execution expired")
+          else
+            response_json.to_json
+          end
+        })
+
+      sc = StatementClient.new(faraday, query, options.merge(http_open_timeout: 1))
+      expect(sc.query_id).to eq "queryid"
+      expect(attempts).to eq 2
+    end
+
+    it "retries POST on Faraday::ConnectionFailed" do
+      attempts = 0
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query, headers: headers).
+        to_return(body: lambda { |req|
+          attempts += 1
+          if attempts < 2
+            raise Faraday::ConnectionFailed.new("connection refused")
+          else
+            response_json.to_json
+          end
+        })
+
+      sc = StatementClient.new(faraday, query, options)
+      expect(sc.query_id).to eq "queryid"
+      expect(attempts).to eq 2
+    end
+
+    it "retries POST on 503 response" do
+      attempts = 0
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query, headers: headers).
+        to_return(lambda { |req|
+          attempts += 1
+          if attempts < 2
+            {status: 503, body: "service unavailable"}
+          else
+            {status: 200, body: response_json.to_json}
+          end
+        })
+
+      sc = StatementClient.new(faraday, query, options)
+      expect(sc.query_id).to eq "queryid"
+      expect(attempts).to eq 2
+    end
+
+    it "does not retry POST on deterministic 4xx errors" do
+      attempts = 0
+      stub_request(:post, "localhost/v1/statement").
+        with(body: query, headers: headers).
+        to_return(lambda { |req|
+          attempts += 1
+          {status: 400, body: "bad request"}
+        })
+
+      expect do
+        StatementClient.new(faraday, query, options)
+      end.to raise_error(Trino::Client::TrinoHttpError, /Failed to start query: bad request \(400\)/)
+      expect(attempts).to eq 1
+    end
+  end
+
   it "receives headers of POST" do
     stub_request(:post, "localhost/v1/statement").
       with(body: query).to_return(body: response_json2.to_json, headers: {"X-Test-Header" => "123"})

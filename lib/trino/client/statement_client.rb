@@ -26,6 +26,8 @@ module Trino::Client
         :max_nesting => false
     }
 
+    RETRYABLE_STATUSES = [502, 503, 504]
+
     def initialize(faraday, query, options, next_uri=nil)
       @faraday = faraday
 
@@ -66,16 +68,27 @@ module Trino::Client
 
     def post_query_request!
       uri = "/v1/statement"
-      response = @faraday.post do |req|
-        req.url uri
+      response = with_retry_loop do
+        begin
+          r = @faraday.post do |req|
+            req.url uri
 
-        req.body = @query
-        init_request(req)
-      end
+            req.body = @query
+            init_request(req)
+          end
+        rescue Faraday::TimeoutError, Faraday::ConnectionFailed
+          throw :retry_with_backoff
+        rescue => e
+          exception! e
+        end
 
-      # TODO error handling
-      if response.status != 200
-        exception! TrinoHttpError.new(response.status, "Failed to start query: #{response.body} (#{response.status})")
+        if r.status == 200
+          r
+        elsif RETRYABLE_STATUSES.include?(r.status)
+          throw :retry_with_backoff
+        else
+          exception! TrinoHttpError.new(r.status, "Failed to start query: #{r.body} (#{r.status})")
+        end
       end
 
       @results_headers = response.headers
@@ -189,31 +202,12 @@ module Trino::Client
 
     private :parse_body
 
-    def faraday_get_with_retry(uri, &block)
+    def with_retry_loop
       start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       attempts = 0
 
       loop do
-        begin
-          response = @faraday.get(uri)
-        rescue Faraday::TimeoutError, Faraday::ConnectionFailed
-          # temporally error to retry
-          response = nil
-        rescue => e
-          exception! e
-        end
-
-        if response
-          if response.status == 200 && !response.body.to_s.empty?
-            return response
-          end
-
-          # retry if 502, 503, 504 according to the trino protocol
-          unless [502, 503, 504].include?(response.status)
-            # deterministic error
-            exception! TrinoHttpError.new(response.status, "Trino API error at #{uri} returned #{response.status}: #{response.body}")
-          end
-        end
+        catch(:retry_with_backoff) { return yield }
 
         raise_if_timeout!
 
@@ -224,6 +218,28 @@ module Trino::Client
       end
 
       exception! TrinoHttpError.new(408, "Trino API error due to timeout")
+    end
+
+    private :with_retry_loop
+
+    def faraday_get_with_retry(uri)
+      with_retry_loop do
+        begin
+          response = @faraday.get(uri)
+        rescue Faraday::TimeoutError, Faraday::ConnectionFailed
+          throw :retry_with_backoff
+        rescue => e
+          exception! e
+        end
+
+        if response.status == 200 && !response.body.to_s.empty?
+          response
+        elsif RETRYABLE_STATUSES.include?(response.status)
+          throw :retry_with_backoff
+        else
+          exception! TrinoHttpError.new(response.status, "Trino API error at #{uri} returned #{response.status}: #{response.body}")
+        end
+      end
     end
 
     def raise_if_timeout!
