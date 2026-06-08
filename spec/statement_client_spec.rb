@@ -237,7 +237,9 @@ describe Trino::Client::StatementClient do
 
       expect do
         StatementClient.new(faraday, query, options.merge(retry_timeout: 0))
-      end.to raise_error(Trino::Client::TrinoHttpError, "Trino API error due to timeout")
+      end.to raise_error(Trino::Client::TrinoHttpError, "Trino API error due to timeout") do |e|
+        expect(e.status).to eq 408
+      end
     end
 
     it "does not retry POST on deterministic 4xx errors" do
