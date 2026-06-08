@@ -174,7 +174,7 @@ describe Trino::Client::StatementClient do
       }
     end
 
-    it "retries POST on Timeout::Error" do
+    it "retries POST on Faraday::TimeoutError" do
       attempts = 0
       stub_request(:post, "localhost/v1/statement").
         with(body: query, headers: headers).
@@ -210,22 +210,34 @@ describe Trino::Client::StatementClient do
       expect(attempts).to eq 2
     end
 
-    it "retries POST on 503 response" do
-      attempts = 0
+    [502, 503, 504].each do |status|
+      it "retries POST on #{status} response" do
+        attempts = 0
+        stub_request(:post, "localhost/v1/statement").
+          with(body: query, headers: headers).
+          to_return(lambda { |req|
+            attempts += 1
+            if attempts < 2
+              {status: status, body: "service unavailable"}
+            else
+              {status: 200, body: response_json.to_json}
+            end
+          })
+
+        sc = StatementClient.new(faraday, query, options)
+        expect(sc.query_id).to eq "queryid"
+        expect(attempts).to eq 2
+      end
+    end
+
+    it "raises TrinoHttpError after retry_timeout is exhausted on POST" do
       stub_request(:post, "localhost/v1/statement").
         with(body: query, headers: headers).
-        to_return(lambda { |req|
-          attempts += 1
-          if attempts < 2
-            {status: 503, body: "service unavailable"}
-          else
-            {status: 200, body: response_json.to_json}
-          end
-        })
+        to_return(status: 503, body: "service unavailable")
 
-      sc = StatementClient.new(faraday, query, options)
-      expect(sc.query_id).to eq "queryid"
-      expect(attempts).to eq 2
+      expect do
+        StatementClient.new(faraday, query, options.merge(retry_timeout: 0))
+      end.to raise_error(Trino::Client::TrinoHttpError, "Trino API error due to timeout")
     end
 
     it "does not retry POST on deterministic 4xx errors" do
