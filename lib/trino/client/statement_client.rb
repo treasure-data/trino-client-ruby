@@ -77,10 +77,10 @@ module Trino::Client
             init_request(req)
           end
         rescue Faraday::TimeoutError, Faraday::ConnectionFailed
-          # POST /v1/statement is not idempotent; retrying connection-level errors
-          # risks submitting duplicate queries. This is intentional under the
-          # assumption that a connection failure means Trino never received the
-          # request (e.g. rejected by a load balancer before reaching the server).
+          # POST /v1/statement is not idempotent; retrying transport-level errors
+          # (timeouts/connection failures) can submit duplicate queries. This is
+          # intentional under the assumption the failure happened before Trino
+          # received the request (e.g. rejected by a load balancer upstream).
           throw :retry_with_backoff
         rescue => e
           exception! e
