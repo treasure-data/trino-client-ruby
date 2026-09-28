@@ -10,17 +10,31 @@ RSpec::Core::RakeTask.new(:spec)
 
 task default: [:spec, :build]
 
-GEN_MODEL_VERSIONS = %w[
+SUPPORTED_MODEL_VERSIONS = %w[
+  0.149
+  0.153
+  0.173
+  0.178
+  0.205
+  303
+  316
   351
-]
+  483
+].freeze
+
+GEN_MODEL_VERSIONS = %w[
+  483
+].freeze
 
 namespace "modelgen" do
   task latest: :all do
     require "erb"
+
     erb = ERB.new(File.read("modelgen/models.rb"))
-    @versions = GEN_MODEL_VERSIONS
-    @latest_version = GEN_MODEL_VERSIONS.last
+    @versions = SUPPORTED_MODEL_VERSIONS
+    @latest_version = SUPPORTED_MODEL_VERSIONS.last
     data = erb.result
+
     File.write("lib/trino/client/models.rb", data)
   end
 
