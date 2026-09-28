@@ -80,6 +80,7 @@ module TrinoModels
       @extra_fields = options[:extra_fields] || {}
       @models = {}
       @skipped_models = []
+      @declaration_paths = {}
     end
 
     attr_reader :skipped_models
@@ -127,17 +128,7 @@ module TrinoModels
       map_value_base_type = nil
       base_type_alias = nil
 
-      if match = /\A(?:List|Set|Collection)<(\w+)>\z/.match(type)
-        base_type = match[1]
-        array = true
-      elsif match = /\A(?:Map|ListMultimap)<(\w+),\s*(\w+)>\z/.match(type)
-        base_type = match[1]
-        map_value_base_type = match[2]
-        map = true
-      elsif match = /\AOptional<([\w\[\]<>]+)>\z/.match(type)
-        base_type = match[1]
-        nullable = true
-      elsif type == "OptionalInt"
+      if type == "OptionalInt"
         base_type = "Integer"
         nullable = true
       elsif type == "OptionalLong"
@@ -146,11 +137,49 @@ module TrinoModels
       elsif type == "OptionalDouble"
         base_type = "Double"
         nullable = true
-      elsif type.match?(/\w+/)
-        base_type = type
       else
-        raise ModelAnalysisError,
-              "Unsupported type #{type} in model #{model_name}"
+        container_type, arguments = parse_generic_type(type)
+
+        if container_type == "Optional"
+          nullable = true
+          type = arguments.fetch(0)
+          container_type, arguments = parse_generic_type(type)
+        end
+
+        case container_type
+        when "List", "Set", "Collection"
+          element_type = arguments.fetch(0)
+
+          base_type =
+            if generic_type?(element_type)
+              "Object"
+            else
+              element_type
+            end
+
+          array = true
+        when "Map", "ListMultimap"
+          key_type = arguments.fetch(0)
+          value_type = arguments.fetch(1)
+
+          base_type =
+            if generic_type?(key_type)
+              "Object"
+            else
+              key_type
+            end
+
+          map_value_base_type =
+            if generic_type?(value_type)
+              "Object"
+            else
+              value_type
+            end
+
+          map = true
+        else
+          base_type = type
+        end
       end
 
       base_type =
@@ -185,6 +214,25 @@ module TrinoModels
       )
     end
 
+    def parse_generic_type(type)
+      opening = type.index("<")
+
+      unless opening && type.end_with?(">")
+        return [nil, []]
+      end
+
+      container_type = type[0...opening]
+      arguments_source = type[(opening + 1)...-1]
+      arguments = split_parameters(arguments_source)
+
+      [container_type, arguments]
+    end
+
+    def generic_type?(type)
+      container_type, = parse_generic_type(type)
+      !container_type.nil?
+    end
+
     def analyze_model(model_name, parent_model = nil, generic: nil)
       return if @models[model_name] || @ignore_types.include?(model_name)
 
@@ -200,6 +248,10 @@ module TrinoModels
       declarations = find_declarations(java)
       source_model_name = File.basename(path, ".java")
 
+      declarations.each do |declaration_name, _parameters|
+        @declaration_paths[declaration_name] ||= path
+      end
+
       declaration = declarations.find do |name, _parameters|
         name == model_name || name == source_model_name
       end
@@ -208,18 +260,6 @@ module TrinoModels
         raise ModelAnalysisError,
               "Can't find JsonCreator or record declaration of a model class " \
                 "#{model_name} of #{parent_model} at #{path}"
-      end
-
-      declarations.each do |inner_model_name, parameters|
-        next if inner_model_name == model_name
-        next if inner_model_name == source_model_name
-        next if @models[inner_model_name]
-        next if @ignore_types.include?(inner_model_name)
-
-        analyze_fields(
-          inner_model_name,
-          parse_parameters(parameters)
-        )
       end
 
       _, parameters = declaration
@@ -375,6 +415,7 @@ module TrinoModels
 
     def find_class_file(model_name, parent_model)
       return @path_mapping[model_name] if @path_mapping.key?(model_name)
+      return @declaration_paths[model_name] if @declaration_paths.key?(model_name)
 
       @source_files ||= Find.find(@source_path).to_a
       pattern = /\/#{Regexp.escape(model_name)}\.java$/
@@ -498,7 +539,7 @@ module TrinoModels
       expression << "hash[\"#{field.key}\"] && "
 
       if field.map?
-        format_map_expression(field, expression)
+        expression = format_map_expression(field, expression)
       elsif field.array?
         element_expression = convert_expression(
           field.base_type,

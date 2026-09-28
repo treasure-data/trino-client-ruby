@@ -201,6 +201,7 @@ path_mapping = Hash[*%W[
   TableInfo #{source_path}/core/trino-spi/src/main/java/io/trino/spi/eventlistener/TableInfo.java
   DynamicFiltersStats #{source_path}/core/trino-main/src/main/java/io/trino/server/DynamicFilterService.java
   OutputColumn #{source_path}/core/trino-main/src/main/java/io/trino/sql/analyzer/OutputColumn.java
+  SourceColumn #{source_path}/core/trino-main/src/main/java/io/trino/sql/analyzer/Analysis.java
 ]]
 
 # model => [[key, nullable, type], ...]
