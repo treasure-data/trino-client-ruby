@@ -4,3 +4,4 @@ pkg/*
 coverage/
 /modelgen/java-extractor/.gradle/
 /modelgen/java-extractor/build/
+/modelgen/java-extractor/.idea/
