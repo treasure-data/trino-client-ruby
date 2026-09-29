@@ -1,0 +1,6 @@
+# Trino REST APIのroot model。
+# Fully qualified class nameで指定する。
+
+io.trino.client.QueryResults
+io.trino.execution.QueryInfo
+io.trino.server.BasicQueryInfo

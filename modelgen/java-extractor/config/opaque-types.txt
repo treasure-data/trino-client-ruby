@@ -1,0 +1,4 @@
+# JSON表現を自動判定できないTrinoの具象型だけを記載する。
+#
+# QueryData、Span、TransactionId、ResourceGroupIdは追加しない。
+# これらはTypeClassifierが自動分類する。
