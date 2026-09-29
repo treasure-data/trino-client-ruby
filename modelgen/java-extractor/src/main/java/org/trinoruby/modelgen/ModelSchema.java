@@ -37,6 +37,7 @@ public record ModelSchema(
      * opaque
      * enum
      * model
+     * value
      * optional
      * list
      * set
@@ -156,6 +157,19 @@ public record ModelSchema(
                     null,
                     keyType,
                     valueType,
+                    null);
+        }
+
+        public static TypeDefinition value(
+                String name,
+                TypeDefinition valueType)
+        {
+            return new TypeDefinition(
+                    "value",
+                    name,
+                    valueType,
+                    null,
+                    null,
                     null);
         }
     }

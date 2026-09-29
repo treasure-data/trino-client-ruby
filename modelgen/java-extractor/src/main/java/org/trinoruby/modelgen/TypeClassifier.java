@@ -23,14 +23,11 @@ import static org.trinoruby.modelgen.ModelSchema.TypeDefinition;
 
 public final class TypeClassifier
 {
-    private final Set<String> opaqueTypes;
     private final TypeFactory typeFactory;
 
     public TypeClassifier(
-            Set<String> opaqueTypes,
             TypeFactory typeFactory)
     {
-        this.opaqueTypes = Set.copyOf(opaqueTypes);
         this.typeFactory = typeFactory;
     }
 
@@ -40,7 +37,7 @@ public final class TypeClassifier
         String className = rawClass.getName();
 
         /*
-         * Java primitiveと、そのwrapper。
+         * Primitive and Wrapper for primitive.
          */
         if (rawClass.isPrimitive()
                 || isPrimitiveWrapper(rawClass)) {
@@ -49,15 +46,7 @@ public final class TypeClassifier
         }
 
         /*
-         * 設定ファイルで明示的にopaque指定された型。
-         */
-        if (opaqueTypes.contains(className)) {
-            return Classification.withoutModels(
-                    TypeDefinition.opaque(className));
-        }
-
-        /*
-         * Optional<T>。
+         * Optional<T>.
          */
         if (rawClass == Optional.class) {
             Classification element = classify(
@@ -90,7 +79,7 @@ public final class TypeClassifier
         }
 
         /*
-         * Java配列。
+         * Array.
          */
         if (rawClass.isArray()) {
             Classification element = classify(
@@ -102,7 +91,7 @@ public final class TypeClassifier
         }
 
         /*
-         * Map<K, V>。
+         * Map<K, V>.
          */
         if (Map.class.isAssignableFrom(rawClass)) {
             Classification key = classify(
@@ -121,7 +110,7 @@ public final class TypeClassifier
         }
 
         /*
-         * Set<T>。
+         * Set<T>.
          */
         if (Set.class.isAssignableFrom(rawClass)) {
             Classification element = classify(
@@ -133,7 +122,7 @@ public final class TypeClassifier
         }
 
         /*
-         * List<T>など。
+         * List<T> and something.
          */
         if (Collection.class.isAssignableFrom(rawClass)) {
             Classification element = classify(
@@ -145,7 +134,7 @@ public final class TypeClassifier
         }
 
         /*
-         * enum。
+         * Enum.
          */
         if (rawClass.isEnum()) {
             List<String> values =
@@ -160,7 +149,7 @@ public final class TypeClassifier
         }
 
         /*
-         * @JsonValueを持つvalue object。
+         * value object with @JsonValue
          *
          * TransactionId:
          *   TransactionId -> String
@@ -168,7 +157,6 @@ public final class TypeClassifier
          * ResourceGroupId:
          *   ResourceGroupId -> List<String>
          *
-         * Javaクラス内部ではなく、JSON上の表現で分類する。
          */
         JavaType jsonValueType =
                 findJsonValueType(rawClass);
@@ -180,14 +168,19 @@ public final class TypeClassifier
                                 + className);
             }
 
-            return classify(jsonValueType);
+            Classification wireClassification =
+                    classify(jsonValueType);
+
+            return new Classification(
+                    TypeDefinition.value(
+                            className,
+                            wireClassification.type()),
+                    wireClassification.referencedModels());
         }
 
         /*
-         * interface / abstract classは内部構造を解析しない。
+         * Do not analyze the internal structure of interfaces or abstract classes.
          *
-         * QueryDataやSpanなどは、Ruby側ではJSON値をそのまま
-         * Hash / Array / String等として保持する。
          */
         if (rawClass.isInterface()
                 || Modifier.isAbstract(
@@ -197,9 +190,9 @@ public final class TypeClassifier
         }
 
         /*
-         * Trino外部の型は内部構造を解析しない。
+         * Do not analyze the internal structure of types external to Trino.
          *
-         * URI、Instant、Locale、DataSize等が対象。
+         * URI, Instant, Locale, DataSize and so on.
          */
         if (!isTrinoModel(rawClass)) {
             return Classification.withoutModels(
@@ -207,7 +200,7 @@ public final class TypeClassifier
         }
 
         /*
-         * Trinoの具象class / recordは通常モデルとして再帰解析する。
+         * Recursively analyze concrete Trino classes and records as regular models.
          */
         return new Classification(
                 TypeDefinition.model(className),
@@ -220,7 +213,7 @@ public final class TypeClassifier
                 new ArrayList<>();
 
         /*
-         * 継承されたpublic methodも含めて調べる。
+         * Include inherited public methods in the analysis.
          */
         for (Method method : type.getMethods()) {
             JsonValue annotation =
@@ -245,7 +238,7 @@ public final class TypeClassifier
         }
 
         /*
-         * fieldに@JsonValueが付いているケースも調べる。
+         * “Also check cases where a field is annotated with @JsonValue.
          */
         for (Field field : type.getDeclaredFields()) {
             JsonValue annotation =
@@ -303,8 +296,7 @@ public final class TypeClassifier
                 type.getContentType();
 
         /*
-         * Optionalなど、一部のJavaTypeではgetContentType()が
-         * nullでもcontainedType(0)から取得できる。
+         * For some JavaTypes, such as Optional, the content type can be obtained from containedType(0) even when getContentType() returns null.
          */
         if (elementType == null
                 && type.containedTypeCount() >= 1) {

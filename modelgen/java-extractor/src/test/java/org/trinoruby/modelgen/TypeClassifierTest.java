@@ -9,7 +9,6 @@ import io.trino.transaction.TransactionId;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -21,7 +20,6 @@ class TypeClassifierTest
 
     private final TypeClassifier classifier =
             new TypeClassifier(
-                    Set.of(),
                     objectMapper.getTypeFactory());
 
     @Test
@@ -70,12 +68,24 @@ class TypeClassifierTest
                 classifier.classify(type);
 
         assertEquals(
-                "primitive",
+                "value",
                 result.type().kind());
 
         assertEquals(
-                String.class.getName(),
+                TransactionId.class.getName(),
                 result.type().name());
+
+
+        ModelSchema.TypeDefinition wireType =
+                result.type().elementType();
+
+        assertEquals(
+                "primitive",
+                wireType.kind());
+
+        assertEquals(
+                String.class.getName(),
+                wireType.name());
 
         assertTrue(
                 result.referencedModels().isEmpty());
@@ -94,20 +104,31 @@ class TypeClassifierTest
                 classifier.classify(type);
 
         assertEquals(
-                "list",
+                "value",
                 result.type().kind());
 
         assertEquals(
+                ResourceGroupId.class.getName(),
+                result.type().name());
+
+
+        ModelSchema.TypeDefinition wireType =
+                result.type().elementType();
+
+        assertEquals(
+                "list",
+                wireType.kind());
+
+        ModelSchema.TypeDefinition elementType =
+                wireType.elementType();
+
+        assertEquals(
                 "primitive",
-                result.type()
-                        .elementType()
-                        .kind());
+                elementType.kind());
 
         assertEquals(
                 String.class.getName(),
-                result.type()
-                        .elementType()
-                        .name());
+                elementType.name());
 
         assertTrue(
                 result.referencedModels().isEmpty());

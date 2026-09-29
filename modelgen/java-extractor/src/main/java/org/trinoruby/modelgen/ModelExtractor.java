@@ -42,7 +42,7 @@ public final class ModelExtractor
         this.typeClassifier = typeClassifier;
     }
 
-    public static void main(String[] args)
+    static void main(String[] args)
             throws Exception
     {
         Arguments arguments =
@@ -51,11 +51,6 @@ public final class ModelExtractor
         List<String> roots =
                 readConfigLines(arguments.roots());
 
-        Set<String> opaqueTypes =
-                Set.copyOf(
-                        readConfigLines(
-                                arguments.opaqueTypes()));
-
         ObjectMapper objectMapper =
                 createObjectMapper();
 
@@ -63,7 +58,6 @@ public final class ModelExtractor
                 new ModelExtractor(
                         objectMapper,
                         new TypeClassifier(
-                                opaqueTypes,
                                 objectMapper.getTypeFactory()));
 
         ModelSchema schema =
@@ -406,7 +400,6 @@ public final class ModelExtractor
     private record Arguments(
             String trinoVersion,
             Path roots,
-            Path opaqueTypes,
             Path output)
     {
         static Arguments parse(String[] args)
@@ -436,10 +429,6 @@ public final class ModelExtractor
                             required(
                                     values,
                                     "--roots")),
-                    Path.of(
-                            required(
-                                    values,
-                                    "--opaque-types")),
                     Path.of(
                             required(
                                     values,

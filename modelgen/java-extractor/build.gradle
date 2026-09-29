@@ -56,10 +56,6 @@ tasks.register('extractModels', JavaExec) {
             "config/roots-${version}.txt"
     )
 
-    def opaqueTypesFile = layout.projectDirectory.file(
-            'config/opaque-types.txt'
-    )
-
     def outputFile = layout.projectDirectory.file(
             "../schemas/${version}.json"
     )
@@ -67,7 +63,6 @@ tasks.register('extractModels', JavaExec) {
     args(
             '--trino-version', version,
             '--roots', rootsFile.asFile.absolutePath,
-            '--opaque-types', opaqueTypesFile.asFile.absolutePath,
             '--output', outputFile.asFile.absolutePath
     )
 
