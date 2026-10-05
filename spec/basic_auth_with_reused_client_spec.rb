@@ -10,7 +10,7 @@ describe "Basic Auth with a reused Faraday connection" do
   end
 
   let(:response_body) do
-    { id: "query-id", stats: {} }.to_json
+    {id: "query-id", stats: {}}.to_json
   end
 
   let(:https_error_message) do
@@ -102,7 +102,7 @@ describe "Basic Auth with a reused Faraday connection" do
       "https://localhost:8080/v1/statement"
     ).with(
       body: "SELECT 1",
-      headers: { "Authorization" => authorization }
+      headers: {"Authorization" => authorization}
     ).to_return(body: response_body)
 
     client.query("SELECT 1")
