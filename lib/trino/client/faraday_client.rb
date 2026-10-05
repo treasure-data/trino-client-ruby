@@ -119,7 +119,10 @@ module Trino::Client
     return ssl
   end
 
-  def self.build_query_headers(options)
+  def self.build_query_headers(options, faraday:)
+    if options[:password] && faraday.url_prefix.scheme != "https"
+      raise ArgumentError, "Protocol must be https when passing a password"
+    end
     use_presto_headers = false
     if options[:model_version] && options[:model_version].to_i < 351
       use_presto_headers = true

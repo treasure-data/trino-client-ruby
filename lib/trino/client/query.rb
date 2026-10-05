@@ -34,10 +34,9 @@ module Trino::Client
     end
 
     def self.kill(query_id, faraday, options)
+      headers = Trino::Client.build_query_headers(options, faraday: faraday)
       response = faraday.delete do |req|
-        req.headers.merge!(
-          Trino::Client.build_query_headers(options)
-        )
+        req.headers.merge!(headers)
         req.url "/v1/query/#{query_id}"
       end
       return response.status / 100 == 2

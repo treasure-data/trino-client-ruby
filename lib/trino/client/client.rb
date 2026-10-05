@@ -19,6 +19,13 @@ module Trino::Client
   require 'trino/client/query'
 
   class Client
+    # Creates a reusable Faraday connection using the initial options.
+    # Connection settings are not reapplied after initialization.
+    # These include server, ssl, proxy, and faraday_adapter; see the README for the full list.
+    # Create a new Client to change these settings.
+    #
+    # Query-specific headers, including Basic Auth, use the options at query start.
+    # Password authentication requires the actual connection to use HTTPS, regardless of later changes to options[:ssl].
     def initialize(options)
       @options = options
       @faraday = Trino::Client.faraday_client(options)

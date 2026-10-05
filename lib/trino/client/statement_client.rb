@@ -30,7 +30,7 @@ module Trino::Client
 
     def initialize(faraday, query, options, next_uri=nil)
       @faraday = faraday
-      @headers = Trino::Client.build_query_headers(options)
+      @headers = Trino::Client.build_query_headers(options, faraday: @faraday)
 
       @options = options
       @query = query
