@@ -30,6 +30,7 @@ module Trino::Client
 
     def initialize(faraday, query, options, next_uri=nil)
       @faraday = faraday
+      @headers = Trino::Client.build_query_headers(options, faraday: @faraday)
 
       @options = options
       @query = query
@@ -72,6 +73,7 @@ module Trino::Client
         begin
           r = @faraday.post do |req|
             req.url uri
+            req.headers.merge!(@headers)
 
             req.body = @query
             init_request(req)
@@ -229,7 +231,9 @@ module Trino::Client
     def faraday_get_with_retry(uri)
       with_retry_loop do
         begin
-          response = @faraday.get(uri)
+          response = @faraday.get(uri) do |req|
+            req.headers.merge!(@headers)
+          end
         rescue Faraday::TimeoutError, Faraday::ConnectionFailed
           throw :retry_with_backoff
         rescue => e
@@ -278,6 +282,7 @@ module Trino::Client
     def cancel_leaf_stage
       if uri = @results.partial_cancel_uri
         @faraday.delete do |req|
+          req.headers.merge!(@headers)
           req.url uri
         end
       end
@@ -291,6 +296,7 @@ module Trino::Client
       begin
         if uri = @results.next_uri
           @faraday.delete do |req|
+            req.headers.merge!(@headers)
             req.url uri
           end
         end

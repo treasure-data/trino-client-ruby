@@ -88,8 +88,8 @@ $ bundle exec rake modelgen:latest
 
 ## Options
 
-* **server** sets address (and port) of a Trino coordinator server.
-* **ssl** enables https.
+* **server** sets address (and port) of a Trino coordinator server. Changes after client initialization are not applied; create a new client to change this option.
+* **ssl** enables https. Changes after client initialization are not applied; create a new client to change this option.
   * Setting `true` enables SSL and verifies server certificate using system's built-in certificates.
   * Setting `{verify: false}` enables SSL but doesn't verify server certificate.
   * Setting a Hash object enables SSL and verify server certificate with options:
@@ -104,20 +104,21 @@ $ bundle exec rake modelgen:latest
 * **client_info** sets client info to queries. It can be a string to pass a raw string, or an object that can be encoded to JSON.
 * **client_tags** sets client tags to queries. It needs to be an array of strings. The tags are shown on web interface.
 * **user** sets user name to connect to a Trino.
-* **password** sets a password to connect to Trino using basic auth.
+* **password** sets a password to connect to Trino using basic auth. Requires the client's connection to use HTTPS.
 * **time_zone** sets time zone of queries. Time zone affects some functions such as `format_datetime`.
 * **language** sets language of queries. Language affects some functions such as `format_datetime`.
 * **properties** set session properties. Session properties affect internal behavior such as `hive.force_local_scheduling: true`, `raptor.reader_stream_buffer_size: "32MB"`, etc.
 * **query_timeout** sets timeout in seconds for the entire query execution (from the first API call until there're no more output data). If timeout happens, client raises TrinoQueryTimeoutError. Default is nil (disabled).
 * **plan_timeout** sets timeout in seconds for query planning execution (from the first API call until result columns become available). If timeout happens, client raises TrinoQueryTimeoutError. Default is nil (disabled).
 * **http_headers** sets custom HTTP headers. It must be a Hash of string to string.
-* **http_proxy** sets host:port of a HTTP proxy server.
-* **http_debug** enables debug message to STDOUT for each HTTP requests.
-* **http_debug_logger** sets a custom `Logger` instance for HTTP debug logs. Requires **http_debug** to be `true`.
+* **http_proxy** sets host:port of a HTTP proxy server. Changes after client initialization are not applied; create a new client to change this option.
+* **http_debug** enables debug message to STDOUT for each HTTP requests. Changes after client initialization are not applied; create a new client to change this option.
+* **http_debug_logger** sets a custom `Logger` instance for HTTP debug logs. Requires **http_debug** to be `true`. Changes after client initialization are not applied; create a new client to change this option.
 * **http_open_timeout** sets timeout in seconds to open new HTTP connection.
 * **http_timeout** sets timeout in seconds to read data from a server.
-* **gzip** enables gzip compression.
-* **follow_redirect** enables HTTP redirection support.
+* **gzip** enables gzip compression. Changes after client initialization are not applied; create a new client to change this option.
+* **follow_redirect** enables HTTP redirection support. Changes after client initialization are not applied; create a new client to change this option.
+* **faraday_adapter** sets the Faraday adapter to use. Default is `Faraday.default_adapter`. To reuse persistent HTTP connections, install `faraday-net_http_persistent` and specify `:net_http_persistent`. Changes after client initialization are not applied; create a new client to change this option.
 * **model_version** set the Trino version to which a job is submitted. Supported versions are 351, 316, 303, 0.205, 0.178, 0.173, 0.153 and 0.149. Default is 351.
 
 See [RDoc](http://www.rubydoc.info/gems/presto-client/) for the full documentation.

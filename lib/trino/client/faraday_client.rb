@@ -14,9 +14,8 @@
 #    limitations under the License.
 #
 module Trino::Client
-  FARADAY1_USED = Faraday::VERSION.start_with?("1.")
-  private_constant :FARADAY1_USED
 
+  require 'base64'
   require 'cgi'
 
   module TrinoHeaders
@@ -77,14 +76,6 @@ module Trino::Client
     faraday_options[:ssl] = ssl if ssl
 
     faraday = Faraday.new(faraday_options) do |faraday|
-      if options[:user] && options[:password]
-        # https://lostisland.github.io/faraday/middleware/authentication
-        if FARADAY1_USED
-          faraday.request(:basic_auth, options[:user], options[:password])
-        else
-          faraday.request :authorization, :basic, options[:user], options[:password]
-        end
-      end
       if options[:follow_redirect]
         faraday.response :follow_redirects
       end
@@ -92,11 +83,10 @@ module Trino::Client
         faraday.request :gzip
       end
       faraday.response :logger, options[:http_debug_logger] if options[:http_debug]
-      faraday.adapter Faraday.default_adapter
+      faraday.adapter(options[:faraday_adapter] || Faraday.default_adapter)
     end
 
     faraday.headers.merge!(HEADERS)
-    faraday.headers.merge!(optional_headers(options))
 
     return faraday
   end
@@ -129,71 +119,82 @@ module Trino::Client
     return ssl
   end
 
-  def self.optional_headers(options)
-    usePrestoHeader = false
-    if options[:model_version] && options[:model_version] < 351
-      usePrestoHeader = true
+  def self.build_query_headers(options, faraday:)
+    if options[:password] && faraday.url_prefix.scheme != "https"
+      raise ArgumentError, "Protocol must be https when passing a password"
+    end
+    use_presto_headers = false
+    if options[:model_version] && options[:model_version].to_i < 351
+      use_presto_headers = true
     end
 
     headers = {}
+
+    if options[:user] && options[:password]
+      credentials = Base64.strict_encode64(
+        "#{options[:user]}:#{options[:password]}"
+      )
+      headers["Authorization"] = "Basic #{credentials}"
+    end
+
     if v = options[:user]
-      if usePrestoHeader
+      if use_presto_headers
         headers[PrestoHeaders::PRESTO_USER] = v
       else
         headers[TrinoHeaders::TRINO_USER] = v
       end
     end
     if v = options[:source]
-      if usePrestoHeader
+      if use_presto_headers
         headers[PrestoHeaders::PRESTO_SOURCE] = v
       else
         headers[TrinoHeaders::TRINO_SOURCE] = v
       end
     end
     if v = options[:catalog]
-      if usePrestoHeader
+      if use_presto_headers
         headers[PrestoHeaders::PRESTO_CATALOG] = v
       else
         headers[TrinoHeaders::TRINO_CATALOG] = v
       end
     end
     if v = options[:schema]
-      if usePrestoHeader
+      if use_presto_headers
         headers[PrestoHeaders::PRESTO_SCHEMA] = v
       else
         headers[TrinoHeaders::TRINO_SCHEMA] = v
       end
     end
     if v = options[:time_zone]
-      if usePrestoHeader
+      if use_presto_headers
         headers[PrestoHeaders::PRESTO_TIME_ZONE] = v
       else
         headers[TrinoHeaders::TRINO_TIME_ZONE] = v
       end
     end
     if v = options[:language]
-      if usePrestoHeader
+      if use_presto_headers
         headers[PrestoHeaders::PRESTO_LANGUAGE] = v
       else
         headers[TrinoHeaders::TRINO_LANGUAGE] = v
       end
     end
     if v = options[:properties]
-      if usePrestoHeader
+      if use_presto_headers
         headers[PrestoHeaders::PRESTO_SESSION] = encode_properties(v)
       else
         headers[TrinoHeaders::TRINO_SESSION] = encode_properties(v)
       end
     end
     if v = options[:client_info]
-      if usePrestoHeader
+      if use_presto_headers
         headers[PrestoHeaders::PRESTO_CLIENT_INFO] = encode_client_info(v)
       else
         headers[TrinoHeaders::TRINO_CLIENT_INFO] = encode_client_info(v)
       end
     end
     if v = options[:client_tags]
-      if usePrestoHeader
+      if use_presto_headers
         headers[PrestoHeaders::PRESTO_CLIENT_TAGS] = encode_client_tags(v)
       else
         headers[TrinoHeaders::TRINO_CLIENT_TAGS] = encode_client_tags(v)
@@ -245,6 +246,6 @@ module Trino::Client
     Array(tags).join(",")
   end
 
-  private_class_method :faraday_ssl_options, :optional_headers, :encode_properties, :encode_client_info, :encode_client_tags
+  private_class_method :faraday_ssl_options, :encode_properties, :encode_client_info, :encode_client_tags
 
 end
