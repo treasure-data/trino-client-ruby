@@ -32,7 +32,7 @@ module Trino::Client
     end
 
     def query(query, &block)
-      q = Query.start(query, @faraday, @options)
+      q = Query.start(query, @options, @faraday)
       if block
         begin
           yield q
@@ -45,15 +45,15 @@ module Trino::Client
     end
 
     def resume_query(next_uri)
-      return Query.resume(next_uri, @faraday, @options)
+      return Query.resume(next_uri, @options, @faraday)
     end
 
     def kill(query_id)
-      return Query.kill(query_id, @faraday, @options)
+      return Query.kill(query_id, @options, @faraday)
     end
 
     def run(query)
-      q = Query.start(query, @faraday, @options)
+      q = Query.start(query, @options, @faraday)
       begin
         columns = q.columns
         if columns.empty?

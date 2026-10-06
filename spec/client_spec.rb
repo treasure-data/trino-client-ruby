@@ -41,12 +41,12 @@ describe Trino::Client::Client do
 
       expect(Trino::Client::Query)
         .to receive(:start)
-              .with("select 1", faraday, options)
+              .with("select 1", options, faraday)
               .and_return(first_query)
 
       expect(Trino::Client::Query)
         .to receive(:start)
-              .with("select 2", faraday, options)
+              .with("select 2", options, faraday)
               .and_return(second_query)
 
       expect(client.query("select 1")).to eq(first_query)
@@ -63,7 +63,7 @@ describe Trino::Client::Client do
 
       expect(Trino::Client::Query)
         .to receive(:start)
-              .with("select 1", faraday, options)
+              .with("select 1", options, faraday)
               .and_return(query)
 
       expect(client.run("select 1")).to eq([[], []])
@@ -76,7 +76,7 @@ describe Trino::Client::Client do
 
       expect(Trino::Client::Query)
         .to receive(:resume)
-              .with(next_uri, faraday, options)
+              .with(next_uri, options, faraday)
               .and_return(query)
 
       expect(client.resume_query(next_uri)).to eq(query)
@@ -87,7 +87,7 @@ describe Trino::Client::Client do
 
       expect(Trino::Client::Query)
         .to receive(:kill)
-              .with("query-id", faraday, options)
+              .with("query-id", options, faraday)
               .and_return(true)
 
       expect(client.kill("query-id")).to eq(true)
@@ -111,12 +111,12 @@ describe Trino::Client::Client do
 
       expect(Trino::Client::Query)
         .to receive(:start)
-              .with("select 1", first_faraday, options)
+              .with("select 1", options, first_faraday)
               .and_return(first_query)
 
       expect(Trino::Client::Query)
         .to receive(:start)
-              .with("select 2", second_faraday, options)
+              .with("select 2", options, second_faraday)
               .and_return(second_query)
 
       first_client.query("select 1")
