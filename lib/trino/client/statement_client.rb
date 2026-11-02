@@ -60,13 +60,6 @@ module Trino::Client
       end
     end
 
-    def init_request(req)
-      req.options.timeout = @options[:http_timeout] || 300
-      req.options.open_timeout = @options[:http_open_timeout] || 60
-    end
-
-    private :init_request
-
     def post_query_request!
       uri = "/v1/statement"
       response = with_retry_loop do
@@ -76,7 +69,7 @@ module Trino::Client
             req.headers.merge!(@headers)
 
             req.body = @query
-            init_request(req)
+            Trino::Client.set_request_timeouts(req, @options)
           end
         rescue Faraday::TimeoutError, Faraday::ConnectionFailed
           # POST /v1/statement is not idempotent; retrying transport-level errors
@@ -232,6 +225,7 @@ module Trino::Client
       with_retry_loop do
         begin
           response = @faraday.get(uri) do |req|
+            Trino::Client.set_request_timeouts(req, @options)
             req.headers.merge!(@headers)
           end
         rescue Faraday::TimeoutError, Faraday::ConnectionFailed
@@ -282,6 +276,7 @@ module Trino::Client
     def cancel_leaf_stage
       if uri = @results.partial_cancel_uri
         @faraday.delete do |req|
+          Trino::Client.set_request_timeouts(req, @options)
           req.headers.merge!(@headers)
           req.url uri
         end
@@ -296,6 +291,7 @@ module Trino::Client
       begin
         if uri = @results.next_uri
           @faraday.delete do |req|
+            Trino::Client.set_request_timeouts(req, @options)
             req.headers.merge!(@headers)
             req.url uri
           end

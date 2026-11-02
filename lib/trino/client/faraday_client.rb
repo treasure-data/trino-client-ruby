@@ -91,6 +91,11 @@ module Trino::Client
     return faraday
   end
 
+  def self.set_request_timeouts(req, options)
+    req.options.timeout = options[:http_timeout] || 300
+    req.options.open_timeout = options[:http_open_timeout] || 60
+  end
+
   def self.faraday_ssl_options(options)
     ssl = options[:ssl]
 
