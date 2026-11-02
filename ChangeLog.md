@@ -1,5 +1,8 @@
 trino-client-ruby
 ====
+## 2.3.0
+- Reuse a Faraday client per Trino::Client instance @p623 (#168)
+
 ## 2.2.6
 - fix: improve POST retry tests and document idempotency assumption ([#159](https://github.com/treasure-data/trino-client-ruby/issues/159)) [[e64c2a9](https://github.com/treasure-data/trino-client-ruby/commit/e64c2a9)]
 - Add retry to POST /v1/statement ([#157](https://github.com/treasure-data/trino-client-ruby/issues/157)) [[64a5c66](https://github.com/treasure-data/trino-client-ruby/commit/64a5c66)]
