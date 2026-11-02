@@ -19,12 +19,20 @@ module Trino::Client
   require 'trino/client/query'
 
   class Client
+    # Creates a reusable Faraday connection using the initial options.
+    # Connection settings are not reapplied after initialization.
+    # These include server, ssl, proxy, and faraday_adapter; see the README for the full list.
+    # Create a new Client to change these settings.
+    #
+    # Query-specific headers, including Basic Auth, use the options at query start.
+    # Password authentication requires the actual connection to use HTTPS, regardless of later changes to options[:ssl].
     def initialize(options)
       @options = options
+      @faraday = Trino::Client.faraday_client(options)
     end
 
     def query(query, &block)
-      q = Query.start(query, @options)
+      q = Query.start(query, @options, @faraday)
       if block
         begin
           yield q
@@ -37,15 +45,15 @@ module Trino::Client
     end
 
     def resume_query(next_uri)
-      return Query.resume(next_uri, @options)
+      return Query.resume(next_uri, @options, @faraday)
     end
 
     def kill(query_id)
-      return Query.kill(query_id, @options)
+      return Query.kill(query_id, @options, @faraday)
     end
 
     def run(query)
-      q = Query.start(query, @options)
+      q = Query.start(query, @options, @faraday)
       begin
         columns = q.columns
         if columns.empty?

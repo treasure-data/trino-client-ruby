@@ -51,7 +51,7 @@ describe Trino::Client::Client do
 
   it 'current query result' do
     @client.query('show schemas') do |q|
-      expect(q.current_results.info_uri).to start_with('http://localhost:8080/ui/query.html')
+      expect(q.current_results.info_uri).to start_with('http://localhost:8080/ui')
     end
   end
 
