@@ -94,7 +94,7 @@ describe Trino::Client::Query do
 
   describe ".kill" do
     let(:request_headers) { {} }
-    let(:request) { double("request", headers: request_headers) }
+    let(:request) { double("request", headers: request_headers, options: Faraday::RequestOptions.new) }
     let(:status) { 204 }
     let(:response) { instance_double(Faraday::Response, status: status) }
     before do

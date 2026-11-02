@@ -39,6 +39,7 @@ module Trino::Client
       faraday ||= faraday_client(options)
       headers = Trino::Client.build_query_headers(options, faraday: faraday)
       response = faraday.delete do |req|
+        Trino::Client.set_request_timeouts(req, options)
         req.headers.merge!(headers)
         req.url "/v1/query/#{query_id}"
       end
