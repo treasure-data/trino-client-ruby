@@ -199,7 +199,7 @@ module Trino::Client
         when 'application/x-msgpack'
           MessagePack.load(response.body)
         else
-          JSON.parse(response.body, opts = JSON_OPTIONS)
+          JSON.parse(response.body, **JSON_OPTIONS)
         end
       rescue => e
         exception! TrinoHttpError.new(500, "Trino API returned unexpected data format. #{e}")

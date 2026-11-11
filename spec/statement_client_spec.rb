@@ -755,6 +755,18 @@ describe Trino::Client::StatementClient do
     StatementClient.new(faraday, query, options)
   end
 
+  it "parses nested JSON with keyword-only parser options" do
+    allow(JSON).to receive(:parse).and_wrap_original(&lambda do |parse, source, **options|
+      parse.call(source, **options)
+    end)
+    stub_request(:post, "localhost/v1/statement").
+      with(body: query).
+      to_return(body: nested_json.to_json(max_nesting: false))
+
+    client = StatementClient.new(faraday, query, options)
+    expect(client.query_id).to eq "queryid"
+  end
+
   describe "query timeout" do
     let :headers do
       {
